@@ -49,7 +49,6 @@ end
 
 ary << (fun.is_function == true)
 
-# FIXME: argument 2 needs to be preset to 0
 ary << (fun.call(1,2.98) == 3.98)
 
 gobj.set_property('sumOf',fun)
