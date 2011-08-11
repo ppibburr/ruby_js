@@ -22,7 +22,8 @@ Examples: (see samples directory for more and use with WebKit)
 # Example: Call Ruby from JS
 
 require 'rubygems'
-require 'ruby_js'
+require 'gir_ffi'
+require 'JS'
 
 ctx = JS::GlobalContext.new(nil)
 globj = ctx.get_global_object()
