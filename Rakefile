@@ -1,11 +1,3 @@
-task :test do
-  sh %{cd test && ruby run_tests.rb}
-end
+load 'tasks/setup.rb'
 
-task :default => :test
-
-task :build do
-  sh %{cd src && ruby js_define.rb}
-end
-
-
+task :default => 'test:run'
