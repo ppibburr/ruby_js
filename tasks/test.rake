@@ -10,5 +10,5 @@ namespace :test do
 
 end
 
-desc 'Alias to test:run'
+desc 'Tests the library. Alias to test:run'
 task :test => 'test:run'

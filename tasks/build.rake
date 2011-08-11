@@ -5,4 +5,5 @@ namespace :build do
   end
 end
 
+desc "Builds the library (.lib/)"
 task :build => 'build:run'
