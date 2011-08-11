@@ -121,6 +121,7 @@ class JS < Library
 	  @target = File.join('..',File.dirname(__FILE__),"lib")
 	  
 	  add_hard_code('js_hard_code',File.join(File.dirname(__FILE__),'hard_code'))
+	  add_hard_code('webkit_hard_code',File.join(File.dirname(__FILE__),'hard_code'))	  
 	  
 	  @ifaces << Object.new()
 	  @ifaces << Value.new()

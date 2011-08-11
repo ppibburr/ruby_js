@@ -134,7 +134,7 @@ module JS
 
     def to_object(exception = nil)
       res = super(context,self,exception)
-      return check_use(res) || is_self(res) || JS::Object.from_pointer_with_context(context,res)
+      return check_use(res) || JS::Object.from_pointer_with_context(context,res)
     end
 
     def protect()

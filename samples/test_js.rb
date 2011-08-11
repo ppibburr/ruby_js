@@ -1,4 +1,7 @@
-require 'JS'
+require 'rubygems'
+require 'gir_ffi'
+require File.join('..',File.dirname(__FILE__),'lib','JS')
+
 def all_true ary
   val = 1
   ary.map do |q| n = 0; n = 1 if q; val = n * val end 

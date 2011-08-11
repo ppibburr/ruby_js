@@ -59,13 +59,15 @@ module JS
     def get_prototype()
       res = super(context,self)
 
-    if cu=(check_use(res) || is_self(res))
-      return cu
-    else
+    
       val_ref = JS::Value.from_pointer_with_context(context,res)
       ret = val_ref.to_ruby
-      return check_use(ret) || is_self(ret) || ret
-    end
+      if ret.is_a?(JS::Value)
+        return check_use(ret) || is_self(ret) || ret
+      else
+        return check_use(ret) || ret
+      end
+    
         
     end
 
@@ -85,13 +87,15 @@ module JS
       propertyName = JS::String.create_with_utf8cstring(propertyName)
       res = super(context,self,propertyName,exception)
 
-    if cu=(check_use(res) || is_self(res))
-      return cu
-    else
+    
       val_ref = JS::Value.from_pointer_with_context(context,res)
       ret = val_ref.to_ruby
-      return check_use(ret) || is_self(ret) || ret
-    end
+      if ret.is_a?(JS::Value)
+        return check_use(ret) || is_self(ret) || ret
+      else
+        return check_use(ret) || ret
+      end
+    
         
     end
 
@@ -111,13 +115,15 @@ module JS
     def get_property_at_index(propertyIndex,exception = nil)
       res = super(context,self,propertyIndex,exception)
 
-    if cu=(check_use(res) || is_self(res))
-      return cu
-    else
+    
       val_ref = JS::Value.from_pointer_with_context(context,res)
       ret = val_ref.to_ruby
-      return check_use(ret) || is_self(ret) || ret
-    end
+      if ret.is_a?(JS::Value)
+        return check_use(ret) || is_self(ret) || ret
+      else
+        return check_use(ret) || ret
+      end
+    
         
     end
 
@@ -146,13 +152,15 @@ module JS
       thisObject = JS::Object.from_ruby(context,thisObject)
       res = super(context,self,thisObject,argumentCount,arguments,exception)
 
-    if cu=(check_use(res) || is_self(res))
-      return cu
-    else
+    
       val_ref = JS::Value.from_pointer_with_context(context,res)
       ret = val_ref.to_ruby
-      return check_use(ret) || is_self(ret) || ret
-    end
+      if ret.is_a?(JS::Value)
+        return check_use(ret) || is_self(ret) || ret
+      else
+        return check_use(ret) || ret
+      end
+    
         
     end
 
@@ -163,7 +171,7 @@ module JS
 
     def call_as_constructor(argumentCount,arguments = nil,exception = nil)
       res = super(context,self,argumentCount,arguments,exception)
-      return check_use(res) || is_self(res) || JS::Object.from_pointer_with_context(context,res)
+      return check_use(res) || JS::Object.from_pointer_with_context(context,res)
     end
 
     def copy_property_names()

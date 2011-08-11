@@ -139,19 +139,21 @@ class JavaScript < Sugar
     case sm.return_type.split(" ").last
       when "JSValueRef"
         @co.puts """
-    if cu=(check_use(res) || is_self(res))
-      return cu
-    else
+    
       val_ref = JS::Value.from_pointer_with_context(context,res)
       ret = val_ref.to_ruby
-      return check_use(ret) || is_self(ret) || ret
-    end
+      if ret.is_a?(JS::Value)
+        return check_use(ret) || is_self(ret) || ret
+      else
+        return check_use(ret) || ret
+      end
+    
         """
       when "JSObjectRef"
         if sm.symbol.to_s == "get_global_object"
           @co.puts "      context = self"
         end 
-        @co.puts "      return check_use(res) || is_self(res) || JS::Object.from_pointer_with_context(context,res)"
+        @co.puts "      return check_use(res) || JS::Object.from_pointer_with_context(context,res)"
       when "JSGlobalContextRef"
         # not doing auto cast  
       when "JSContextGroupRef"
