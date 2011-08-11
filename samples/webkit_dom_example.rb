@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'gir_ffi'
 
-require File.join('..',File.dirname(__FILE__),'lib','JS')
+require File.join(File.dirname(__FILE__),'..','lib','JS')
 
 GirFFI.setup "Gtk"
 
