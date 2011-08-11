@@ -10,41 +10,37 @@ With a WebKit binding you can:
   * and all the above
 
 My Build Enviroment(s):
-    (No WebKit Binding) 
-    * Ubuntu linux 9.10
-    * rubygems
-    * ffi (gem i ffi)
-    * libwebkit-1.0 (apt-get install libwebkit-1.0 libwebkit-1.0-common)
-
-    (WebKit Binding)
     * Ubuntu linux 11.04
     * rubygems
     * ffi (gem i ffi)
     * gir_ffi (gem i gir_ffi) [note: gir_ffi needs some gobject introspection libs and data]
-    * libwebkit-1.0 (apt-get install libwebkit-1.0 libwebkit-1.0-common)
+    * libwebkitgtk-1.0 (apt-get install libwebkit-dev libwebkitgtk-1.0-0 libwebkitgtk-1.0-common)
+
+Examples: (see samples directory for more and use with WebKit)
+
 
 # Example: Call Ruby from JS
 
 require 'rubygems'
 require 'ruby_js'
 
-ctx = JS::GlobalContext.new()
+ctx = JS::GlobalContext.new(nil)
 globj = ctx.get_global_object()
 
-fun_obj = JS::Object.make_function_with_callback("myFunc") do |this,*args|
+fun_obj = JS::Object.make_function_with_callback(ctx,"myFunc") do |this,*args|
   args.join(" ")
 end # => a JS::Object
 
 globj['funObj'] = fun_obj
 
-JS.execute_script("funObj('Hello','World')") #=> "Hello World"
+JS.execute_script(ctx,"funObj('Hello','World')") #=> "Hello World"
 
 # Example: Call JS from Ruby
 
-JS.execute_script """
+JS.execute_script ctx,"""
   this['myAdd'] = function(a,b) {
     return a + b;
   };
 """
 
-globj['myAdd'].call(3,2) # => 5
+globj['myAdd'].call(3,2) # => 5.0
