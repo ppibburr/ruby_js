@@ -16,6 +16,16 @@ My Build Enviroment(s):
     * gir_ffi (gem i gir_ffi) [note: gir_ffi needs some gobject introspection libs and data]
     * libwebkitgtk-1.0 (apt-get install libwebkit-dev libwebkitgtk-1.0-0 libwebkitgtk-1.0-common)
 
+Install: (covers gem usage from source, requires 'rake')
+  download source and extract
+    -- or --
+  `git clone git@github.com:ppibburr/ruby_js`
+  
+  execute:
+  
+  `cd ruby_js` # note a download might have longer name
+  `rake gem` # will build, and install gem (may need to be super user)
+
 Examples: (see samples directory for more and use with WebKit)
 
 
