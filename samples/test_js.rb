@@ -1,6 +1,4 @@
 require 'JS'
-
-
 def all_true ary
   val = 1
   ary.map do |q| n = 0; n = 1 if q; val = n * val end 
@@ -58,7 +56,7 @@ gobj.set_property('sumOf',fun)
 
 val = JS.execute_script(ctx,"this.sumOf(1,2.98);")
 
-ary << (val.to_ruby == 3.98)
+ary << (val == 3.98)
 
 if all_true(ary)
   puts "all tests successfully passed"
