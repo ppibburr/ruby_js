@@ -92,6 +92,22 @@ class JS::Object
     set_property(k,v)
   end
   
+  def properties
+    ary = []
+    for i in 1..copy_property_names.get_count
+      ary << copy_property_names.get_name_at_index(i-1)
+    end
+    ary
+  end
+  
+  def functions
+    ary = []
+    properties.each do |prop|
+      ary << prop if self[prop].is_a?(JS::Object) and self[prop].is_function
+    end
+    ary
+  end
+  
   def call *args
     raise('Can not call JS::Object (JS::Object#=>is_function returned false') if !is_function
     @this ||= nil

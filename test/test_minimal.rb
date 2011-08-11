@@ -29,6 +29,8 @@ ary = []
 
 my_obj.set_property("testString",'aString')
 ary << ('aString' == my_obj.get_property("testString"))
+ary << (my_obj.copy_property_names.get_name_at_index(0) == "testString")
+ary << (my_obj.copy_property_names.get_count == 1)
 
 my_obj["testNumber"] = 1979.05
 ary << (1979.05 == my_obj.get_property("testNumber"))

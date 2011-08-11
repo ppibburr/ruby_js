@@ -8,10 +8,13 @@ module JS
     require File.join(File.dirname(__FILE__),'ContextGroup')
     require File.join(File.dirname(__FILE__),'Value')
     require File.join(File.dirname(__FILE__),'String')
+    require File.join(File.dirname(__FILE__),'PropertyNameArray')
 
     extend FFI::Library
     ffi_lib 'libwebkitgtk-1.0'
 
+    typedef :uint,:unsigned
+    typedef :pointer,:JSValueRef
     typedef :pointer,:JSPropertyNameArrayRef
     typedef :pointer,:JSGlobalContextRef
     typedef :pointer,:JSClassRef
@@ -19,8 +22,6 @@ module JS
     typedef :pointer,:JSObjectRef
     typedef :pointer,:JSContextRef
     typedef :pointer,:JSStringRef
-    typedef :uint,:unsigned
-    typedef :pointer,:JSValueRef
 
     callback :JSObjectCallAsFunctionCallback,[:JSContextRef,:JSObjectRef,:JSObjectRef,:size_t,:pointer,:JSValueRef],:JSValueRef
 
@@ -107,5 +108,9 @@ module JS
     attach_function :JSStringGetUTF8CString,[:JSStringRef,:pointer,:size_t],:size_t
     attach_function :JSStringIsEqual,[:JSStringRef,:JSStringRef],:bool
     attach_function :JSStringIsEqualToUTF8CString,[:JSStringRef,:string],:bool
+    attach_function :JSPropertyNameArrayRetain,[:JSPropertyNameArrayRef],:JSPropertyNameArrayRef
+    attach_function :JSPropertyNameArrayRelease,[:JSPropertyNameArrayRef],:void
+    attach_function :JSPropertyNameArrayGetCount,[:JSPropertyNameArrayRef],:size_t
+    attach_function :JSPropertyNameArrayGetNameAtIndex,[:JSPropertyNameArrayRef,:size_t],:JSStringRef
   end
 end

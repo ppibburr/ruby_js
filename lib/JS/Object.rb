@@ -176,7 +176,7 @@ module JS
 
     def copy_property_names()
       res = super(context,self)
-      return res
+      return JS::PropertyNameArray.new(res)
     end
   end
 end

@@ -158,6 +158,8 @@ class JavaScript < Sugar
         # not doing auto cast  
       when "JSContextGroupRef"
         # not doing auto cast 
+      when "JSPropertyNameArrayRef"
+        @co.puts "      return JS::PropertyNameArray.new(res)"
     else
       case sm.return_type.split(" ").last
         when "JSStringRef"

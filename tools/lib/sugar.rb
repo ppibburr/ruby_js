@@ -52,7 +52,7 @@ class Sugar
         return #{@lib.lib_name}::#{@in_iface.ruby_name}.#{@in_iface.ctor_method}(*o)
       end
     end
-      """      
+      """  if @in_iface.ctor_method    
     else
       @co.puts "module #{@lib_name}"
       @co.puts "  module #{i.ruby_name}"   

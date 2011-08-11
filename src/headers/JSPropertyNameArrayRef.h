@@ -30,10 +30,4 @@ JS_EXPORT size_t JSPropertyNameArrayGetCount(JSPropertyNameArrayRef array);
 */
 JS_EXPORT JSStringRef JSPropertyNameArrayGetNameAtIndex(JSPropertyNameArrayRef array, size_t index);
 
-/*!
-@function
-@abstract Adds a property name to a JavaScript property name accumulator.
-@param accumulator The accumulator object to which to add the property name.
-@param propertyName The property name to add.
-*/
-JS_EXPORT void JSPropertyNameAccumulatorAddName(JSPropertyNameAccumulatorRef accumulator, JSStringRef propertyName);
+

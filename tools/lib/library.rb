@@ -82,6 +82,8 @@ class Library < IFace
           io.puts "      # @param #{d[0]} => #{d[1]}"
         end
         
+        io.puts "      # retuen => #{ret}"
+        
         io.puts "      def #{prefix}#{(rm=decamel(f.name.gsub(Regexp.new("^#{i.c_function_prefix}"),'')))}(#{pnames.join(",")})"
         
         sugar_meth = Sugar::Method.new

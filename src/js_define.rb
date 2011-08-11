@@ -97,6 +97,16 @@ class JS < Library
 	  end
 	end   
 
+    class PropertyNameArray < IFace
+      def initialize
+      super
+        @ruby_name = "PropertyNameArray"
+	    @c_type_name = "JSPropertyNameArrayRef"
+        @c_function_prefix = "JSPropertyNameArray"
+	    @source_header = File.join(File.dirname(__FILE__),'headers',"JSPropertyNameArrayRef.h")
+	  end
+    end
+
 	def initialize
 	  super
 	  @ffi_libs << 'libwebkitgtk-1.0'
@@ -130,6 +140,7 @@ class JS < Library
 	  @ifaces << ContextGroup.new()
 	  @ifaces << Value.new()
 	  @ifaces << String.new()
+	  @ifaces << PropertyNameArray.new
 	  
 	  force_param_type(:JSStringGetUTF8CString,1,:pointer)
 	end
