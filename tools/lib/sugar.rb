@@ -28,6 +28,10 @@ class Sugar
         FileUtils.cp(File.join(hc[1],hc[0]+".rb"),File.join(@lib.target,@lib.lib_name,hc[0]+".rb"))
       end
     end
+    
+    @lib.opt_req.each do |orf|
+      FileUtils.cp(orf,File.join(@lib.target,@lib.lib_name,File.basename(orf)))
+    end
   end
   
   def open_iface i

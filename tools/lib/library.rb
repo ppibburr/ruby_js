@@ -1,5 +1,5 @@
 class Library < IFace
-  attr_accessor :ifaces,:manual_funcs,:lib_name,:target,:ffi_libs,:callbacks,:hard_code
+  attr_accessor :ifaces,:manual_funcs,:lib_name,:target,:ffi_libs,:callbacks,:hard_code,:opt_req
   def initialize
     super
     @ifaces = []
@@ -8,6 +8,7 @@ class Library < IFace
     @param_overides = {}
     @ffi_libs = []
     @hard_code = []
+    @opt_req = []
   end
   
   def attach f,prms,r
@@ -21,6 +22,10 @@ class Library < IFace
   
   def add_hard_code(*ary)
     @hard_code << ary
+  end
+  
+  def add_optional_require f
+    @opt_req << f
   end
   
   def typedef is,this

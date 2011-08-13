@@ -133,6 +133,8 @@ class JS < Library
 	  add_hard_code('js_hard_code',File.join(File.dirname(__FILE__),'hard_code'))
 	  add_hard_code('webkit_hard_code',File.join(File.dirname(__FILE__),'hard_code'))	  
 	  
+	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','props2methods.rb')
+	  
 	  @ifaces << Object.new()
 	  @ifaces << Value.new()
 	  @ifaces << Context.new()

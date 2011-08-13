@@ -2,7 +2,7 @@
 namespace :unbuild do
   task :run do
     if File.exists?('lib')
-      sh %x{rm -rf lib}
+      sh %{rm -rf lib}
       !File.exists?('lib')
     end
   end

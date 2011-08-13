@@ -6,7 +6,7 @@ namespace :gem do
 
 	desc "remove ruby_js-[version] installation from rubygems"
 	task :remove do
-	  sh %{gem uni ruby_js}
+	  sh %{gem uni ruby_js} if `gem list -d ruby_js`.split("\n").map do |l| l !~ /ruby_js/ end.index(false)
 	end
 
     desc "installs the gem to rubygems"
