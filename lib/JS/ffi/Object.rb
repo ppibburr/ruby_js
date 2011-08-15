@@ -27,6 +27,15 @@ module JS
       end
 
       # @param ctx => :JSContextRef
+      # @param argumentCount => :size_t
+      # @param arguments => array of :JSValueRef
+      # @param exception => :pointer
+      # retuen => JSObjectRef
+      def self.make_array(ctx,argumentCount,arguments,exception)
+        JS::Lib.JSObjectMakeArray(ctx,argumentCount,arguments,exception)
+      end
+
+      # @param ctx => :JSContextRef
       # @param name => :JSStringRef
       # @param parameterCount => :unsigned
       # @param parameterNames => array of :JSStringRef

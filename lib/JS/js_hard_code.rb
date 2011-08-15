@@ -19,7 +19,7 @@ class JS::Value
     end 
   end
   
-  def self.from_ruby ctx,rv = :undefined
+  def self.from_ruby ctx,rv = :undefined,&b
     if rv.is_a?(JS::Lib::Value)
       rv
     else
@@ -32,12 +32,16 @@ class JS::Value
         make_number(ctx,rv)
       elsif rv == true || rv == false
         make_boolean(ctx,rv)
-      elsif rv == nil
+      elsif rv == nil and !b
         make_null ctx
       elsif rv.is_a?(JS::Lib::Object)
         res = JS.execute_script(ctx,"this;",rv)
       elsif rv == :undefined
         make_undefined ctx
+      elsif rv.is_a?(Hash) || rv.is_a?(Array)
+        from_ruby(ctx,JS::Object.from_ruby(ctx,rv))
+      elsif rv.is_a?(Method) || b || rv.is_a?(Proc)
+        from_ruby(ctx,JS::Object.from_ruby(ctx,rv,&b))
       else
         raise "cant make value from #{rv.class}."
       end
@@ -58,18 +62,45 @@ rescue ArgumentError => e
 end
 
 class JS::Object
-  def self.from_ruby ctx,rv
-    if rv.is_a?(JS::Lib::Object)
-      rv
-    elsif rv.is_a?(Hash)
-      raise "not yet" # TODO
-    elsif rv.is_a?(Array)
-      raise "not yet"
-    elsif rv.is_a?(Method)
-      raise "not yet"
-    elsif !rv
-      nil
+  class << self
+    alias :non_ruby_new :new
+  end
+  
+  def self.new *o,&b
+    if o.length == 2 or (o.length == 1 && (!o[0].is_a?(Hash) || !o[0].has_key?(:pointer)))
+      from_ruby *o,&b
+    else
+      non_ruby_new *o
     end
+  end
+  
+  def self.from_ruby ctx,rv=nil,&b
+    res = nil
+    if !rv and !b
+      res = self.make(ctx)
+    elsif rv.is_a?(JS::Lib::Object)
+      return rv
+    elsif rv.is_a?(Hash)
+      res = self.new ctx
+      res.context = ctx
+      rv.each_pair do |prop,v|
+        res[prop.to_s] = v
+      end
+    elsif rv.is_a?(Array)
+      res = self.make_array(ctx,rv.length,JS.rb_ary2jsvalueref_ary(ctx,rv))
+    elsif rv.is_a?(Method)
+      res = self.make_function_with_callback ctx,'' do |*o|
+        rv.call(*o)
+      end
+    elsif rv.is_a?(Proc)
+      res = self.make_function_with_callback ctx,'', &rv
+    elsif b;
+      res = self.make_function_with_callback ctx,'',&b
+    else
+      return nil
+    end
+    res.context = ctx || context
+    return res
   end
   
   def [] k
@@ -147,5 +178,9 @@ module JS
     val = JS::Lib.JSEvaluateScript(ctx,str_ref,this,nil,1,nil)
     str_ref.release
     JS::Value.from_pointer_with_context(ctx,val).to_ruby
+  end
+  
+  def self.param_needs_context? a
+    a.is_a?(Array) || a.is_a?(Hash) or a.is_a?(Method) or a.is_a?(Proc)
   end
 end

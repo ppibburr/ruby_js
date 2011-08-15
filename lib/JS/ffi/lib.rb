@@ -30,6 +30,7 @@ module JS
     attach_function :JSObjectMake,[:JSContextRef,:JSClassRef,:pointer],:JSObjectRef
     attach_function :JSObjectMakeFunctionWithCallback,[:JSContextRef,:JSStringRef,:JSObjectCallAsFunctionCallback],:JSObjectRef
     attach_function :JSObjectMakeConstructor,[:JSContextRef,:JSClassRef,:pointer],:JSObjectRef
+    attach_function :JSObjectMakeArray,[:JSContextRef,:size_t,:JSValueRef,:pointer],:JSObjectRef
     attach_function :JSObjectMakeFunction,[:JSContextRef,:JSStringRef,:unsigned,:JSStringRef,:JSStringRef,:JSStringRef,:int,:pointer],:JSObjectRef
     attach_function :JSObjectGetPrototype,[:JSContextRef,:JSObjectRef],:JSValueRef
     attach_function :JSObjectSetPrototype,[:JSContextRef,:JSObjectRef,:JSValueRef],:void

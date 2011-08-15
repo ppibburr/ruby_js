@@ -46,6 +46,13 @@ module JS
       return wrap
     end
 
+    def self.make_array(ctx,argumentCount,arguments,exception = nil)
+      res = super(ctx,argumentCount,arguments,exception)
+      wrap = self.new(:pointer=>res)
+      wrap.context = ctx
+      return wrap
+    end
+
     def self.make_function(ctx,name,parameterCount,parameterNames,body,sourceURL,startingLineNumber,exception = nil)
       name = JS::String.create_with_utf8cstring(name)
       body = JS::String.create_with_utf8cstring(body)

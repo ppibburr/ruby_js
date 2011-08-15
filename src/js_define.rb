@@ -14,6 +14,7 @@ class JS < Library
 		@ignore_functions << "JSObjectGetPrivate"
 		
 		@ctor_functions << "JSObjectMake"
+		@ctor_functions << "JSObjectMakeArray"
 		@ctor_functions << "JSObjectMakeConstructor"
 		@ctor_functions << "JSObjectMakeFunction"
 		@ctor_functions << "JSObjectMakeFunctionWithCallback"

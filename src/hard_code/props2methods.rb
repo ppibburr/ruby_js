@@ -17,4 +17,14 @@ class JS::Object
   rescue
     super
   end
+  
+  def each
+    properties.each do |n|
+      yield(n) if block_given?
+    end
+  end
+  
+  def each_pair
+    each do |n| yield(n,self[n]) end
+  end
 end
