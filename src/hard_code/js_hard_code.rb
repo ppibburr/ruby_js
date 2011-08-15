@@ -80,12 +80,14 @@ class JS::Object
       res = self.make(ctx)
     elsif rv.is_a?(JS::Lib::Object)
       return rv
+    # make object with properties of hash
     elsif rv.is_a?(Hash)
       res = self.new ctx
       res.context = ctx
       rv.each_pair do |prop,v|
         res[prop.to_s] = v
       end
+    # make array from ruby array
     elsif rv.is_a?(Array)
       res = self.make_array(ctx,rv.length,JS.rb_ary2jsvalueref_ary(ctx,rv))
     elsif rv.is_a?(Method)
