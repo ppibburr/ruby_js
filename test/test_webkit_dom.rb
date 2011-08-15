@@ -3,6 +3,7 @@ require 'gir_ffi'
 
 require File.join(File.dirname(__FILE__),'..','lib','JS')
 
+
 GirFFI.setup "Gtk"
 
 Gtk.init
@@ -22,8 +23,8 @@ def ruby_do_dom ctx
   body = doc['getElementsByTagName'].call('body')[0]
   ele = doc['createElement'].call('div')
   ele['innerHTML'] = "Click any where ..."
-  
   body['appendChild'].call(ele)
+  
   if ele['innerHTML'] == "Click any where ..."
     Gtk.main_quit
     puts "#{File.basename(__FILE__)} passed"

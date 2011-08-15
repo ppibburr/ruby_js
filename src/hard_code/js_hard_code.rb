@@ -106,6 +106,12 @@ class JS::Object
   end
   
   def [] k
+    if k.is_a?(Float) and k == k.to_i
+      k = k.to_i
+    end
+    raise unless k.is_a?(Symbol) or k.is_a?(String) or k.is_a?(Integer)
+    k = k .to_s
+    
     if k.is_a?(Integer)
       prop = get_property_at_index(k)
     else
@@ -122,6 +128,13 @@ class JS::Object
   end
   
   def []= k,v
+    if k.is_a?(Float) and k == k.to_i
+      k = k.to_i
+    end
+    
+    raise unless k.is_a?(Symbol) or k.is_a?(String) or k.is_a?(Integer)
+    k = k .to_s
+    
     set_property(k,v)
   end
   
@@ -141,9 +154,12 @@ class JS::Object
     ary
   end
   
-  def call *args
+  def call *args,&b
     raise('Can not call JS::Object (JS::Object#=>is_function returned false') if !is_function
     @this ||= nil
+    if b
+      args << JS::Object.new(context,&b)
+    end
     call_as_function @this,args.length,JS.rb_ary2jsvalueref_ary(context,args)
   end
 end

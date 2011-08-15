@@ -53,6 +53,9 @@ test << (obj['testHashFunc'].call({
 
 test << (obj['testMethodFunc'].call(0,1,2,3)[0] == 3)
 
+
+
+
 if idx=test.index(false)
   puts "#{File.basename(__FILE__)} test #{idx} failed."
 else
