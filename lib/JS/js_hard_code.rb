@@ -39,9 +39,9 @@ class JS::Value
       elsif rv == :undefined
         make_undefined ctx
       elsif rv.is_a?(Hash) || rv.is_a?(Array)
-        from_ruby(ctx,JS::Object.from_ruby(ctx,rv))
+        from_ruby(ctx,JS::Object.new(ctx,rv))
       elsif rv.is_a?(Method) || b || rv.is_a?(Proc)
-        from_ruby(ctx,JS::Object.from_ruby(ctx,rv,&b))
+        from_ruby(ctx,JS::Object.new(ctx,rv,&b))
       else
         raise "cant make value from #{rv.class}."
       end
@@ -67,11 +67,20 @@ class JS::Object
   end
   
   def self.new *o,&b
+    res = nil
     if o.length == 2 or (o.length == 1 && (!o[0].is_a?(Hash) || !o[0].has_key?(:pointer)))
-      from_ruby *o,&b
+      res = from_ruby *o,&b
     else
-      non_ruby_new *o
+      res = non_ruby_new *o
     end
+    
+    #if res and JS::Object.is_array(o[0],res)
+      #class << res
+        #include JS::Array
+      #end
+    #end
+    
+    return res
   end
   
   def self.from_ruby ctx,rv=nil,&b
@@ -162,6 +171,21 @@ class JS::Object
     end
     call_as_function @this,args.length,JS.rb_ary2jsvalueref_ary(context,args)
   end
+  
+  def self.is_array(context,obj)
+    return nil if !context.is_a?(JS::Lib::GlobalContext)
+    JS::OBJECT(context).prototype.toString['call'].call(obj) == "[object Array]"
+  end
+end
+
+module JS 
+  class << self
+    [:Object,:Array,:String,:RegExp].each do |t|
+      define_method("#{t.to_s.upcase}") do |ctx|
+        JS.execute_script(ctx,"#{t};")
+      end
+    end
+  end
 end
 
 
@@ -200,5 +224,26 @@ module JS
   
   def self.param_needs_context? a
     a.is_a?(Array) || a.is_a?(Hash) or a.is_a?(Method) or a.is_a?(Proc)
+  end
+end
+
+module JS
+  class Object
+    include Enumerable
+    def each
+      if !JS::Object.is_array(context,self)
+        properties.each do |n|
+          yield(n) if block_given?
+        end
+      else
+        for i in 0..length-1
+          yield self[i] if block_given?
+        end      
+      end
+    end
+  
+    def each_pair
+      each do |n| yield(n,self[n]) end
+    end
   end
 end
