@@ -38,6 +38,10 @@ module JS
       :convertToType,:JSObjectConvertToTypeCallback
     end
   end
+  
+  class ClassDefinition < Lib::JSClassDefinition
+  
+  end
 end
 
 

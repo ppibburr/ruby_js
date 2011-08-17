@@ -4,8 +4,8 @@ require File.join(File.dirname(__FILE__),'..','lib','JS')
 require File.join(File.dirname(__FILE__),'..','lib','JS','props2methods')
 
 ctx = JS::GlobalContext.new(nil)
-
-defi = JS::Lib::JSClassDefinition.new
+# see JS/js_class_definition.rb for info about the struct
+defi = JS::ClassDefinition.new
 defi[:version] = 0 # must be set
 defi[:className] = FFI::MemoryPointer.from_string("MyClass")
 
@@ -19,7 +19,7 @@ defi[:getProperty] = proc do |ct,obj,name,err|
   end
 end
 
-# set up the definition before making class from it
+# ^|^ important to set up the definition before making class from it
 klass = JS::Lib.JSClassCreate(defi)
 
 obj = JS::Object.make(ctx,klass,nil)
@@ -39,12 +39,13 @@ r = JS.execute_script ctx,"""
   a=new MyObject();
   a['someProp'] = 3;
   ary = [];
-  ary.push(a.foo);       // 'bar'
-  ary.push(a.noneSuch);  // undefined
-  ary.push(a.someProp);  // 3.0
+  ary.push(a.foo);                // 'bar'
+  ary.push(a.noneSuch);           // undefined
+  ary.push(a.someProp);           // 3.0
+  ary.push(a instanceof MyObject);// true 
   ary;
 """
-test << r.map == ["bar",:undefined,3.0]
+test << r.map == ["bar",:undefined,3.0,true]
 
 if idx=test.index(false)
   puts "#{File.basename(__FILE__)} test #{idx} failed."

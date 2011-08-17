@@ -15,7 +15,7 @@ end
 
 class JS::RubyObject
   PTRS = {}
-  CLASS_DEF = JS::Lib::JSClassDefinition.new
+  CLASS_DEF = JS::ClassDefinition.new
   
   CLASS_DEF[:getProperty] = proc do |ctx,obj,name,err|
     if (n=JS.read_string(name,false)) == "object_get_property"

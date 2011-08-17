@@ -9,9 +9,9 @@ Gem::Specification.new do |s|
   s.email = ["tulnor@linuxwaves.com"]
   s.homepage = "http://www.github.com/ppibburr/ruby_js"
 
-  #s.rdoc_options = ["--main", "README.rdoc"]
+  s.rdoc_options = ["--main", "README.rdoc"]
 
-  s.files = Dir['{lib,test,tasks,samples}/**/**/*', "*.rdoc", "Rakefile"]
+  s.files = Dir['{lib,test,tasks,samples}/**/**/*', "*.rdoc", "Rakefile"] & `git ls-files -z`.split("\0")
   #s.extra_rdoc_files = ["README.rdoc", "TODO.rdoc"]
   s.test_files = `git ls-files -z -- test`.split("\0")
 

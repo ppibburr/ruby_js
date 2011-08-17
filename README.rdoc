@@ -1,0 +1,68 @@
+= RubyJS
+
+by Matt Mesanko
+
+http://www.github.com/ppibburr/ruby_js
+
+== Description
+
+Ruby (FFI based) bindings to JavaScript from WebKit
+
+== Features/Problems
+* Full access to JavaScript Objects (call functions, get|set properties)
+* Call JS from Ruby
+* Call Ruby from JS
+* Define new JS Classes whose instances get Ruby callbacks
+* Full access to the DOM from a WebKit::WebFrame
+* Wrap a Ruby object and use it in JS
+
+== Synopsis
+
+  require 'JS'
+  
+  ctx = JS::GlobalContext.new(nil)
+  ctx.get_global_object['ruby'] = proc do |this,*args|
+    # do something ...
+    args.reverse
+  end
+  
+  JS.execute_script(ctx,"ruby(1,2);") #=> [2,1]
+
+== Requirements
+
+* ffi      (available as a gem)
+* gir_ffi  (available as a gem) (needs gobject-introspection installed with some introspection data)
+* webkit   (I develop against libwebkitgtk-1.0-0)
+
+== Install
+Get the source
+cd to source root
+
+* sudo rake gem
+
+== License
+
+Copyright (c) 2011 Matt Mesanko
+
+		(The MIT License)
+
+        Copyright 2011 Matt Mesanko <tulnor@linuxwaves.com>
+
+		Permission is hereby granted, free of charge, to any person obtaining
+		a copy of this software and associated documentation files (the
+		'Software'), to deal in the Software without restriction, including
+		without limitation the rights to use, copy, modify, merge, publish,
+		distribute, sublicense, and/or sell copies of the Software, and to
+		permit persons to whom the Software is furnished to do so, subject to
+		the following conditions:
+
+		The above copyright notice and this permission notice shall be
+		included in all copies or substantial portions of the Software.
+
+		THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+		EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+		MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+		IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+		CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
