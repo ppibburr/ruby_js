@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
 
   #s.rdoc_options = ["--main", "README.rdoc"]
 
-  s.files = Dir['{lib,test,tasks,samples}/**/**/*', "*.rdoc", "Rakefile"] & `git ls-files -z`.split("\0")
+  s.files = Dir['{lib,test,tasks,samples}/**/**/*', "*.rdoc", "Rakefile"]
   #s.extra_rdoc_files = ["README.rdoc", "TODO.rdoc"]
   s.test_files = `git ls-files -z -- test`.split("\0")
 

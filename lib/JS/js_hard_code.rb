@@ -75,9 +75,11 @@ class JS::Value
     if rv.is_a?(JS::Lib::Value)
       rv
     else
-      if rv.is_a?(String);
-        s = rv
-        make_string(ctx,s)
+      if rv.is_a?(JS::Lib::String);
+        s = rv;p 876
+        JS::Lib::Value.make_string(ctx,s)
+      elsif rv.is_a?(String)
+        make_string(ctx,rv)
       elsif rv.is_a?(Integer)
         make_number(ctx,rv)
       elsif rv.is_a?(Float)
@@ -101,11 +103,11 @@ class JS::Value
   end
 end
 
-def JS.read_string(str)
+def JS.read_string(str,rel=true)
   str = JS::String.new(:pointer=>str)
   size = str.get_length
   str.get_utf8cstring a=FFI::MemoryPointer.new(:pointer,size+1),size+1
-  str.release
+  str.release if rel
   a.read_string()
 rescue ArgumentError => e
   puts "FIX ** WARNING ** FIX"
