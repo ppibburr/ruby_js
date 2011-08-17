@@ -1,6 +1,5 @@
 Ruby Bindings to JavaScript in WebKit
 
-With only ffi (gem) and libwebkit-1.0 you can:
     * Call Ruby from JS
     * Call JS from Ruby
     * Access the DOM
