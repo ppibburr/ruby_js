@@ -33,9 +33,9 @@ class JavaScript < Sugar
     super()
     @lib = lib
     @lib_name = "JS"
-    @targer = lib.target
+    @target = lib.target
     @params_may_be_nil = {
-      :JSObjectCallAsFunction=>2,
+      :JSObjectCallAsFunction=>4,
       :JSObjectMake=>1,
       :JSObjectMakeConstructor=>1,
       :JSObjectMakeFunctionWithCallback=>1,
@@ -43,6 +43,11 @@ class JavaScript < Sugar
       :JSObjectSetProperty=>4,
       :all_functions_when_name_is_last=>["exception"]
     }
+    
+    add_method_note :JSObjectCallAsFunction, "@note A convienience method is at JS::Object#call\n    # @see Object#call"
+    add_param_default :JSObjectCallAsFunction,3,0
+    add_param_default :JSObjectCallAsConstructor,2,0
+    add_param_default :JSObjectCallAsFunction,2,'nil'
   end
   
   def open_iface *o
@@ -60,20 +65,27 @@ class JavaScript < Sugar
   
   def handle_params sm,f,amt=0
     pnames = sm.pnames[amt..sm.pnames.length-1]
-    
+    cb = nil
     if sm.ptypes.last and @lib.get_cb(sm.ptypes.last.to_sym)
-      pnames[pnames.length-1] = "&#{pnames.last}"
-    elsif idx=@params_may_be_nil[f.name.to_sym]
+      cb = pnames[pnames.length-1] = "&#{pnames.last}"
+    end
+    if idx=@params_may_be_nil[f.name.to_sym]
       idx = idx - amt
       for i in idx..pnames.length-1
-        pnames[i] = pnames[i]+" = nil"
+        pnames[i] = pnames[i]+" = nil" unless cb == pnames[i]
       end
-    elsif a=@params_may_be_nil[:all_functions_when_name_is_last]
-      if a.index(pnames.last)
+    end
+    if ary=@param_defaults[f.name.to_s.to_sym]
+      ary.each do |a|
+        pnames[a[0]-amt]=pnames[a[0]-amt]+ " = "+a[1].to_s
+      end
+    end
+    if a=@params_may_be_nil[:all_functions_when_name_is_last]
+      if a.index(pnames.last);
         pnames[pnames.length-1] = pnames.last+" = nil"
       end
     end
-    
+
     return pnames
   end
   
@@ -103,9 +115,11 @@ class JavaScript < Sugar
     ct=@in_iface.c_type_name
     fp=@in_iface.c_function_prefix
     if f.name =~ Regexp.new("^#{fp}") # check for iface_method
-      @co.puts "\n"
+      @co.puts "\n"\
+
       if sm.ptypes[0].to_s == ct # object method prepend self
         if sm.pnames.length == 1
+          @co.puts desc_params(4,[],sm)
           @co.puts "    def #{prefix}#{sm.symbol}()"
           if @in_iface.is_module
             @co.puts "      res = #{@lib.lib_name}::Lib.#{f.name}(self)"
@@ -114,6 +128,7 @@ class JavaScript < Sugar
           end
         else
           pnames = handle_params sm,f,1
+          @co.puts desc_params(4,pnames,sm,1)
           
           @co.puts "    def #{prefix}#{sm.symbol}(#{pnames.join(",")})"
           write_cast_param_code(sm,1)
@@ -125,6 +140,8 @@ class JavaScript < Sugar
         end
       elsif sm.ptypes[0].to_s == "JSContextRef" and sm.ptypes[1].to_s == ct # object method prepend context and self
         if sm.pnames.length == 2
+          @co.puts desc_params(4,[],sm,2)
+          
           @co.puts "    def #{prefix}#{sm.symbol}()"
           if @in_iface.is_module
             @co.puts "      res = #{@lib.lib_name}::Lib.#{f.name}(context,self)"
@@ -133,7 +150,8 @@ class JavaScript < Sugar
           end
         else
           pnames = handle_params sm,f,2
-      
+          @co.puts desc_params(4,pnames,sm,2)
+          
           @co.puts "    def #{prefix}#{sm.symbol}(#{pnames.join(",")})" 
           write_cast_param_code(sm,2)
           if @in_iface.is_module
@@ -144,6 +162,7 @@ class JavaScript < Sugar
         end
       else
         pnames = handle_params sm,f,0
+        @co.puts desc_params(4,pnames,sm)
         
         @co.puts "    def #{prefix}#{sm.symbol}(#{pnames.join(",")})"
         write_cast_param_code(sm,0)

@@ -25,7 +25,7 @@
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 class IFace
-  attr_accessor :c_type_name,:includes,:ctor_method,:ruby_name,:is_module,:c_function_prefix,:functions,:source_header,:typedefs,:ctors,:ctor_functions,:ignore_functions
+  attr_accessor :c_type_name,:includes,:ctor_method,:documented,:ruby_name,:is_module,:c_function_prefix,:functions,:source_header,:typedefs,:ctors,:ctor_functions,:ignore_functions
   def initialize
     @functions = []
     @includes = []
@@ -79,6 +79,7 @@ class IFace
   end
 
 	def define
+	    @documented = get_doc(source_header) 
 		File.open(source_header,'r').readlines.each do |l|
 			l = l.strip
 				case l

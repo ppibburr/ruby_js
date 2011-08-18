@@ -28,13 +28,17 @@ module JS
   module Lib
     class ContextGroup < JS::BaseObject
 
-      # retuen => JSContextGroupRef
+      # Creates a JavaScript context group.
+      #
+      # @return The created JSContextGroup.
       def self.create()
         JS::Lib.JSContextGroupCreate()
       end
 
-      # @param group => :JSContextGroupRef
-      # retuen => JSContextGroupRef
+      # Retains a JavaScript context group.
+      #
+      # @param [:JSContextGroupRef] group The JSContextGroup to retain.
+      # @return A JSContextGroup that is the same as group.
       def retain(group)
         JS::Lib.JSContextGroupRetain(group)
       end

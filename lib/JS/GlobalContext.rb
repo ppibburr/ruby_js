@@ -41,22 +41,36 @@ module JS
     end
       
 
+    # Creates a global JavaScript execution context.
+    #
+    # @param [JSClassRef] globalObjectClass The class to use when creating the global object. Pass
+    # @return [JS::GlobalContext] A JS::GlobalContext with a global object of class globalObjectClass.
     def self.create(globalObjectClass)
       res = super(globalObjectClass)
       wrap = self.new(:pointer=>res)
       return wrap
     end
 
+    # Creates a global JavaScript execution context in the context group provided.
+    #
+    # @param [JS::ContextGroup] group The context group to use. The created global context retains the group.
+    # @param [JSClassRef] globalObjectClass The class to use when creating the global object. Pass
+    # @return [JS::GlobalContext] A JS::GlobalContext with a global object of class globalObjectClass and a context
     def self.create_in_group(group,globalObjectClass)
       res = super(group,globalObjectClass)
       wrap = self.new(:pointer=>res)
       return wrap
     end
 
+    # Retains a global JavaScript execution context.
+    #
+    # @return [JS::GlobalContext] A JS::GlobalContext that is the same as ctx.
     def retain()
       res = super(self)
     end
 
+    # Releases a global JavaScript execution context.
+    #
     def release()
       res = super(self)
       return res

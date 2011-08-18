@@ -25,7 +25,7 @@
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 class Library < IFace
-  attr_accessor :ifaces,:manual_funcs,:lib_name,:target,:ffi_libs,:callbacks,:hard_code,:opt_req
+  attr_accessor :ifaces,:manual_funcs,:lib_name,:target,:ffi_libs,:callbacks,:hard_code,:opt_req,:documented
   def initialize
     super
     @ifaces = []
@@ -73,6 +73,36 @@ class Library < IFace
     @callbacks.find {|cb| cb[:symbol] == sym}
   end
   
+  def document_method idnt,i,f,pnames,ptypes
+
+    if doc=i.documented[f.name.to_s]
+      buff = []
+      if a=doc['abstract']
+        buff << " "*idnt+"# "+a+"\n#{" "*idnt}#"
+      end
+      
+      if d=doc['discussion']
+        d.split("\n") do |l|
+          buff << " "*idnt+"# "+l
+        end
+      end
+      
+      if pms=doc['params']
+        pms.each_pair do |n,d|
+          t= ptypes[pnames.index(n)]
+          buff << " "*idnt+"# @param [#{t}] #{n} "+d
+        end
+      end
+      
+      if r=doc['result']
+        buff << " "*idnt+"# @return "+r
+      end
+      buff.join("\n")
+    else
+      ""
+    end
+  end
+  
   def generate_iface_function_binding i,f,mo,io,cls = false
         prefix = ""
         if cls then prefix = "self." end
@@ -109,11 +139,11 @@ class Library < IFace
           end
         end
 
-        desc.each do |d|
-          io.puts "      # @param #{d[0]} => #{d[1]}"
-        end
-        
-        io.puts "      # retuen => #{ret}"
+        # desc.each do |d|
+        #  io.puts "      # @param #{d[0]} => #{d[1]}"
+        # end
+        io.puts document_method(6,i,f,pnames,params)
+        #io.puts "      # retuen => #{ret}"
         
         io.puts "      def #{prefix}#{(rm=decamel(f.name.gsub(Regexp.new("^#{i.c_function_prefix}"),'')))}(#{pnames.join(",")})"
         
@@ -135,7 +165,7 @@ class Library < IFace
   end
   
   def build sugar = nil
-    sugar.open_lib
+    sugar.open_lib if sugar
     mo = File.open(File.join(target,lib_name,'ffi','lib.rb'),'w')
     File.open(File.join(target,lib_name,'ffi','base_object.rb'),'w') {|f| f.puts """
 module JS

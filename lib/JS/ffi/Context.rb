@@ -28,14 +28,18 @@ module JS
   module Lib
     class Context < JS::BaseObject
 
-      # @param ctx => :JSContextRef
-      # retuen => JSObjectRef
+      # Gets the global object of a JavaScript execution context.
+      #
+      # @param [:JSContextRef] ctx The JSContext whose global object you want to get.
+      # @return ctx's global object.
       def get_global_object(ctx)
         JS::Lib.JSContextGetGlobalObject(ctx)
       end
 
-      # @param ctx => :JSContextRef
-      # retuen => JSContextGroupRef
+      # Gets the context group to which a JavaScript execution context belongs.
+      #
+      # @param [:JSContextRef] ctx The JSContext whose group you want to get.
+      # @return ctx's group.
       def get_group(ctx)
         JS::Lib.JSContextGetGroup(ctx)
       end

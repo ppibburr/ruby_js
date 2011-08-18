@@ -28,27 +28,34 @@ module JS
   module Lib
     class GlobalContext < JS::BaseObject
 
-      # @param globalObjectClass => :JSClassRef
-      # retuen => JSGlobalContextRef
+      # Creates a global JavaScript execution context.
+      #
+      # @param [:JSClassRef] globalObjectClass The class to use when creating the global object. Pass
+      # @return A JSGlobalContext with a global object of class globalObjectClass.
       def self.create(globalObjectClass)
         JS::Lib.JSGlobalContextCreate(globalObjectClass)
       end
 
-      # @param group => :JSContextGroupRef
-      # @param globalObjectClass => :JSClassRef
-      # retuen => JSGlobalContextRef
+      # Creates a global JavaScript execution context in the context group provided.
+      #
+      # @param [:JSContextGroupRef] group The context group to use. The created global context retains the group.
+      # @param [:JSClassRef] globalObjectClass The class to use when creating the global object. Pass
+      # @return A JSGlobalContext with a global object of class globalObjectClass and a context
       def self.create_in_group(group,globalObjectClass)
         JS::Lib.JSGlobalContextCreateInGroup(group,globalObjectClass)
       end
 
-      # @param ctx => :JSGlobalContextRef
-      # retuen => JSGlobalContextRef
+      # Retains a global JavaScript execution context.
+      #
+      # @param [:JSGlobalContextRef] ctx The JSGlobalContext to retain.
+      # @return A JSGlobalContext that is the same as ctx.
       def retain(ctx)
         JS::Lib.JSGlobalContextRetain(ctx)
       end
 
-      # @param ctx => :JSGlobalContextRef
-      # retuen => void
+      # Releases a global JavaScript execution context.
+      #
+      # @param [:JSGlobalContextRef] ctx The JSGlobalContext to release.
       def release(ctx)
         JS::Lib.JSGlobalContextRelease(ctx)
       end

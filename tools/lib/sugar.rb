@@ -27,13 +27,120 @@
 class Sugar
   require 'fileutils'
   class Method
-    attr_accessor :symbol,:pnames,:ptypes,:return_type,:param_descs,:array_params,:c_symbol
+    attr_accessor :symbol,:pnames,:ptypes,:return_type,:param_descs,:array_params,:c_symbol,:method_notes,:param_defaults
   end
 
   attr_accessor :params_may_be_nil
   def initialize
     @params_may_be_nil = {}
+    @param_defaults = {}
+    @method_notes = {}
   end
+
+  def desc_params idnt,names,sm,o=0
+    types = sm.ptypes[o..sm.ptypes.length-1]
+    names=names.clone
+    if doc=@in_iface.documented[sm.c_symbol.to_s]
+      buff = []
+      if nt=@method_notes[sm.c_symbol.to_s.to_sym]
+        buff << " "*idnt+"# "+nt
+      end      
+      
+      if a=doc['abstract']
+        @lib.typedefs.each_pair do |this,is|
+          a=a.gsub("#{this.to_s.gsub("Ref",'')}","#{this.to_s.gsub("Ref",'').gsub(/^JS/,"JS::")}")
+        end
+        buff << " "*idnt+"# "+a+"\n#{" "*idnt}#"
+      end
+      
+      if d=doc['discussion']
+        # d.split("\n") do |l|
+        #   buff << " "*idnt+"# "+l
+        # end
+      end
+      
+      if pms=doc['params']
+        opt_pary = []
+        cb = nil
+        names.each_with_index do |n,i|
+          if n =~ /\= nil/
+            opt_pary << n
+            names[i] = n.gsub(" = nil",'')
+          end
+          
+          if n =~ /\&/
+            cb = n.gsub("&","")
+            names[i] = cb
+          end
+        end
+        
+        pms.each_pair do |n,d|
+          next if !names.index(n)
+          t= ruby_from_type(u=types[names.index(n)])
+          
+          if d =~ rx=Regexp.new("A #{k=u.gsub("Ref",'')} array")
+            t = 'Array' 
+            d = d .gsub(rx,"An Array of #{k}'s")
+          end
+          @lib.typedefs.each_pair do |this,is|
+            d=d.gsub("#{this.to_s.gsub("Ref",'')}","#{this.to_s.gsub("Ref",'').gsub(/^JS/,"JS::")}")
+          end
+          #if opt_pary.index(n)
+          #end
+          d=d.gsub("NULL",'nil')
+          if cb == n
+            t = 'Proc'
+          end
+          buff << " "*idnt+"# @param [#{t}] #{n} "+d
+        end
+      end
+      
+      if r=doc['result']
+        @lib.typedefs.each_pair do |this,is|
+          r=r.gsub("#{this.to_s.gsub("Ref",'')}","#{this.to_s.gsub("Ref",'').gsub(/^JS/,"JS::")}")
+        end
+        buff << " "*idnt+"# @return [#{ruby_from_type(sm.return_type)}] "+r
+      end
+      buff.join("\n")
+    else
+      ""
+    end
+  end
+
+  def add_method_note csym,val
+    @method_notes[csym] = val
+  end
+  
+  def add_param_default csym,idx,val
+     a=@param_defaults[csym] ||= []
+     a << [idx,val]
+  end
+
+  def ruby_from_type t
+    n=@lib.ifaces.find {|i| i.c_type_name.to_s == t.to_s.gsub(":",'')}
+    return "#{@lib.lib_name}::#{n.ruby_name}" if n
+    case t.to_s.to_sym
+      when :pointer
+        'FFI::Pointer'
+      when :unsigned
+        'Integer'
+      when :bool
+        'boolean'
+      when :void
+        'nil'
+      when :string
+        'String'
+      when :size_t
+        'Integer'
+      when :int
+        'Integer'
+      when :double
+        'Float'
+    else
+      t.to_s
+    end
+  end
+
 
   def open_lib 
     @lo = File.open(File.join(@lib.target,"#{@lib_name}.rb"),'w')

@@ -40,12 +40,18 @@ module JS
     end
       
 
+    # Creates a JavaScript context group.
+    #
+    # @return [JS::ContextGroup] The created JS::ContextGroup.
     def self.create()
       res = super()
       wrap = self.new(:pointer=>res)
       return wrap
     end
 
+    # Retains a JavaScript context group.
+    #
+    # @return [JS::ContextGroup] A JS::ContextGroup that is the same as group.
     def retain()
       res = super(self)
     end

@@ -28,27 +28,34 @@ module JS
   module Lib
     class PropertyNameArray < JS::BaseObject
 
-      # @param array => :JSPropertyNameArrayRef
-      # retuen => JSPropertyNameArrayRef
+      # Retains a JavaScript property name array.
+      #
+      # @param [:JSPropertyNameArrayRef] array The JSPropertyNameArray to retain.
+      # @return A JSPropertyNameArray that is the same as array.
       def retain(array)
         JS::Lib.JSPropertyNameArrayRetain(array)
       end
 
-      # @param array => :JSPropertyNameArrayRef
-      # retuen => void
+      # Releases a JavaScript property name array.
+      #
+      # @param [:JSPropertyNameArrayRef] array The JSPropetyNameArray to release.
       def release(array)
         JS::Lib.JSPropertyNameArrayRelease(array)
       end
 
-      # @param array => :JSPropertyNameArrayRef
-      # retuen => size_t
+      # Gets a count of the number of items in a JavaScript property name array.
+      #
+      # @param [:JSPropertyNameArrayRef] array The array from which to retrieve the count.
+      # @return An integer count of the number of names in array.
       def get_count(array)
         JS::Lib.JSPropertyNameArrayGetCount(array)
       end
 
-      # @param array => :JSPropertyNameArrayRef
-      # @param index => :size_t
-      # retuen => JSStringRef
+      # Gets a property name at a given index in a JavaScript property name array.
+      #
+      # @param [:JSPropertyNameArrayRef] array The array from which to retrieve the property name.
+      # @param [:size_t] index The index of the property name to retrieve.
+      # @return A JSStringRef containing the property name.
       def get_name_at_index(array,index)
         JS::Lib.JSPropertyNameArrayGetNameAtIndex(array,index)
       end
