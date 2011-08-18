@@ -1,8 +1,10 @@
 = RubyJS
 
 by Matt Mesanko
+  *http://www.github.com/ppibburr/ruby_js
 
-http://www.github.com/ppibburr/ruby_js
+YARD documentation
+  *http://ppibburr.github.com/ruby_js/doc/file.README.html 
 
 == Description
 
