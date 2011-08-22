@@ -27,7 +27,14 @@
 class Sugar
   require 'fileutils'
   class Method
-    attr_accessor :symbol,:pnames,:ptypes,:return_type,:param_descs,:array_params,:c_symbol,:method_notes,:param_defaults
+    attr_accessor :symbol,:pnames,:ptypes,:return_type,:param_descs,:array_params,:c_symbol,:method_notes,:param_defaults,:flags
+    def initialize
+      @flags  = []
+    end
+    
+    def flag flg
+      @flags << flg
+    end
   end
 
   attr_accessor :params_may_be_nil

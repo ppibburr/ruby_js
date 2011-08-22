@@ -223,7 +223,8 @@ class JS::Object
     if b
       args << JS::Object.new(context,&b)
     end
-    call_as_function @this,args.length,JS.rb_ary2jsvalueref_ary(context,args)
+    p args
+    call_as_function @this,args.length,args
   end
   
   def self.is_array(context,obj)
@@ -269,6 +270,25 @@ module JS
     jv_ary  
   end
 
+  def self.create_pointer_of_array type,ary,*dat
+  r = nil
+    if type == JS::Value
+        r=self.rb_ary2jsvalueref_ary(dat[0],ary)
+        p [dat,ary]
+    elsif type == JS::String
+        r=self.string_ary2jsstringref_ary(ary)
+    end
+    p type
+    r
+  end
+
+  def self.string_ary2jsstringref_ary(r)
+    vary = ary.map do |v| JS::String.create_with_utf8cstring(v) end
+    jv_ary = FFI::MemoryPointer.new(:pointer,8)
+    jv_ary.write_array_of_pointer(vary)
+    jv_ary 
+  end
+  
   def self.execute_script(ctx,str,this=nil)
     str_ref = JS::String.create_with_utf8cstring(str)
     val = JS::Lib.JSEvaluateScript(ctx,str_ref,this,nil,1,nil)

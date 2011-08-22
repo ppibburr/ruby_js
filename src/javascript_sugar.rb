@@ -102,6 +102,18 @@ class JavaScript < Sugar
         @co.puts "      #{pn[i]} = JS::String.create_with_utf8cstring(#{pn[i]})"  unless sm.array_params.find do |q| q[0] == pn[i] end
       when :JSObjectCallAsFunctionCallback
         @co.puts "      #{pn[i]} = JS::CallBack.new(#{pn[i]})"
+        else 
+
+      end
+    end
+    
+    a =sm.array_params
+    a.each_pair do |name,array_of|
+      case array_of.gsub(":",'').to_sym
+        when :JSValueRef
+          @co.puts "      #{name} = JS.create_pointer_of_array(JS::Value,#{name},context)" unless sm.flags.index(:class)
+        when :JSStringRef
+          @co.puts "      #{name} = JS.create_pointer_of_array(JS::String,#{name})"        
       end
     end
   end
@@ -165,10 +177,11 @@ class JavaScript < Sugar
         @co.puts desc_params(4,pnames,sm)
         
         @co.puts "    def #{prefix}#{sm.symbol}(#{pnames.join(",")})"
+        sm.flag(:class)
         write_cast_param_code(sm,0)
         if @in_iface.is_module
           @co.puts "      res = #{@lib.lib_name}::Lib.#{f.name}(#{pnames.join(",")})"
-        else
+        else # is class method
           @co.puts "      res = super(#{sm.pnames.join(",")})" 
           if ctor
             @co.puts "      wrap = self.new(:pointer=>res)"

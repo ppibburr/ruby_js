@@ -119,6 +119,7 @@ module JS
       name = JS::String.create_with_utf8cstring(name)
       body = JS::String.create_with_utf8cstring(body)
       sourceURL = JS::String.create_with_utf8cstring(sourceURL)
+      parameterNames = JS.create_pointer_of_array(JS::String,parameterNames)
       res = super(ctx,name,parameterCount,parameterNames,body,sourceURL,startingLineNumber,exception)
       wrap = self.new(:pointer=>res)
       wrap.context = ctx
@@ -273,6 +274,7 @@ module JS
     # @return [JS::Value] The JS::Value that results from calling object as a function, or NULL if an exception is thrown or object is not a function.
     def call_as_function(thisObject = nil,argumentCount = 0,arguments = nil,exception = nil)
       thisObject = JS::Object.from_ruby(context,thisObject)
+      arguments = JS.create_pointer_of_array(JS::Value,arguments,context)
       res = super(context,self,thisObject,argumentCount,arguments,exception)
 
     
@@ -301,6 +303,7 @@ module JS
     # @param [FFI::Pointer] exception A pointer to a JS::ValueRef in which to store an exception, if any. Pass nil if you do not care to store an exception.
     # @return [JS::Object] The JS::Object that results from calling object as a constructor, or NULL if an exception is thrown or object is not a constructor.
     def call_as_constructor(argumentCount = 0,arguments = nil,exception = nil)
+      arguments = JS.create_pointer_of_array(JS::Value,arguments,context)
       res = super(context,self,argumentCount,arguments,exception)
       return check_use(res) || JS::Object.from_pointer_with_context(context,res)
     end
