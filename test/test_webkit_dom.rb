@@ -24,25 +24,21 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-require 'rubygems'
-require 'gir_ffi'
 
 require File.join(File.dirname(__FILE__),'..','lib','JS')
+require File.join(File.dirname(__FILE__),'..','lib','JS','webkit')
 
 
-GirFFI.setup "Gtk"
-
-Gtk.init
-
-w = Gtk::Window.new(:toplevel)
+w = Gtk::Window.new
 v = WebKit::WebView.new
 
-v.load_html_string("<html><body></body></html>",nil)
+v.load_html_string("<html><body></body></html>",'')
 w.add v
 w.show_all
 
 
 def ruby_do_dom ctx
+ 
   globj = ctx.get_global_object
 
   doc = globj['document']
@@ -59,16 +55,17 @@ def ruby_do_dom ctx
     exit(1)
   end
   
-rescue 
+rescue => e
+raise e
   puts "something went wrong"
   exit(1)
 end
 
-GObject.signal_connect(w,'delete-event') do 
+w.signal_connect('delete-event') do 
   Gtk.main_quit
 end
 
-GObject.signal_connect(v,'load-finished') do |v,f|
+v.signal_connect('load-finished') do |v,f|
   ruby_do_dom(f.get_global_context)
 end
 

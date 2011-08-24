@@ -157,12 +157,17 @@ class JS < Library
 	  
 	  @target = File.join('..',File.dirname(__FILE__),"lib")
 	  
-	  add_hard_code('js_hard_code',File.join(File.dirname(__FILE__),'hard_code'))
-	  add_hard_code('webkit_hard_code',File.join(File.dirname(__FILE__),'hard_code'))	  
+	  add_hard_code('js_hard_code',File.join(File.dirname(__FILE__),'hard_code'))	  
 	  add_hard_code('js_class_definition',File.join(File.dirname(__FILE__),'hard_code'))	 	 
 	  add_hard_code('ruby_object',File.join(File.dirname(__FILE__),'hard_code'))	 	 
          
 	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','props2methods.rb')
+	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','patch_standard_gtk.rb')
+	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','webkit_hard_code_minimal.rb')
+	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','webkit_hard_code_full.rb')
+	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','webkit.rb')
+
+      add_dir File.join(File.dirname(__FILE__),'hard_code','webkit')
 
 	  	  
 	  @ifaces << Object.new()

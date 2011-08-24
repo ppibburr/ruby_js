@@ -1,4 +1,7 @@
 __END__
+=begin
+NOT ANYTHGING
+=end
 require 'rubygems'
 require 'gir_ffi'
 
@@ -34,7 +37,7 @@ v.load_html_string("""<!doctype html>
 </body>
 </html>""",nil)
 w.add v
-w.show_all
+
 
 
 class Collection
@@ -43,14 +46,14 @@ class Collection
   end
   
   def [] q
-    self.new(find(q))
+    self.class.new(find(q))
   end
   
   def find q
     if q.is_a?(String)
-      if str =~ /^\.(.*)/
+      if q =~ /^\.(.*)/
         find_of_class $1
-      elsif str =~ /^\#(.*)/
+      elsif q =~ /^\#(.*)/
         find_of_id $1
       else
         find_of_tag q
@@ -78,12 +81,9 @@ def ruby_do_dom ctx
 
   doc = globj['document']
   x=Collection.new(doc)
-  p x[:foo].find(".bar")
-  ;exit
-  
-rescue 
-  puts "something went wrong"
-  exit(1)
+  p x[:foo]#.find(".bar")
+  ;
+
 end
 
 GObject.signal_connect(w,'delete-event') do 
@@ -94,7 +94,25 @@ end
 GObject.signal_connect(v,'load-finished') do |v,f|
   ruby_do_dom(f.get_global_context)
 end
-
+w.show_all
+GLib.idle_add 200, (proc do 
+  begin
+    quit = nil
+    while !quit
+      i = $stdin.read_nonblock(1024)
+      i=i.chomp
+      case i
+        when /^q/
+          Gtk.main_quit
+          quit = true
+        when 'show'
+          w.show_all
+      end
+    end
+  rescue => e
+    p e
+  end
+end),nil,nil
 Gtk.main
 
 

@@ -25,7 +25,7 @@
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 class Library < IFace
-  attr_accessor :ifaces,:manual_funcs,:lib_name,:target,:ffi_libs,:callbacks,:hard_code,:opt_req,:documented
+  attr_accessor :ifaces,:manual_funcs,:lib_name,:target,:ffi_libs,:callbacks,:hard_code,:opt_req,:documented,:include_dirs
   def initialize
     super
     @ifaces = []
@@ -35,6 +35,7 @@ class Library < IFace
     @ffi_libs = []
     @hard_code = []
     @opt_req = []
+    @include_dirs = []
   end
   
   def attach f,prms,r
@@ -52,6 +53,10 @@ class Library < IFace
   
   def add_optional_require f
     @opt_req << f
+  end
+  
+  def add_dir path
+    @include_dirs << path
   end
   
   def typedef is,this

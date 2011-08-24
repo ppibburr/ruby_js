@@ -24,15 +24,12 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-require 'rubygems'
-require 'gir_ffi'
 
 require File.join(File.dirname(__FILE__),'..','lib','JS')
 require File.join(File.dirname(__FILE__),'..','lib','JS','props2methods')
+require File.join(File.dirname(__FILE__),'..','lib','JS','webkit')
 
-GirFFI.setup "Gtk"
 
-Gtk.init
 
 w = Gtk::Window.new(:toplevel)
 v = WebKit::WebView.new
@@ -70,11 +67,11 @@ rescue => e
   exit(1)
 end
 
-GObject.signal_connect(w,'delete-event') do 
+w.signal_connect('delete-event') do 
   Gtk.main_quit
 end
 
-GObject.signal_connect(v,'load-finished') do |v,f|
+v.signal_connect('load-finished') do |v,f|
   ruby_do_dom(f.get_global_context)
 end
 

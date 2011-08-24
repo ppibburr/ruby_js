@@ -1,5 +1,5 @@
 
-#       JS.rb
+#       webkit_hard_code.rb
              
 #		(The MIT License)
 #
@@ -24,19 +24,21 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-require "rubygems"
-require "ffi"
-module JS
-  require File.join(File.dirname(__FILE__),'JS','ffi','lib')
-  require File.join(File.dirname(__FILE__),'JS','Object')
-  require File.join(File.dirname(__FILE__),'JS','Value')
-  require File.join(File.dirname(__FILE__),'JS','Context')
-  require File.join(File.dirname(__FILE__),'JS','GlobalContext')
-  require File.join(File.dirname(__FILE__),'JS','ContextGroup')
-  require File.join(File.dirname(__FILE__),'JS','Value')
-  require File.join(File.dirname(__FILE__),'JS','String')
-  require File.join(File.dirname(__FILE__),'JS','PropertyNameArray')
-  require File.join(File.dirname(__FILE__),'JS','js_hard_code')
-  require File.join(File.dirname(__FILE__),'JS','js_class_definition')
-  require File.join(File.dirname(__FILE__),'JS','ruby_object')
+GirFFI.setup("Gtk")
+GirFFI.setup("WebKit")
+Gtk.init
+module WebKit
+  module MissingFunctions
+    extend FFI::Library
+    ffi_lib(JS::Config[:WebKit][:lib]||'webkitgtk-1.0')
+    
+    attach_function :webkit_web_frame_get_global_context,[:pointer],:pointer
+  end
+  
+  WebKit::WebFrame
+  class WebFrame
+    def get_global_context
+      JS::GlobalContext.new(:pointer=>WebKit::MissingFunctions.webkit_web_frame_get_global_context(self))
+    end
+  end
 end
