@@ -33,8 +33,10 @@ Ruby (FFI based) bindings to JavaScript from WebKit
 == Requirements
 
 * ffi      (available as a gem)
-* gir_ffi  (available as a gem) (needs gobject-introspection installed with some introspection data)
 * webkit   (I develop against libwebkitgtk-1.0-0)
+
+* (optional) ruby-gtk2 standard or gir_ffi (gem)
+    gtk2 is required to use a WebView in a application
 
 == Install
 Get the source
