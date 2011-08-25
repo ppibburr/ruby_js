@@ -1,5 +1,5 @@
 module WebKit
-  class WebKit::SecurityOrigin # would be subclass of GObject::Object
+  class WebKit::SecurityOrigin < WebKit::GLibProvider
     # returns:  -> int
     def get_type()
       r = Lib.webkit_security_origin_get_type(self)

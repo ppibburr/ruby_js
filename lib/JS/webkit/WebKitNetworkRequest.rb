@@ -1,5 +1,5 @@
 module WebKit
-  class WebKit::NetworkRequest # would be subclass of GObject::Object
+  class WebKit::NetworkRequest < WebKit::GLibProvider
     # returns:  -> int
     def get_type()
       r = Lib.webkit_network_request_get_type(self)
@@ -42,6 +42,7 @@ module WebKit
       else
 	    @ptr = self.class.real_new(*o)
       end
+      super @ptr
     end
     
     def to_ptr

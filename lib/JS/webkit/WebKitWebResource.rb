@@ -1,5 +1,5 @@
 module WebKit
-  class WebKit::WebResource # would be subclass of GObject::Object
+  class WebKit::WebResource < WebKit::GLibProvider
     # returns:  -> int
     def get_type()
       r = Lib.webkit_web_resource_get_type(self)
@@ -58,6 +58,7 @@ module WebKit
       else
 	    @ptr = self.class.real_new(*o)
       end
+      super @ptr
     end
     
     def to_ptr

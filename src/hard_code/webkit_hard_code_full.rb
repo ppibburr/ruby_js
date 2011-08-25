@@ -1,3 +1,4 @@
+require File.join(File.dirname(__FILE__),"webkit","base")
 require File.join(File.dirname(__FILE__),"webkit","WebKitDownload")
 require File.join(File.dirname(__FILE__),"webkit","WebKitHitTestResult")
 require File.join(File.dirname(__FILE__),"webkit","WebKitNetworkRequest")

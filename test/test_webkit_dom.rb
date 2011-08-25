@@ -37,8 +37,7 @@ w.add v
 w.show_all
 
 
-def ruby_do_dom ctx
- 
+def ruby_do_dom ctx,w
   globj = ctx.get_global_object
 
   doc = globj['document']
@@ -56,17 +55,18 @@ def ruby_do_dom ctx
   end
   
 rescue => e
-raise e
   puts "something went wrong"
   exit(1)
 end
+
 
 w.signal_connect('delete-event') do 
   Gtk.main_quit
 end
 
 v.signal_connect('load-finished') do |v,f|
-  ruby_do_dom(f.get_global_context)
-end
+  ruby_do_dom(f.get_global_context,w)
+end 
+
 
 Gtk.main

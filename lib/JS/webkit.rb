@@ -47,17 +47,4 @@ else
 end
 
 WebKit::WebView
-class WebKit::WebView
-  def signal_connect s,&b
-    f = FFI::Function.new(:bool,[:pointer,:pointer]) do |*o|
-      if s=~/^load/
-        v = self
-        f = WebKit::WebFrame.new(:ptr=>o[1])
-        b.call v,f
-      else
-        b.call *o
-      end
-    end
-    GObject.signal_connect_data self,s,f,nil,nil,0
-  end
-end
+

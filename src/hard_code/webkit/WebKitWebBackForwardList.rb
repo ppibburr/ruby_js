@@ -1,5 +1,5 @@
 module WebKit
-  class WebKit::WebBackForwardList # would be subclass of GObject::Object
+  class WebKit::WebBackForwardList < WebKit::GLibProvider
     # returns:  -> int
     def get_type()
       r = Lib.webkit_web_back_forward_list_get_type(self)

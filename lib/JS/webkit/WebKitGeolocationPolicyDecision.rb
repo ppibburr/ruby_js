@@ -1,5 +1,5 @@
 module WebKit
-  class WebKit::GeolocationPolicyDecision # would be subclass of GObject::Object
+  class WebKit::GeolocationPolicyDecision < WebKit::GLibProvider
     # returns:  -> int
     def get_type()
       r = Lib.webkit_geolocation_policy_decision_get_type(self)

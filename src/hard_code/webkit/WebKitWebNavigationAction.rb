@@ -1,5 +1,5 @@
 module WebKit
-  class WebKit::WebNavigationAction # would be subclass of GObject::Object
+  class WebKit::WebNavigationAction < WebKit::GLibProvider
     # returns:  -> int
     def get_type()
       r = Lib.webkit_web_navigation_action_get_type(self)

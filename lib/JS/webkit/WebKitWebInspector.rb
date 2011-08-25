@@ -1,5 +1,5 @@
 module WebKit
-  class WebKit::WebInspector # would be subclass of GObject::Object
+  class WebKit::WebInspector < WebKit::GLibProvider
     # returns:  -> int
     def get_type()
       r = Lib.webkit_web_inspector_get_type(self)

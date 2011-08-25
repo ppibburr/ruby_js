@@ -1,5 +1,5 @@
 module WebKit
-  class WebKit::WebPolicyDecision # would be subclass of GObject::Object
+  class WebKit::WebPolicyDecision < WebKit::GLibProvider
     # returns:  -> int
     def get_type()
       r = Lib.webkit_web_policy_decision_get_type(self)

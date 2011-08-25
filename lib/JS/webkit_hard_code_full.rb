@@ -24,6 +24,7 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
+require File.join(File.dirname(__FILE__),"webkit","base")
 require File.join(File.dirname(__FILE__),"webkit","WebKitDownload")
 require File.join(File.dirname(__FILE__),"webkit","WebKitHitTestResult")
 require File.join(File.dirname(__FILE__),"webkit","WebKitNetworkRequest")

@@ -1,5 +1,5 @@
 module WebKit
-  class WebKit::WebDatabase # would be subclass of GObject::Object
+  class WebKit::WebDatabase < WebKit::GLibProvider
     # returns:  -> int
     def get_type()
       r = Lib.webkit_web_database_get_type(self)
