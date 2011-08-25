@@ -1,5 +1,6 @@
 module WebKit
-
+  # Class: WebKit::GLibProvider
+  #
   # The base cass of all objects in the WebKit namespace
   # Holds the reference from an FFI::Pointer in a property
   # and delegates to the object returned from get_property!('real')
@@ -73,10 +74,10 @@ module WebKit
     alias :'signal_connect!' :signal_connect
     
     # will connect signal that delegates to 
-  # the return (q) for sigals, properties, gtype
-  # and the suchs to the providee
+    # the return (q) for sigals, properties, gtype
+    # and the suchs to the providee
     def signal_connect *o,&b
-      get_property!('real').signal_connect *o,&b
+      get_property!('realp v.class.properties!').signal_connect *o,&b
     end
     
     alias :'get_property!' :get_property
