@@ -77,7 +77,7 @@ module WebKit
     # the return (q) for sigals, properties, gtype
     # and the suchs to the providee
     def signal_connect *o,&b
-      get_property!('realp v.class.properties!').signal_connect *o,&b
+      get_property!('real').signal_connect *o,&b
     end
     
     alias :'get_property!' :get_property
