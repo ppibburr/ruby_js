@@ -100,38 +100,12 @@ class Gtk::Container
 end
 
 module WebKit
-  # A WebKit::<Object> that delegates to 
-  # the return (q) for sigals, properties, gtype
-  # and the such
+  # A WebKit::<Object> from an q=(instance of Class)
   def self.wrap_return_from_standard q,klass
     raise unless q.inspect =~ /ptr\=0x([0-9a-z]+)/
     
     adr = $1.to_i(16)
-    # map methods to the pointer
     wk = eval("WebKit::#{klass}").new(:ptr => FFI::Pointer.new(adr) )
-    
-    # delegate instance
-    class << wk
-      attr_accessor :__standard__
-    end
-    
-    wk.__standard__ = q
-    
-    # get extra functionality
-    def wk.method_missing *o,&b
-      __standard__.send *o,&b
-    end
-    
-    # delegate class
-    class << wk.class
-      attr_accessor :__standard__
-    end
-    
-    wk.class.__standard__ = q.class
-    
-    def (wk.class).method_missing *o,&b
-      __standard__.send *o,&b
-    end
     
     wk
   end
