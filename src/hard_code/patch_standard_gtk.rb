@@ -8,7 +8,7 @@ module GLib
     def signal_connect *o,&b
       sig_con *o do |*o|
         b.call( o.map do |q|
-          if q.class.inspect =~ /#<Class/
+          if q.class.inspect =~ /#<Class/;
             if q.gtype.to_s =~ /WebKit(.*)/
               begin 
                 wk = WebKit.wrap_return_from_standard q,$1
@@ -113,8 +113,7 @@ module WebKit
     raise unless q.inspect =~ /ptr\=0x([0-9a-z]+)/
     
     adr = $1.to_i(16)
+
     wk = eval("WebKit::#{klass}").new(:ptr => FFI::Pointer.new(adr) )
-    
-    wk
   end
 end

@@ -176,6 +176,7 @@ module WebKit
     def get_main_frame()
       r = Lib.webkit_web_view_get_main_frame(self)
       begin
+       
         RGI.gobj2rval(r)
       rescue
         r

@@ -15,9 +15,9 @@ module WebKit
   # To use the methods from above on GLibProvider instance or subclass
   #   suffix the above methods with ! ie, WebKit::WebView.properties! #=> ["real"]
   #  
-  class GLibProvider < GLib::Object
+  class GLibProvider < Gtk::Object
     type_register
-    spec = GLib::Param::Object.new 'real','real','',GLib::Type['GtkObject'],3
+    spec = GLib::Param::Object.new 'real','real','',GLib::Type['GObject'],3
     install_property spec,1
     
     attr_accessor :real
@@ -25,7 +25,6 @@ module WebKit
     def initialize ptr
       super()
       set_real ptr
-
       # delegate class methods
       class << self.class
         attr_accessor :__standard__
@@ -93,5 +92,18 @@ module WebKit
     def set_property *o,&b
       set_property!('real').set_property *o,&b
     end 
+  end
+end
+
+module RGI
+  def self.gobj2rval pt
+    ph = WebKit::GLibProvider.new pt 
+    q=ph.get_property! 'real'
+    return pt if !q
+    if q.gtype.to_s =~ /WebKit(.*)/
+      wk = WebKit.wrap_return_from_standard q,$1
+      return wk
+    end
+    q
   end
 end
