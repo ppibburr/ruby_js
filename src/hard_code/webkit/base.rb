@@ -15,7 +15,7 @@ module WebKit
   # To use the methods from above on GLibProvider instance or subclass
   #   suffix the above methods with ! ie, WebKit::WebView.properties! #=> ["real"]
   #  
-  class GLibProvider < Gtk::Object
+  class GLibProvider < GLib::Object
     type_register
     spec = GLib::Param::Object.new 'real','real','',GLib::Type['GObject'],3
     install_property spec,1
