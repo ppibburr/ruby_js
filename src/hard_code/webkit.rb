@@ -7,9 +7,17 @@ end
 if JS::Config[:WebKit][:Gtk][:type] == :ffi
 begin
   require 'gir_ffi'
-  GirFFI.setup "Gtk"
+
   require File.join(File.dirname(__FILE__),'webkit_hard_code_minimal')
-rescue
+  Gtk
+  Gtk::Object
+  class Gtk::Object
+    def signal_connect n,&b
+      GObject.signal_connect(self,n,&b)
+    end
+  end
+rescue => e
+  p e
   puts "Sorry. Problem with GirFFI. falling back to standard Gtk2"
   require File.join(File.dirname(__FILE__),'patch_standard_gtk')
   require File.join(File.dirname(__FILE__),'webkit_hard_code_full')

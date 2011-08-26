@@ -197,7 +197,6 @@ class JS::Object
     if b
       args << JS::Object.new(context,&b)
     end
-    p args
     call_as_function @this,args.length,args
   end
   
@@ -245,14 +244,12 @@ module JS
   end
 
   def self.create_pointer_of_array type,ary,*dat
-  r = nil
+    r = nil
     if type == JS::Value
         r=self.rb_ary2jsvalueref_ary(dat[0],ary)
-        p [dat,ary]
     elsif type == JS::String
         r=self.string_ary2jsstringref_ary(ary)
     end
-    p type
     r
   end
 

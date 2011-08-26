@@ -29,7 +29,8 @@ require File.join(File.dirname(__FILE__),'..','lib','JS')
 require File.join(File.dirname(__FILE__),'..','lib','JS','webkit')
 
 
-w = Gtk::Window.new
+Gtk::Window
+w = Gtk::Window.new :toplevel
 v = WebKit::WebView.new
 
 v.load_html_string("<html><body></body></html>",'')

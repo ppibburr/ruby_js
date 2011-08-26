@@ -68,6 +68,14 @@ module Gtk
     extend FFI::Library
     ffi_lib(JS::Config[:WebKit][:Gtk][:lib] || 'gtk-x11-2.0')
     attach_function :gtk_container_add,[:pointer,:pointer],:void
+    attach_function :gtk_main,[],:void
+  end
+  
+  alias :main! :main
+  # when using standard Gtk.main, Events for DOM Elements using ruby defined functions hang
+  # this cures it
+  def self.main
+    Gtk::IKE.gtk_main
   end
 end
 
