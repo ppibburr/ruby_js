@@ -66,7 +66,7 @@ class JS::Value
     elsif is_boolean
       to_boolean
       else
-      
+      return nil if nil == pointer
       raise "#{pointer.address} is of type #{get_type}"
     end 
   end
@@ -84,18 +84,18 @@ class JS::Value
         make_number(ctx,rv)
       elsif rv.is_a?(Float)
         make_number(ctx,rv)
-      elsif rv == true || rv == false
-        make_boolean(ctx,rv)
-      elsif rv == nil and !b
-        make_null ctx
       elsif rv.is_a?(JS::Lib::Object)
         res = JS.execute_script(ctx,"this;",rv)
-      elsif rv == :undefined
-        make_undefined ctx
       elsif rv.is_a?(Hash) || rv.is_a?(Array)
         from_ruby(ctx,JS::Object.new(ctx,rv))
       elsif rv.is_a?(Method) || b || rv.is_a?(Proc)
         from_ruby(ctx,JS::Object.new(ctx,rv,&b))
+      elsif rv == :undefined
+        make_undefined ctx
+      elsif rv == true || rv == false
+        make_boolean(ctx,rv)
+      elsif rv == nil and !b
+        make_null ctx
       else
         raise "cant make value from #{rv.class}."
       end
@@ -216,7 +216,7 @@ class JS::Object
     end
     ary
   end
-  
+  PROCS = {}
   def call *args,&b
     raise('Can not call JS::Object (JS::Object#=>is_function returned false') if !is_function
     @this ||= nil
@@ -244,12 +244,14 @@ end
 
 
 class JS::CallBack < Proc
+  PROCS = {}
   class << self
     alias :real_new :new
   end
-  
+  GC.start
   def self.new block
-    real_new do |*o|
+    PROCS[block] ||= true
+    r=real_new do |*o|
       ctx,function,this = o[0..2]
       varargs = []
       o[4].read_array_of_pointer(o[3]).each do |ptr|
@@ -258,11 +260,14 @@ class JS::CallBack < Proc
       
       JS::Value.from_ruby(ctx,block.call(this,*varargs.map do |v| v.to_ruby end)).pointer
     end
+    PROCS[r] = true
+    r
   end
 end
 
 module JS
   def self.rb_ary2jsvalueref_ary(ctx,ary)
+    return nil if ary.empty?
     vary = ary.map do |v| JS::Value.from_ruby(ctx,v) end
     jv_ary = FFI::MemoryPointer.new(:pointer,8)
     jv_ary.write_array_of_pointer(vary)

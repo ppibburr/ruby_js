@@ -127,7 +127,7 @@ class Library < IFace
               t = ":"+h[idx].to_s
             end
           end
-          
+          t = ':pointer' if t == ':string'
           params << t
           pnames << p.name
           desc << [p.name,t]
@@ -174,25 +174,35 @@ class Library < IFace
     mo = File.open(File.join(target,lib_name,'ffi','lib.rb'),'w')
     File.open(File.join(target,lib_name,'ffi','base_object.rb'),'w') {|f| f.puts """
 module JS
-  class BaseObject
-    attr_accessor :pointer
-    def initialize ptr
-      @pointer = ptr
-    end
-    
-    def to_ptr
-      @pointer
-    end
-    
-    def is_self ptr
-      return nil if !ptr
-      if ptr.respond_to?(:address) and self.pointer.address == ptr.address
-        return self
-      end
-      
-      return nil
-    end    
-  end
+  class BaseObject < FFI::AutoPointer
+    OBJECTS = {}
+      attr_accessor :pointer
+	  def self.release ptr
+		#puts \"\#{ptr} released\"
+		if is_a?(JS::Object)
+		  OBJECTS.delete(ptr.address)
+		  nil
+		elsif is_a?(JS::PropertyNameArray)
+		  puts \"name array\"
+		end
+	  end
+	  
+	  def self.is_wrapped?(ptr)
+		  OBJECTS[ptr.address]
+	  end
+	  
+	  def initialize(ptr)
+		@pointer = ptr
+		super
+		if self.is_a?(JS::Object)
+		  OBJECTS[ptr.address] = self
+		end
+	  end
+	  
+	  def to_ptr
+		@pointer
+	  end
+	end
 end
 
 def check_use ptr

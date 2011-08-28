@@ -70,8 +70,9 @@ module Gtk
     attach_function :gtk_container_add,[:pointer,:pointer],:void
     attach_function :gtk_main,[],:void
   end
-  
-  alias :main! :main
+  class << self
+    alias :main! :main
+  end
   # when using standard Gtk.main, Events for DOM Elements using ruby defined functions hang
   # this cures it
   def self.main

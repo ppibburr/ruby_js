@@ -237,7 +237,7 @@ module JS
     # @return [JS::Object]         The JS::Object result of conversion, or NULL if an exception is thrown.
     def to_object(exception = nil)
       res = super(context,self,exception)
-      return check_use(res) || JS::Object.from_pointer_with_context(context,res)
+      return JS::BaseObject.is_wrapped?(res) || JS::Object.from_pointer_with_context(context,res)
     end
 
     # Protects a JavaScript value from garbage collection.

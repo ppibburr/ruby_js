@@ -39,7 +39,7 @@ module JS
 
       #         Creates a JavaScript string from a null-terminated UTF8 string.
       #
-      # @param [:string] string     The null-terminated UTF8 string to copy into the new JSString.
+      # @param [:pointer] string     The null-terminated UTF8 string to copy into the new JSString.
       # @return           A JSString containing string. Ownership follows the Create Rule.
       def self.create_with_utf8cstring(string)
         JS::Lib.JSStringCreateWithUTF8CString(string)
@@ -103,7 +103,7 @@ module JS
       #     Tests whether a JavaScript string matches a null-terminated UTF8 string.
       #
       # @param [:JSStringRef] a      The JSString to test.
-      # @param [:string] b      The null-terminated UTF8 string to test.
+      # @param [:pointer] b      The null-terminated UTF8 string to test.
       # @return       true if the two strings match, otherwise false.
       def is_equal_to_utf8cstring(a,b)
         JS::Lib.JSStringIsEqualToUTF8CString(a,b)

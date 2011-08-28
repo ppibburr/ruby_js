@@ -136,9 +136,9 @@ module JS
       val_ref = JS::Value.from_pointer_with_context(context,res)
       ret = val_ref.to_ruby
       if ret.is_a?(JS::Value)
-        return check_use(ret) || is_self(ret) || ret
+        return JS::BaseObject.is_wrapped?(res) || check_use(ret) || is_self(ret) || ret
       else
-        return check_use(ret) || ret
+        return JS::BaseObject.is_wrapped?(res) || check_use(ret) || ret
       end
     
         
@@ -176,9 +176,9 @@ module JS
       val_ref = JS::Value.from_pointer_with_context(context,res)
       ret = val_ref.to_ruby
       if ret.is_a?(JS::Value)
-        return check_use(ret) || is_self(ret) || ret
+        return JS::BaseObject.is_wrapped?(res) || check_use(ret) || is_self(ret) || ret
       else
-        return check_use(ret) || ret
+        return JS::BaseObject.is_wrapped?(res) || check_use(ret) || ret
       end
     
         
@@ -220,9 +220,9 @@ module JS
       val_ref = JS::Value.from_pointer_with_context(context,res)
       ret = val_ref.to_ruby
       if ret.is_a?(JS::Value)
-        return check_use(ret) || is_self(ret) || ret
+        return JS::BaseObject.is_wrapped?(res) || check_use(ret) || is_self(ret) || ret
       else
-        return check_use(ret) || ret
+        return JS::BaseObject.is_wrapped?(res) || check_use(ret) || ret
       end
     
         
@@ -281,9 +281,9 @@ module JS
       val_ref = JS::Value.from_pointer_with_context(context,res)
       ret = val_ref.to_ruby
       if ret.is_a?(JS::Value)
-        return check_use(ret) || is_self(ret) || ret
+        return JS::BaseObject.is_wrapped?(res) || check_use(ret) || is_self(ret) || ret
       else
-        return check_use(ret) || ret
+        return JS::BaseObject.is_wrapped?(res) || check_use(ret) || ret
       end
     
         
@@ -305,7 +305,7 @@ module JS
     def call_as_constructor(argumentCount = 0,arguments = nil,exception = nil)
       arguments = JS.create_pointer_of_array(JS::Value,arguments,context)
       res = super(context,self,argumentCount,arguments,exception)
-      return check_use(res) || JS::Object.from_pointer_with_context(context,res)
+      return JS::BaseObject.is_wrapped?(res) || JS::Object.from_pointer_with_context(context,res)
     end
 
     # Gets the names of an object's enumerable properties.

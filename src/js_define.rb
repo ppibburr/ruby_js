@@ -179,6 +179,7 @@ class JS < Library
 	  @ifaces << PropertyNameArray.new
 	  
 	  force_param_type(:JSStringGetUTF8CString,1,:pointer)
+	  force_param_type(:JSStringCreateFromUTF8CString,0,:pointer)
 	end
 end
 

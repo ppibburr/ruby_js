@@ -53,7 +53,7 @@ module JS
 
     #         Creates a JavaScript string from a null-terminated UTF8 string.
     #
-    # @param [String] string     The null-terminated UTF8 string to copy into the new JS::String.
+    # @param [FFI::Pointer] string     The null-terminated UTF8 string to copy into the new JS::String.
     # @return [JS::String]           A JS::String containing string. Ownership follows the Create Rule.
     def self.create_with_utf8cstring(string)
       res = super(string)
@@ -120,7 +120,7 @@ module JS
 
     #     Tests whether a JavaScript string matches a null-terminated UTF8 string.
     #
-    # @param [String] b      The null-terminated UTF8 string to test.
+    # @param [FFI::Pointer] b      The null-terminated UTF8 string to test.
     # @return [boolean]       true if the two strings match, otherwise false.
     def is_equal_to_utf8cstring(b)
       res = super(self,b)

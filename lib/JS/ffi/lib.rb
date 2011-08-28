@@ -126,7 +126,7 @@ module JS
     attach_function :JSValueProtect,[:JSContextRef,:JSValueRef],:void
     attach_function :JSValueUnprotect,[:JSContextRef,:JSValueRef],:void
     attach_function :JSStringCreateWithCharacters,[:pointer,:size_t],:JSStringRef
-    attach_function :JSStringCreateWithUTF8CString,[:string],:JSStringRef
+    attach_function :JSStringCreateWithUTF8CString,[:pointer],:JSStringRef
     attach_function :JSStringRetain,[:JSStringRef],:JSStringRef
     attach_function :JSStringRelease,[:JSStringRef],:void
     attach_function :JSStringGetLength,[:JSStringRef],:size_t
@@ -134,7 +134,7 @@ module JS
     attach_function :JSStringGetMaximumUTF8CStringSize,[:JSStringRef],:size_t
     attach_function :JSStringGetUTF8CString,[:JSStringRef,:pointer,:size_t],:size_t
     attach_function :JSStringIsEqual,[:JSStringRef,:JSStringRef],:bool
-    attach_function :JSStringIsEqualToUTF8CString,[:JSStringRef,:string],:bool
+    attach_function :JSStringIsEqualToUTF8CString,[:JSStringRef,:pointer],:bool
     attach_function :JSPropertyNameArrayRetain,[:JSPropertyNameArrayRef],:JSPropertyNameArrayRef
     attach_function :JSPropertyNameArrayRelease,[:JSPropertyNameArrayRef],:void
     attach_function :JSPropertyNameArrayGetCount,[:JSPropertyNameArrayRef],:size_t

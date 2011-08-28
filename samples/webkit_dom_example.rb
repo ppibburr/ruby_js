@@ -42,7 +42,7 @@ w.show_all
 
 def ruby_do_dom ctx
   globj = ctx.get_global_object
-  globj['alert'].call("Hello World")
+
   
   f=JS::Object.new ctx  do |this,*o|
     p 1
@@ -51,14 +51,14 @@ def ruby_do_dom ctx
   
   globj['baz'] = f
 
-
   doc = globj['document']
 
   body = doc['getElementsByTagName'].call('body')[0]
   ele = doc['createElement'].call('div')
   ele['innerHTML'] = "Click any where ..."
-  
+
   body['appendChild'].call(ele)
+
 end
 
 w.signal_connect('delete-event') do 

@@ -102,7 +102,9 @@ class JavaScript < Sugar
         @co.puts "      #{pn[i]} = JS::String.create_with_utf8cstring(#{pn[i]})"  unless sm.array_params.find do |q| q[0] == pn[i] end
       when :JSObjectCallAsFunctionCallback
         @co.puts "      #{pn[i]} = JS::CallBack.new(#{pn[i]})"
-        else 
+      when :string
+        @co.puts "      #{pn[i]} = FFI::MemoryPointer.from_string(#{pn[i]})"
+      else 
 
       end
     end
@@ -201,9 +203,9 @@ class JavaScript < Sugar
       val_ref = JS::Value.from_pointer_with_context(context,res)
       ret = val_ref.to_ruby
       if ret.is_a?(JS::Value)
-        return check_use(ret) || is_self(ret) || ret
+        return JS::BaseObject.is_wrapped?(res) || check_use(ret) || is_self(ret) || ret
       else
-        return check_use(ret) || ret
+        return JS::BaseObject.is_wrapped?(res) || check_use(ret) || ret
       end
     
         """
@@ -211,7 +213,7 @@ class JavaScript < Sugar
         if sm.symbol.to_s == "get_global_object"
           @co.puts "      context = self"
         end 
-        @co.puts "      return check_use(res) || JS::Object.from_pointer_with_context(context,res)"
+        @co.puts "      return JS::BaseObject.is_wrapped?(res) || JS::Object.from_pointer_with_context(context,res)"
       when "JSGlobalContextRef"
         # not doing auto cast  
       when "JSContextGroupRef"
