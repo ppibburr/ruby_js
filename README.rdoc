@@ -32,12 +32,15 @@ Ruby (FFI based) bindings to JavaScript from WebKit
   
   ctx = JS::GlobalContext.new(nil)
   obj=JS::RubyObject.new(ctx,Object)
-  ctx.get_global_object['Object'] = obj
-  
-  # File in JS is a RubyObject
-  # File.open(file) returns a RubyObject of a File in JS
-  # aFile.read() returns a string native to JS
-  JS.execute_script(ctx,"Object.const_get('File').open('#{__FILE__}','r').read();") == File.read(__FILE__) #=> true
+  ctx.get_global_object['RObject'] = obj
+  ###
+  ##
+  # 
+  # Object wrapped in JS as a JS::RubyObject
+  # RObject.const_get('File') File as a JS::RubyObject
+  # RObject.const_get('File').open(path) an instance of File as a JS::Ruby::Object
+  # RObject.const_get('File').open(path).read() a String as a String
+  JS.execute_script(ctx,"RObject.const_get('File').open('#{__FILE__}','r').read();") == File.read(__FILE__) #=> true
   
 
 == Requirements
