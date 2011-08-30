@@ -1,14 +1,19 @@
 = RubyJS
 
 by Matt Mesanko
-  *http://www.github.com/ppibburr/ruby_js
+  http://www.github.com/ppibburr/ruby_js
 
 YARD documentation
-  *http://ppibburr.github.com/ruby_js/doc/file.README.html 
+  http://ppibburr.github.com/ruby_js/doc/file.README.html 
 
 == Description
 
-Ruby (FFI based) bindings to JavaScript from WebKit
+Ruby bindings to JavaScript
+JavaScript bindings to Ruby
+
+Wrote in ruby with FFI bindings to webkit-1.0 (JavaScriptCore/WebKit)
+
+The sky falls ...
 
 == Features/Problems
 * Full access to JavaScript Objects (call functions, get|set properties)
@@ -30,7 +35,7 @@ Ruby (FFI based) bindings to JavaScript from WebKit
   
   JS.execute_script(ctx,"ruby(1,2);") #=> [2,1]
   
-  ctx = JS::GlobalContext.new(nil)
+
   obj=JS::RubyObject.new(ctx,Object)
   ctx.get_global_object['RObject'] = obj
   ###
