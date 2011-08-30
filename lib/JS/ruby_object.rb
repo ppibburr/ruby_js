@@ -29,10 +29,11 @@ class JS::RubyObject < JS::Object
     alias :ro_new :new
   end
   
-  def self.new(ctx)
+  def self.new(ctx,object=Object)
     res = ro_new(:pointer=>JS::Lib::JSObjectMake(ctx,CLASS,nil))
     res.context = ctx
     PTRS[res.pointer.address]=res
+    res.object = object
     res
   end
 end
@@ -41,17 +42,18 @@ end
 
 class JS::RubyObject
   PTRS = {}
+  PROCS = {}
   CLASS_DEF = JS::ClassDefinition.new
   
-  CLASS_DEF[:getProperty] = proc do |ctx,obj,name,err|
+  CLASS_DEF[:getProperty] = pr = proc do |ctx,obj,name,err|
     if (n=JS.read_string(name,false)) == "object_get_property"
       nil
     else
       o=PTRS[obj.address]
-      o.object = File
       o.object_get_property(n)
     end
   end
+  PROCS[pr] = true
   
   # IMPORTANT: set definition fields before creating class
   CLASS = JS::Lib.JSClassCreate(CLASS_DEF)

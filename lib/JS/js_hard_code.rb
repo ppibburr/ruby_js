@@ -51,6 +51,9 @@
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 class JS::Value
+  class ConversionError < ArgumentError
+  end
+  
   def to_ruby
 
     if is_null
@@ -65,9 +68,10 @@ class JS::Value
       to_object
     elsif is_boolean
       to_boolean
-      else
-      return nil if nil == pointer
-      raise "#{pointer.address} is of type #{get_type}"
+    elsif nil == pointer
+      nil
+    else
+      raise ConversionError.new("#{pointer.address} is of type #{get_type}")
     end 
   end
   
@@ -97,7 +101,9 @@ class JS::Value
       elsif rv == nil and !b
         make_null ctx
       else
-        raise "cant make value from #{rv.class}."
+        # raise ConversionError.new("cant make value from #{rv.class}.")
+        p rv
+        from_ruby(ctx,JS::RubyObject.new(ctx,rv))
       end
     end
   end
