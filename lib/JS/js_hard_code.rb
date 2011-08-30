@@ -102,7 +102,6 @@ class JS::Value
         make_null ctx
       else
         # raise ConversionError.new("cant make value from #{rv.class}.")
-        p rv
         from_ruby(ctx,JS::RubyObject.new(ctx,rv))
       end
     end
@@ -133,12 +132,6 @@ class JS::Object
     else
       res = non_ruby_new *o
     end
-    
-    #if res and JS::Object.is_array(o[0],res)
-      #class << res
-        #include JS::Array
-      #end
-    #end
     
     return res
   end

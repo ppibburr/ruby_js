@@ -30,12 +30,12 @@ require File.join(File.dirname(__FILE__),'..','lib','JS')
 require File.join(File.dirname(__FILE__),'..','lib','JS','props2methods')
 GC.start
 ctx = JS::GlobalContext.new(nil)
-obj=JS::RubyObject.new(ctx,File)
+obj=JS::RubyObject.new(ctx,Object)
 
 
-ctx.get_global_object['File'] = obj
+ctx.get_global_object['Object'] = obj
 # File in JS is a RubyObject
 # File.open(file) returns a RubyObject of a File in JS
 # aFile.read() returns a string native to JS
-fail("#{File.basename(__FILE__)} test 1 failed") unless JS.execute_script(ctx,"File.open('#{__FILE__}','r').read();") == File.read(__FILE__)
+fail("#{File.basename(__FILE__)} test 1 failed") unless JS.execute_script(ctx,"Object.const_get('File').open('#{__FILE__}','r').read();") == File.read(__FILE__)
 puts "#{File.basename(__FILE__)} all test passed."
