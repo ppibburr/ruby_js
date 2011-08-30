@@ -5,11 +5,140 @@ require 'JS/webkit'
 require 'JS/props2methods'
 
 require 'abel'
+class Canvas
+  def initialize context
+    @context = context
+    context.functions.each do |f|
+      class << self; self;end.instance_exec do
+        define_method f do |*o|
+          cxt[f].call *o
+        end
+      end
+    end
+   
+  end
+  
+  def plot x,y
+	cxt['fillStyle']="blue";
+	beginPath();
+	arc(x,y,1,0,Math::PI*2,true);
+	closePath();
+	fill();  
+  end
+  
+  def draw_line x,y,x1,y1
+    moveTo x+10.5,y+10.5
+    lineTo x1+10.5,y1+10.5
+    stroke
+  end
+  
+  def cxt
+    @context
+  end
+end  
+
+class Pen
+  attr_accessor :trend,:style,:min,:max,:tag
+  def initialize t,style,u,l
+    @max,@min = u,l
+    @tag = t
+    @style = style
+    @x=nil
+  end
+
+  def update
+
+    @x=@trend.width
+    y = @trend.height - (((tag.value)/(max-min)) * @trend.height)
+    trend.beginPath
+    trend.cxt.strokeStyle = style
+    trend.cxt.lineWidth=1
+    @l ||= [trend.width-2,trend.height]
+    c = y.ceil
+    f = y.floor
+    if y-f > c - y
+      y = f
+    elsif c-y > y-f
+      y = c
+    else
+      y = f
+    end
+    trend.draw_line *[].push(*@l).push(@x-1,y)
+    @l = [@x-2,y]
+    trend.closePath  
+    trend.cxt.lineWidth=1
+  end
+end
+
+class Trend < Canvas
+  attr_accessor :height,:pens,:width,:interval
+  def initialize ctx,w,height
+    super ctx
+    @width = w
+    @height = height
+    @pens = {}
+    draw_axi
+    @interval = 1
+    @cnt = 0
+  end
+  
+  def add_pen k,pen
+    @pens[k] = pen
+    pen.trend=self
+  end
+  
+  def shift
+    if @id
+      putImageData @id,11,0
+      draw_axi
+    end
+  end
+  
+  def push
+    @id = getImageData(12,0,width,height+29)
+  end
+  
+  def update
+    @cnt+= 1
+    return unless @cnt == @interval
+    @cnt = 0
+    shift
+    @pens.each_pair do |k,pen|
+      pen.update
+    end
+    push
+  rescue=>e
+    p e
+    puts e.backtrace
+  end
+  
+  def draw_axi
+    beginPath
+    cxt.strokeStyle = '#000'
+    draw_line 0,@height,@width,@height
+    draw_line 0,0,0,@height
+    closePath
+    draw_rules
+  end
+  
+  def draw_rules
+    beginPath
+    cxt['strokeStyle'] = "#cccccc"
+    x,y,x1,y1 = 0,0,@width,0
+    5.times do
+      draw_line x,y,x1,y1
+      y,y1 = y+@height/5.0,y1+@height/5.0
+    end
+    closePath
+  end
+end
+
+
 class Session
   attr_accessor :tns,:connid,:comm,:error,:mode,:device,:tl,:poll_rate,:do_poll,:ui,:host
   def initialize(addr)
     @poll_rate = 1
-    @comm = obj = ABEL::CommObject.new("192.1.168.20")
+    @comm = obj = ABEL::CommObject.new(addr)
     @tl = ABEL::TagLib.new(obj) 
   end
   
@@ -77,7 +206,7 @@ module ABEL
 end
 
 class UI
-  attr_accessor :session,:tl,:ready,:doc
+  attr_accessor :session,:tl,:ready,:doc,:trend
   def initialize
   end
   
@@ -106,7 +235,8 @@ class UI
     o=doc.get_elements_by_class_name.call('data')  
     for i in 0..o.length-1
       o.item.call(i).className = "data"
-    end    
+    end  
+
   end
   
   def disconnect
@@ -130,8 +260,11 @@ class UI
   
   def update
     return if !ready
-
+ 
     @session.update
+    
+    @trend.update
+    
     [:host,:error,:connid,:tns,:device,:mode].each do |k|
       doc.get_element_by_id.call(k.to_s).innerHTML="#{@session.send(k).to_s.strip}"
     end
@@ -150,7 +283,7 @@ class UI
 end
 
 w = Gtk::Window.new "Scrubber Monitor"
-w.set_size_request 600,400
+w.set_size_request 900,650
 v = WebKit::WebView.new
 w.add v
 w.show_all
@@ -218,6 +351,12 @@ v.signal_connect('load-finished') do |wv,f|
     nil
   end  
   
+  ele = doc.getElementById.call('trend')
+  ui.trend=Trend.new(ele.getContext.call('2d'),860,270)   
+  ui.trend.interval = 10
+  ui.trend.add_pen "SumpPH",Pen.new(ui.tl.tags['SumpPH'],'blue',8,0)
+  ui.trend.add_pen "Sump_LevelIN",Pen.new(ui.tl.tags['Sump_LevelIN'],'red',40,0)
+  ui.trend.add_pen "Vessel_Temp",Pen.new(ui.tl.tags['Vessel_Temp'],'green',300,0)
   ui.ready = true
 end
 
@@ -255,19 +394,26 @@ __END__
       .label {
         background-color: #cecece;
         color: #000000;
+        border-width: 1px;
+        border-style: solid;
+        border-color #666;
       }
       .value {
-        background-color: #000000;
-        color: #0fc8af;
+        background-color: gray;
+        color: #000;
+        border-width: 1px;
+        border-style: solid;
+        border-color #666;  
       }
       .data {
-        display: normal;
+        display: normal;      
       }
       .hide {
         display: none;
       }
       .link {
         color: blue;
+        cursor: pointer;
       }
       .normal {
         color: white;
@@ -276,6 +422,16 @@ __END__
       .alarm {
         color: black;
         background-color: red;
+      }
+      .chart {
+        border-style: solid;
+        border-color: #666;
+        border-width: 1px;
+        background-color: #fff;
+      }
+      #trend {
+        
+        
       }
      </style>
    </head>
@@ -312,10 +468,14 @@ __END__
      </tr>
      </table>
      <br>
-     <br>
      <span class=label>Scrubber status:</span>
      <span class=normal id=state>null</span>
      <br>
+     <br>
+     <div class=chart>
+       <canvas id=trend width=900 height=300>
+       </canvas>
+     </div>
      <br>
      <br>
      <span class=link id=close>Close</span>
