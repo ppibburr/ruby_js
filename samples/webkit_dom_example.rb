@@ -53,7 +53,7 @@ w.signal_connect('delete-event') do
   Gtk.main_quit
 end
 
-v.signal_connect('load-finished') do |v,f|
+v.signal_connect('load-finished') do |yv,f|
   ruby_do_dom(f.get_global_context)
 end
 

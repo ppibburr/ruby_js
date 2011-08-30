@@ -20,10 +20,13 @@ module WebKit
     spec = GLib::Param::Object.new 'real','real','',GLib::Type['GObject'],3
     install_property spec,1
     
+    PTRS = {}
+    
     attr_accessor :real
     # @param ptr [FFI::Pointer,Object#to_ptr] the FFI::Pointer to provide for
     def initialize ptr
       super()
+      PTRS[ptr.address] = self
       set_real ptr
       # delegate class methods
       class << self.class
@@ -97,6 +100,10 @@ end
 
 module RGI
   def self.gobj2rval pt
+    o=WebKit::GLibProvider::PTRS[pt.address]
+    if o
+      return o
+    end
     ph = WebKit::GLibProvider.new pt 
     q=ph.get_property! 'real'
     return pt if !q

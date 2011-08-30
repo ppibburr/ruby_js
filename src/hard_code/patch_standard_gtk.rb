@@ -114,7 +114,9 @@ module WebKit
     raise unless q.inspect =~ /ptr\=0x([0-9a-z]+)/
     
     adr = $1.to_i(16)
-
+    if o=WebKit::GLibProvider::PTRS[adr]
+      return o
+    end
     wk = eval("WebKit::#{klass}").new(:ptr => FFI::Pointer.new(adr) )
   end
 end
