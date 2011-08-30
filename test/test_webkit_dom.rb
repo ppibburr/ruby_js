@@ -46,7 +46,7 @@ def ruby_do_dom ctx,w
   ele = doc['createElement'].call('div')
   ele['innerHTML'] = "Click any where ..."
   body['appendChild'].call(ele)
-  
+
   if ele['innerHTML'] == "Click any where ..."
     Gtk.main_quit
     puts "#{File.basename(__FILE__)} passed"
