@@ -14,9 +14,9 @@ Ruby (FFI based) bindings to JavaScript from WebKit
 * Full access to JavaScript Objects (call functions, get|set properties)
 * Call JS from Ruby
 * Call Ruby from JS
-* Define new JS Classes whose instances get Ruby callbacks
+* Define new JS Classes in Ruby whose instances get Ruby callbacks
 * Full access to the DOM from a WebKit::WebFrame
-* Wrap a Ruby object and use it in JS
+* Wrap a Ruby object and use it in JS (needs implemented further)
 
 == Synopsis
 
@@ -37,7 +37,41 @@ Ruby (FFI based) bindings to JavaScript from WebKit
 
 * (optional) ruby-gtk2 standard or gir_ffi (gem)
     gtk2 is required to use a WebView in a application
+    a WebKit namespace binding is included the source for
+    use with standard libgtk2-ruby and is full featured
+    
+== Notes
+  aJSObject.get_property('aProperty')               returns the property
+  aJSObject['aProperty']                            returns the property
+  aJSObject.aProperty                               returns the property *OR* the result of a function
+																	  if the property is a function
+																	  
+  aJSObject.set_property('foo','bar')               sets property foo to bar
+  aJSObject.['foo'] = 'bar'                         sets property foo to bar 
+  aJSObject.foo = 'bar'                             sets property foo to bar 
 
+  aJSObject.set_property('myFunc') do |this,*o|     sets the property to a object that is a function and will call the block when called
+    # ...
+  end                                       
+  
+  aJSObject['myFunc] = proc do |this,*o|            sets the property to a object that is a function and will call the proc when called
+    # ...
+  end  
+
+  aJSObject.myFunc = proc do |this,*o|              sets the property to a object that is a function and will call the proc when called
+    # ...
+  end  
+
+  aJSObject.set_property('myFunc',method(:my_meth)) sets the property to a object that is a function and will call the method when called
+  aJSObject['myFunc'] = method(:my_meth)            sets the property to a object that is a function and will call the method when called
+  aJSObject.myFunc = method(:my_meth)               sets the property to a object that is a function and will call the method when called
+ 
+																	  
+  aJSObject['propertyThatIsAFunction'].call(*foo)   calls the function
+
+  aJSObject.someProp and aJSObject.some_prop        will get/call property 'someProp'. property getting turns uscore into camelCase
+  aJSObject.some_prop = :foo                        sets the property 'some_prop'
+   
 == Install
 Get the source
 cd to source root

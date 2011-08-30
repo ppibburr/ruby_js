@@ -43,8 +43,8 @@ obj['myFunc'] = JS::Object.make_function_with_callback(ctx,'myFun') do
 end
 
 if idx=[obj.foo == "property 0",
-  obj.myFunc.is_function,
-  obj.my_func.is_function
+  obj.myFunc == true,
+  obj.my_func == true
 ].index(false) then
   puts "#{__FILE__} test #{idx} failed"
   exit(1)

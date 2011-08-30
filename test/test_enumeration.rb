@@ -42,7 +42,7 @@ obj['testProperty1'] = "true"
 
 a = []
 obj.each do |prop|
-  a << obj.hasOwnProperty.call(prop)
+  a << obj.hasOwnProperty(prop)
 end
 
 test << !a.index(false)

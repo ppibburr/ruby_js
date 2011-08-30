@@ -43,11 +43,11 @@ def ruby_do_dom ctx
   globj = ctx.get_global_object
 
   document = globj.document
-  ele = document.createElement.call('div')
+  ele = document.createElement('div')
   ele.innerHTML = "Click any where ..."
-  document.body.appendChild.call(ele)
+  document.body.appendChild(ele)
   
-  if document.body.getElementsByTagName.call('div')[0].to_ptr == ele.to_ptr
+  if document.body.getElementsByTagName('div')[0].to_ptr == ele.to_ptr
 	  if ele.innerHTML == "Click any where ..."
 		Gtk.main_quit
 		puts "#{File.basename(__FILE__)} passed"

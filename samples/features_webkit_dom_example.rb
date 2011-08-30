@@ -46,7 +46,7 @@ def ruby_do_dom ctx
   document = globj.document
 
   document.body.onclick = proc do |this,*o|
-    globj.alert.call("events!")
+    globj.alert("events!")
     nil;
   end
 
@@ -57,7 +57,7 @@ def ruby_do_dom ctx
   
   body.appendChild.call(ele)
   
-  globj.alert.call("Hello World")
+  globj.alert("Hello World")
 end
 
 GObject.signal_connect(w,'delete-event') do 

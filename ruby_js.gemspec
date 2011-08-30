@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = "ruby_js"
-  s.version = "0.0.09"
+  s.version = "0.1.0"
   s.date = Date.today.to_s
 
   s.summary = "FFI-based bindings to JavaScript in WebKit"

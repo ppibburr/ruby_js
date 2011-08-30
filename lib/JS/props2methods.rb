@@ -74,16 +74,21 @@ class JS::Object
       sym = $1
       is_setter = true
     end
-
+    r = nil
     if is_setter
       self[sym] = o[0]
     elsif has_property(sym)
-      self[sym]
+      r = self[sym]
     elsif has_property(q=RubyJS.camelize(sym))
-      self[q]
+      r = self[q]
     else
-      super
+      return super
     end
+    
+    if r.is_a?(JS::Object) and r.is_function
+      return r.call(*o,&b)
+    end
+    r
   rescue
     super
   end

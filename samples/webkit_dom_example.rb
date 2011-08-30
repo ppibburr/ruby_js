@@ -45,7 +45,7 @@ def ruby_do_dom ctx
   globj = ctx.get_global_object
   doc = globj['document']
   doc.body.onclick = proc do
-    globj.alert.call("onclick event")
+    globj.alert("onclick event")
   end
 end
 

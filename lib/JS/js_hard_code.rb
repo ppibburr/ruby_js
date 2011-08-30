@@ -228,7 +228,7 @@ class JS::Object
   
   def self.is_array(context,obj)
     return nil if !context.is_a?(JS::Lib::GlobalContext)
-    JS::OBJECT(context).prototype.toString['call'].call(obj) == "[object Array]"
+    JS::OBJECT(context).prototype.toString(obj) == "[object Array]"
   end
 end
 
