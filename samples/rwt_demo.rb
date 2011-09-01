@@ -5,9 +5,9 @@ require 'JS'
 require 'JS/props2methods'
 require 'JS/webkit'
 
-require "rwt"
+require 'JS/resource'
+require "JS/rwt"
 
-require 'resource'
 
 w = Gtk::Window.new()
 v = WebKit::WebView.new
@@ -53,7 +53,8 @@ def on_webview_load_finished ctx
   tw.add t
   tw.show
   
-  p Rwt::Collection.new(doc).find(".drawable")
+  rc = Rwt::Collection.new(doc)
+  p rc[".panel",".label","#foo"]
 end
 
 w.signal_connect('delete-event') do 
