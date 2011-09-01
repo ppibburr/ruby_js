@@ -7,7 +7,7 @@ module JS
   
   module Style
     def self.load document,path
-      load_string File.read(path);
+      load_string document,File.read(path);
     end
     
     def self.load_string document,string

@@ -1,4 +1,17 @@
 module Rwt
+  def self.init doc,o={}
+    raise if !o.is_a? Hash
+    o[:style] ||= File.join(File.dirname(__FILE__),'resources',"rwt_theme_default.css")
+    o[:scripts] ||= []
+    o[:scripts] << File.join(File.dirname(__FILE__),'resources',"uki.dev.js") 
+    
+    JS::Style.load doc,o[:style]
+    
+    o[:scripts].each do |s|
+      JS::Script.load s
+    end 
+  end
+
   class Collection < Array  
     def initialize from,*o
       @from = from
@@ -402,8 +415,7 @@ module Rwt
       begin
         @uki = JS.execute_script(parent.element.context,"uki;")
       rescue
-        JS::Script.load parent.element.context,"uki.dev.js"
-        @uki = JS.execute_script(parent.element.context,"uki;")
+        raise RuntimeError.new("resource uki.js not found")
       end
 
       @opts = o[0]

@@ -21,7 +21,7 @@ def on_webview_load_finished ctx
   globj = ctx.get_global_object
   doc = globj['document']
   
-  JS::Style.load doc,"rwt_theme_default.css"
+  Rwt.init doc
   
   uw=Rwt::Window.new(doc.get_element_by_id('bar'),"Core example",:position=>[15,15],:size=>[300,230])
   uw.add b=Rwt::Container.new(uw)   

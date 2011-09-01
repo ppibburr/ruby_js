@@ -166,9 +166,14 @@ class JS < Library
 	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','webkit_hard_code_minimal.rb')
 	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','webkit_hard_code_full.rb')
 	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','webkit.rb')
+    
+    add_optional_require File.join(File.dirname(__FILE__),'hard_code','resource.rb')
+        
+    add_optional_require File.join(File.dirname(__FILE__),'hard_code','rwt.rb')
 
     add_dir File.join(File.dirname(__FILE__),'hard_code','webkit')
-	  	  
+    add_dir File.join(File.dirname(__FILE__),'hard_code','resources')
+    	  	  
 	  @ifaces << Object.new()
 	  @ifaces << Value.new()
 	  @ifaces << Context.new()
