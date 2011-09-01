@@ -1,4 +1,78 @@
 module Rwt
+  class Collection < Array  
+    def initialize from,*o
+      @from = from
+      super(*o)
+    end
+    
+    def bind *o,&b
+    
+    end
+    
+    def add_class n
+    
+    end
+    
+    def remove_class n
+    
+    end
+    
+    def style k,v
+    
+    end
+    
+    def find_id(q)
+     if @from.is_a?(Collection)
+       @from.find! do |o| o.id == q end  
+     elsif @from.is_a?(JS::Object)
+       @from.get_element_by_id(q)
+     elsif @from.is_a?(Rwt::Object)
+       @from.element.get_element_by_id(q)
+     end
+    end
+ 
+    def find_class(q)
+     r=nil
+     if @from.is_a?(Collection)
+       r=@from.find_all do |o| o.className.split(" ").index(q) end  
+     elsif @from.is_a?(JS::Object)
+       r=@from.get_elements_by_class_name(q)
+     elsif @from.is_a?(Rwt::Object)
+       r=@from.element.get_elements_by_class_name(q)
+     end
+     
+     if r
+       if r.is_a?(Array)
+         r
+       elsif r.is_a?(JS::Object)
+         a = []
+         for i in 0..r.length-1
+           a << r[i]
+         end
+         a
+       end  
+     end
+    end 
+    
+    alias :'find!' :find
+    
+    def find q
+      c = Collection.new(self)
+      if q.is_a?(Symbol)
+        c << find_id(q)
+      elsif q.is_a?(String)
+        if q=~ /^.(.*)/
+          c.push *find_class($1)
+        elsif q=~/^#(.*)/
+          c << find_id($1)
+        else
+          c.push(*find_name(q))
+        end
+      end
+      
+      c
+    end    
+  end
   class Size < Array
     def initialize *o
       super()
@@ -70,6 +144,14 @@ module Rwt
       return if !tag
       @element = parent.ownerDocument.createElement(tag)
       @parent.element.appendChild(@element)
+    end
+    
+    def id
+      element.id
+    end
+    
+    def className
+      element.className
     end
     
     def style
@@ -273,10 +355,8 @@ module Rwt
   end  
   
   class Foriegn < Drawable
+    attr_accessor :object
     def initialize par,*o
-      raise ArgumentError.new("expected parameter 2 to be Hash") unless !o[0] or o[0].is_a?(Hash)
-      o[0] ||= {}
-      o[0][:tag] = nil
       super par,*o
     end
     
@@ -323,7 +403,7 @@ module Rwt
         size[1] = size[1] - 1
       end
       
-      @view = @uki.call({ 
+      @object = @view = @uki.call({ 
         :view=>'Table', 
         :rect=>get_rect.join(" "),
         :anchors=>@opts[:anchors], 

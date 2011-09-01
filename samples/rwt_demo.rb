@@ -14,10 +14,10 @@ v = WebKit::WebView.new
 
 v.load_html_string("""<!doctype html><html><body><div id=foo height=500 width=300></div><div id=bar></div></body></html>""",nil)
 w.add v
-w.resize(800,600)
+w.resize(600,400)
 w.show_all
 
-def ruby_do_dom ctx
+def on_webview_load_finished ctx
   globj = ctx.get_global_object
   doc = globj['document']
   
@@ -52,6 +52,8 @@ def ruby_do_dom ctx
   
   tw.add t
   tw.show
+  
+  p Rwt::Collection.new(doc).find(".drawable")
 end
 
 w.signal_connect('delete-event') do 
@@ -59,7 +61,7 @@ w.signal_connect('delete-event') do
 end
 
 v.signal_connect('load-finished') do |yv,f|
-  ruby_do_dom(f.get_global_context)
+  on_webview_load_finished(f.get_global_context)
 end
 
 Gtk.main

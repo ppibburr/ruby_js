@@ -19,7 +19,7 @@
   border-top-left-radius: 0.5em;
   border-top-right-radius: 0.5em;
   background-color: #eeeeef;
-  color: black;
+  color: #666;
 }
 
 .panel_handle {
@@ -68,6 +68,7 @@
   font-size: 10pt;
   margin: 0px;
   padding: 1px;
+  color: #000000;  
 }
 
 .rule {
