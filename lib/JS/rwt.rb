@@ -25,6 +25,19 @@
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 module Rwt
+  def self.init doc,o={}
+    raise if !o.is_a? Hash
+    o[:style] ||= File.join(File.dirname(__FILE__),'resources',"rwt_theme_default.css")
+    o[:scripts] ||= []
+    o[:scripts] << File.join(File.dirname(__FILE__),'resources',"uki.dev.js") 
+    
+    JS::Style.load doc,o[:style]
+    
+    o[:scripts].each do |s|
+      JS::Script.load doc.context,s
+    end 
+  end
+
   class Collection < Array  
     def initialize from,*o
       @from = from
@@ -36,7 +49,15 @@ module Rwt
     end
     
     def bind *o,&b
-    
+      o.each do |e|
+        each do |q|
+          if q.is_a?(Rwt::Object)
+            q.element.send(:"on#{e}=",b)
+          else
+            q.send(:"on#{e}=",b)     
+          end
+        end
+      end
     end
     
     def add_class n
@@ -47,11 +68,11 @@ module Rwt
     
     def remove_class n
       each do |o|    
-        o.className = o.className.gsub(Regexp.new("^#{o}$"),'')
-        o.className = o.className.gsub(Regexp.new(" #{o}$"),'')
-        o.className = o.className.gsub(Regexp.new("^#{o} "),'')
-        o.className = o.className.gsub(Regexp.new(" #{o} "),' ')   
-        o.className = o.className.strip     
+        o.className = o.className.gsub(Regexp.new("^#{n}$"),'')
+        o.className = o.className.gsub(Regexp.new(" #{n}$"),'')
+        o.className = o.className.gsub(Regexp.new("^#{n} "),'')
+        o.className = o.className.gsub(Regexp.new(" #{n} "),' ')   
+        o.className = o.className.strip   
       end     
     end
     
@@ -113,6 +134,7 @@ module Rwt
       c = Collection.new(self,c.uniq)
     end    
   end
+  
   class Size < Array
     def initialize *o
       super()
@@ -169,7 +191,7 @@ module Rwt
   end
 
   class Object
-    attr_reader :element,:parent
+    attr_reader :element,:parent,:shown
     def initialize parent,tag
       if parent.respond_to?('parent?')
         @parent = parent.parent?
@@ -182,6 +204,7 @@ module Rwt
       end if !parent.is_a?(Rwt::Object)
       
       return if !tag
+      
       @element = parent.ownerDocument.createElement(tag)
       @parent.element.appendChild(@element)
     end
@@ -221,6 +244,17 @@ module Rwt
     def parent?
       self
     end
+    
+    def show
+      Collection.new(self,[self]).remove_class("hidden")
+      @shown = true
+    end
+    
+    def hide
+      return if @shown != true
+      Collection.new(self,[self]).add_class("hidden")    
+      @shown = false
+    end
   end
 
   class Drawable < Object
@@ -229,10 +263,12 @@ module Rwt
       opts << {} if opts.empty?
       raise unless (opts=opts[0]).is_a?(Hash)
       opts[:tag] ||= 'div'
+      
       super(parent,opts[:tag])    
       
       opts[:size] ||= Size.new(-1,-1)
       opts[:position] ||= Point.new(0,0)
+      
       [:size,:position].each do |k|
         opts[k] = [opts[k]] unless opts[k].is_a?(Array)
         send("set_#{k}",*opts[k])
@@ -257,7 +293,7 @@ module Rwt
         element.style.height = size.height.to_s+"px"
       end
       
-      element.className = (element.className.gsub("hidden",'') + " shown").strip
+      super
     end
   end
 
@@ -294,6 +330,46 @@ module Rwt
   end
 
   class Panel < Bin
+    class Handle < Container
+      def initialize par,q,*o
+        title = q
+        if q.is_a? Hash
+          o = [q]    
+          title=nil    
+        end    
+        
+        super par,*o
+        
+        Collection.new(self,[self]).add_class("panel_handle")
+        
+        add Label.new(self,title,:size=>[-30,-1])
+        add @shade=Drawable.new(self,:size=>[30,-1])
+        
+        toggle_state(:unshaded)
+        
+        @shade.style.cursor = "pointer"
+        
+        Collection.new(self,[@shade]).bind(:click) do
+          parent.parent.toggle_state()
+        end      
+      end
+      
+      def toggle_state(s)
+        case s
+          when :shaded
+            @shade.element.innerText = "[+]"
+        else
+          @shade.element.innerText = "[-]"
+        end
+      end
+      
+      def show *o
+        super *o
+        @shade.style.left = (@element.clientWidth.to_f-31).to_s+"px"
+      end
+    end
+  
+  
     attr_reader :handle
     def initialize par,q,*o
       title = q
@@ -301,16 +377,16 @@ module Rwt
         o = [q]    
         title=nil    
       end    
-    
+      
       super par,*o
+      
       element.className = (element.className + " panel").strip
+      
       add c=@root=Container.new(self,:size=>[-1,-1])
-      c.add @l=Rwt::Label.new(c,title,:size=>[-1,18])
-      @l.element.className = (@l.element.className + " panel_handle").strip     
+      c.add @l=Rwt::Panel::Handle.new(c,title.to_s,:size=>[-1,18])    
       @inner=Rwt::Bin.new(self,:size=>[-1,-20],:position=>[0,21]) 
-
-      c.add @inner     
-
+      c.add @inner
+      
       def self.add q
         @inner.add q
       end    
@@ -328,6 +404,21 @@ module Rwt
     
     def parent?
       @inner || self
+    end
+    
+    def toggle_state
+      h = @inner.element.client_height
+      if @inner.shown
+        @pre_shaded_size = size[1]
+        size[1] = size[1] - h
+        show
+        @inner.hide
+        @handle.toggle_state(:shaded)
+      else
+        size[1] = @pre_shaded_size
+        show
+        @handle.toggle_state(:unshaded)        
+      end     
     end
     
     alias :show! :show
@@ -428,12 +519,7 @@ module Rwt
       begin
         @uki = JS.execute_script(parent.element.context,"uki;")
       rescue
-        begin
-          JS::Script.load parent.element.context,"uki.dev.js"
-          @uki = JS.execute_script(parent.element.context,"uki;")
-        rescue
-          raise RuntimeError.new("no uki.js")
-        end
+        raise RuntimeError.new("resource uki.js not found")
       end
 
       @opts = o[0]

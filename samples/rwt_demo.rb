@@ -6,7 +6,7 @@ require 'JS/props2methods'
 require 'JS/webkit'
 
 require 'JS/resource'
-require "JS/rwt"
+require File.join(File.dirname(__FILE__),'..','lib','JS','rwt')
 
 
 w = Gtk::Window.new()
