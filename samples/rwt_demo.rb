@@ -6,13 +6,13 @@ require 'JS/props2methods'
 require 'JS/webkit'
 
 require 'JS/resource'
-require File.join(File.dirname(__FILE__),'..','lib','JS','rwt')
+require 'JS/rwt'
 
 
 w = Gtk::Window.new()
 v = WebKit::WebView.new
 
-v.load_html_string("""<!doctype html><html><body><div id=foo height=500 width=300></div><div id=bar></div></body></html>""",nil)
+v.load_html_string("""<!doctype html><html><body><div id=foo height=500 width=300></div><div id=bar></div><div id=moof></div></body></html>""",nil)
 w.add v
 w.resize(600,400)
 w.show_all
@@ -22,8 +22,8 @@ def on_webview_load_finished ctx
   doc = globj['document']
   
   Rwt.init doc
-  
-  uw=Rwt::Window.new(doc.get_element_by_id('bar'),"Core example",:position=>[15,15],:size=>[300,230])
+
+  uw=Rwt::Window.new(doc.get_element_by_id('bar'),"Core example",:position=>[15,35],:size=>[300,230])
   uw.add b=Rwt::Container.new(uw)   
   b.add Rwt::Label.new(b,"""Some text to demonstrate a
    multiline area of formatted text that
@@ -34,7 +34,7 @@ def on_webview_load_finished ctx
   b.add Rwt::TextView.new(b,File.read(__FILE__),:position=>[0,103])
   uw.show
 
-  tw = Rwt::Window.new(doc.get_element_by_id('foo'),"Table example",:size=>[400,200],:position=>[365,15])
+  tw = Rwt::Window.new(doc.get_element_by_id('foo'),"Table example",:size=>[400,200],:position=>[365,35])
 
   t=Rwt::Table.new tw,:columns=>[
     {:label=>"Item"},
@@ -55,6 +55,21 @@ def on_webview_load_finished ctx
   
   rc = Rwt::Collection.new(doc)
   p rc[".panel",".label","#foo"]
+  
+  mb = Rwt::Menubar.new(doc.get_element_by_id('moof'))
+  5.times do 
+    m = Rwt::Menu.new(mb,'foo')
+    mb.add_menu(m)
+    5.times do 
+      m2 = Rwt::Menu.new(m,'bar')
+      m.add_menu(m2)
+      5.times do
+        i = Rwt::MenuItem.new(m2,'here')
+        m2.add_item(i)
+      end
+    end 
+  end  
+  mb.show
 end
 
 w.signal_connect('delete-event') do 
