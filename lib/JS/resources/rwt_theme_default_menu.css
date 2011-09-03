@@ -4,112 +4,11 @@
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#e2e2e2), color-stop(50%,#dbdbdb), color-stop(51%,#d1d1d1), color-stop(100%,#fefefe));
 	border: solid 1px #6d6d6d;
 }
-.menu_bar li {
 
+.menu {
 
-	float: left;
-	position: relative;
-	list-style: none;
 }
 
-/* main level link */
-.menu_bar .menu_item {
-	color: #000;
-	text-decoration: none;
-	display: block;
-	padding:  2px 20px;
-	margin: 0;
-	-webkit-border-radius: 0.25em;
-}
-
-/* main level link hover */
-.menu_bar .current .menu_item, .menu_bar li:hover > .menu_item {
-	background-color: #ebebeb;/* -webkit-gradient(linear, left top, left bottom, from(#ebebeb), to(#a1a1a1)); /* for webkit browsers */
-	color: #666;
-	border-top: solid 1px #f8f8f8;
-	-webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .2);
-}
-
-/* sub levels link hover */
-.menu_bar ul li:hover .menu_item, .menu_bar li:hover li .menu_item {
-	background: none;
-	border: none;
-	color: #000;
-	-webkit-box-shadow: none;
-}
-
-.menu_bar ul .menu_item:hover {
-	background: -webkit-gradient(linear, left top, left bottom, from(#cfcfcf), to(#6d88b7)) !important; /* for webkit browsers */
-	color: #666 !important;
-	-webkit-border-radius: 0;
-}
-
-/* level 2 list */
-.menu_bar ul {
-	background: -webkit-gradient(linear, left top, left bottom, from(#fff), to(#cfcfcf)); /* for webkit browsers */
-	display: none;
-	margin: 0;
-	padding: 0;
-	width: 185px;
-	position: absolute;
-	top: 23px;
-	left: 0;
-	border: solid 1px #b4b4b4;
-	-webkit-border-radius: 3px;
-	-webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
-}
-
-/* dropdown */
-.menu_bar li:hover > ul {
-	display: block;
-}
-
-.menu_bar ul li {
-	float: none;
-	margin: 0;
-	padding: 0;
-}
-
-.menu_bar ul .menu_item {
-	font-weight: normal;
-}
-
-/* level 3+ list */
-.menu_bar ul ul {
-	left: 181px;
-	top: -3px;
-}
-
-/* rounded corners for first and last child */
-.menu_bar ul li:first-child > .menu_item {
-	-webkit-border-top-left-radius: 3px;
-	-webkit-border-top-right-radius: 3px;
-}
-
-.menu_bar ul li:last-child > .menu_item {
-	-webkit-border-bottom-left-radius: 3px;
-	-webkit-border-bottom-right-radius: 3px;
-}
-
-/* clearfix */
-.menu_bar:after {
-	content: ".";
-	display: block;
-	clear: both;
-	visibility: hidden;
-	line-height: 0;
-	height: 0;
-}
-
-.menu_bar {
-	display: inline-block;
-  height: 25px;
-}
-
-html[xmlns] .menu_bar {
-	display: block;
-}
-
-* html .menu_bar {
-	height: 25px;
+.menu_root_link:hover {
+  background-color: #666;
 }

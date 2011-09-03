@@ -6,7 +6,7 @@ module Rwt
     o[:scripts] << File.join(File.dirname(__FILE__),'resources',"uki.dev.js") 
     
     JS::Style.load doc,o[:style]
-    JS::Style.load doc,File.join(File.dirname(__FILE__),'resources','rwt_theme_default_menu.css'
+
     o[:scripts].each do |s|
       JS::Script.load doc.context,s
     end 
@@ -558,119 +558,80 @@ module Rwt
     } 
   end
   
-  class Menubar < Container
+  class Menubar < Drawable
     def initialize par,*o
-      o[0] ||= {}
+      super
       
-      raise unless o[0].is_a?(Hash)
-      
-      o[0][:tag] = 'ul'
-      o[0][:size]= [-1,25]
-            
-      super par,*o
-      
-      self.className=("menu_bar")      
+      self.className=("menu_bar")
     end
     
-    alias :'add!' :add
-    def add *o
-      raise NoMethodError.new(":add is at :'add!'")
+    def add text
+      Menu.new(self,text)
     end
     
-    def add_menu(m)
-      raise ArgumentError.new("argument must be a Rwt::Menu. #{m} given") if !m.is_a?(Rwt::Menu)
-      add! m
-    end
-    
-    def show
-      super(nil)
-    end
-  end
-  
-  class Menu < Container
-    attr_accessor :inner
-    def initialize par,q=nil,*o
-      text = q
-      if q.is_a? Hash
-        o = [q]    
-        text=nil    
-      end
-
-      o[0] ||= {}
-      raise unless o[0].is_a?(Hash)
-      o[0][:tag] = 'li'      
-      
-      if par.is_a?(Menu)
-        par = par.inner
-      elsif par.is_a?(Menubar)
-      else
-        raise ArgumentError.new("parent must be menubar or menu")
-      end
-      
-      super par,*o 
-  
-      @item = Rwt::Label.new(self,text)
-      @inner = Rwt::Container.new(self,:tag=>'ul')
-      self.className=("menu")
-      @inner.className = "menu_inner"
-      @item.className = "menu_item"
-      add! @inner
-      @inner.add @item
-      
-      [@item,@inner].each do |o|
-        def o.show *o
+    def self.from_array par,a,*o
+      sub = proc do |a,d|
+        m=d.add a[0]
+        a[1].each do |i|
+          if i.is_a?(Array)
+            sub.call(i,m)
+          else
+            m.add(i)
+          end
         end
       end
-    end
-    
-    alias :'add!' :add
-    def add *o
-      raise NoMethodError.new(":add is at :'add!'")
-    end
-    
-    def add_item(i)
-      raise ArgumentError.new("argument must be a Rwt::MenuItem. #{i} given") if !i.is_a?(Rwt::MenuItem)
-      @inner.add i
-    end
-    
-    def add_menu(m)
-      raise ArgumentError.new("argument must be a Rwt::MenuItem. #{m} given")   if !m.is_a?(Rwt::Menu)
-      @inner.add m
-    end
-    
-    def show
-      super(nil)
+      mb = Menubar.new(par,*o)
+      a.each do |m|
+        sub.call(m,mb)
+      end
+      mb
     end
   end
-  
-  class MenuItem < Container
-    def initialize par,q=nil,*o
-      text = q
-      if q.is_a? Hash
-        o = [q]    
-        text=nil    
-      end
 
-      o[0] ||= {}
-      raise unless o[0].is_a?(Hash)
-      o[0][:tag] = 'li'
+  class Menu < Rwt::Object
+    attr_accessor :label,:item
+    def initialize par,text
+      super par,'ul'
       
-      par=par.inner
+      Collection.new(self,[self]).add_class("menu")
+      @item = Rwt::Object.new(self,'li') 
+      @label = Rwt::Object.new(@item,'h2')  
+      @label.element.innerText = text  
+      @inner = Rwt::Object.new(@item,'ul')
+      Collection.new(self,[@item]).add_class('menu_root_item')
+      Collection.new(self,[@inner]).add_class("sub_menu")       
+    end
+    def add q
+      MenuItem.new(@inner,q)
+    end
+  end
+
+  class MenuItem < Rwt::Object
+    attr_accessor :label
+    def initialize par,text
+      super par,'li'
       
-      super par,*o 
-  
-      @item = Rwt::Label.new(self,text)
-      self.className="menu_item_outer"
-      @item.className="menu_item"
-      add! @item
+      Collection.new(self,[self]).add_class("menu_item")
+      @label = Rwt::Object.new(self,'span')  
+      @label.element.innerText = text  
       
-      def @item.show *o
-      end
+      Collection.new(self,[self]).bind(:click) do |*o|
+        @activate_event.call(*o) if @activate_event   
+      end  
     end
     
-    alias :'add!' :add
-    def add *o
-      raise NoMethodError.new(":add is at :'add!'")
+    def add q
+      if !@inner
+        @inner = Rwt::Object.new(self,'ul')
+        Collection.new(self,[@inner]).add_class("sub_menu")     
+      end
+      
+      MenuItem.new(@inner,q)
+    end
+    
+    def on_activate &b
+      @activate_event = b
     end
   end
 end
+

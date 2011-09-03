@@ -96,3 +96,82 @@
 .textarea {
 
 }
+.menu_bar {
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(50%,#f1f1f1), color-stop(51%,#e1e1e1), color-stop(100%,#f6f6f6)); /* Chrome,Safari4+ */
+-webkit-box-shadow:1px 1px 1px #aaaaaa; /* Safari */
+border-width: 1px;
+border-style: solid;
+border-color: #ABA2A2;
+}
+
+.menu_bar ul {
+list-style: none;
+margin: 0;
+padding: 0;
+width: auto;
+float: left;
+}
+
+.sub_menu {
+border-width: 1px;
+border-style: solid;
+border-color: #ccc #888 #555 #bbb;  
+width: 12em;
+}
+
+.menu_bar span, .menu_bar h2 {
+font: normal 11px/16px arial, helvetica, sans-serif;
+display: block;
+
+margin: 0;
+padding: 4px 3px;
+}
+
+.menu_bar h2 {
+color: #666;
+background: none;
+}
+
+.menu_root_item:hover {
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#d4e4ef), color-stop(100%,#86aecc)); /* Chrome,Safari4+ */
+}
+
+.menu_bar span {
+color: #000;
+background: #efefef;
+text-decoration: none;
+}
+
+.menu_bar span:hover {
+color: #a00;
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#d4e4ef), color-stop(100%,#86aecc)); /* Chrome,Safari4+ */
+}
+
+.menu_bar li {position: relative;}
+
+.menu_bar ul ul {
+position: absolute;
+z-index: 500;
+width: 10em;
+}
+
+.menu_bar ul ul ul {
+position: absolute;
+top: 0;
+left: 100%;
+}
+
+div.menu_bar ul ul {
+display: none;
+}
+
+div.menu_bar ul ul,
+div.menu_bar ul li:hover ul ul,
+div.menu_bar ul ul li:hover ul ul
+{display: none;}
+
+div.menu_bar ul li:hover ul,
+div.menu_bar ul ul li:hover ul,
+div.menu_bar ul ul ul li:hover ul
+{display: block;}
+

@@ -32,7 +32,7 @@ module Rwt
     o[:scripts] << File.join(File.dirname(__FILE__),'resources',"uki.dev.js") 
     
     JS::Style.load doc,o[:style]
-    JS::Style.load doc,File.join(File.dirname(__FILE__),'resources','rwt_theme_default_menu.css'
+    JS::Style.load doc,File.join(File.dirname(__FILE__),'resources','rwt_theme_default_menu.css')
     o[:scripts].each do |s|
       JS::Script.load doc.context,s
     end 
@@ -585,118 +585,85 @@ module Rwt
   end
   
   class Menubar < Container
-    def initialize par,*o
-      o[0] ||= {}
-      
-      raise unless o[0].is_a?(Hash)
-      
-      o[0][:tag] = 'ul'
-      o[0][:size]= [-1,25]
-            
-      super par,*o
-      
-      self.className=("menu_bar")      
+    def initialize par,*opts
+      opts << {} if opts.empty?
+      raise unless (opts=opts[0]).is_a?(Hash)
+      opts[:size] ||= [-1,20]    
+      super
+      Collection.new(self,[self]).add_class "menu_bar"
     end
     
-    alias :'add!' :add
-    def add *o
-      raise NoMethodError.new(":add is at :'add!'")
-    end
-    
-    def add_menu(m)
-      raise ArgumentError.new("argument must be a Rwt::Menu. #{m} given") if !m.is_a?(Rwt::Menu)
-      add! m
-    end
-    
-    def show
-      super(nil)
+    def add_menu m
+      add m
     end
   end
   
   class Menu < Container
-    attr_accessor :inner
-    def initialize par,q=nil,*o
+    attr_accessor :label
+    def initialize par,q,*o
       text = q
       if q.is_a? Hash
         o = [q]    
         text=nil    
       end
-
-      o[0] ||= {}
-      raise unless o[0].is_a?(Hash)
-      o[0][:tag] = 'li'      
       
-      if par.is_a?(Menu)
-        par = par.inner
-      elsif par.is_a?(Menubar)
-      else
-        raise ArgumentError.new("parent must be menubar or menu")
-      end
-      
-      super par,*o 
-  
-      @item = Rwt::Label.new(self,text)
-      @inner = Rwt::Container.new(self,:tag=>'ul')
-      self.className=("menu")
-      @inner.className = "menu_inner"
-      @item.className = "menu_item"
-      add! @inner
-      @inner.add @item
-      
-      [@item,@inner].each do |o|
-        def o.show *o
+      super par,*o
+      Collection.new(self,[self]).add_class "menu"
+      set_size(45,20)
+      @label = Rwt::Label.new(self,text,:size=>[45,20],:position=>[0,0])
+      Collection.new(self,[@label]).add_class "menu_root_link"
+      add @label
+      Collection.new(self,[@label]).bind(:click) do
+        children[1..children.length-1].map do |c| 
+          c.set_position Point.new(0,20)
+          c.set_size Size.new(45,20)
+          c.show 
         end
-      end
+      end 
     end
     
-    alias :'add!' :add
-    def add *o
-      raise NoMethodError.new(":add is at :'add!'")
-    end
-    
-    def add_item(i)
-      raise ArgumentError.new("argument must be a Rwt::MenuItem. #{i} given") if !i.is_a?(Rwt::MenuItem)
-      @inner.add i
-    end
-    
-    def add_menu(m)
-      raise ArgumentError.new("argument must be a Rwt::MenuItem. #{m} given")   if !m.is_a?(Rwt::Menu)
-      @inner.add m
-    end
-    
-    def show
+    def show()
       super(nil)
+      @label.show()
+      children[1..children.length-1].map do |c| c.show;c.hide end
+    end
+    
+    def add_item i
+      add i
     end
   end
   
   class MenuItem < Container
-    def initialize par,q=nil,*o
+    def initialize par,q,*o
       text = q
       if q.is_a? Hash
         o = [q]    
         text=nil    
       end
-
-      o[0] ||= {}
-      raise unless o[0].is_a?(Hash)
-      o[0][:tag] = 'li'
       
-      par=par.inner
+      super par,*o
       
-      super par,*o 
-  
-      @item = Rwt::Label.new(self,text)
-      self.className="menu_item_outer"
-      @item.className="menu_item"
-      add! @item
-      
-      def @item.show *o
+      @label = Rwt::Label.new(self,text,:size=>[45,20],:position=>[0,0])
+      add @label
+      Collection.new(self,[self]).add_class "menu_item"
+      Collection.new(self,[self]).add_class "menu_item_link"     
+      Collection.new(self,[@label]).bind(:click) do
+        children[1..children.length-1].map do |c| 
+          c.set_position Point.new(45,0)
+          c.set_size Size.new(45,20)
+          c.show
+        end
       end
     end
     
-    alias :'add!' :add
-    def add *o
-      raise NoMethodError.new(":add is at :'add!'")
+    def show();
+      super(nil);
+      @label.show
+      children[1..children.length-1].map do |c| c.show;c.hide end
+    end
+    
+    def add_item i
+      add i
     end
   end
 end

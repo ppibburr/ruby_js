@@ -25,13 +25,35 @@ def on_webview_load_finished ctx
 
   uw=Rwt::Window.new(doc.get_element_by_id('bar'),"Core example",:position=>[15,35],:size=>[300,230])
   uw.add b=Rwt::Container.new(uw)   
+  
+  mb = Rwt::Menubar.from_array(b,[
+    ['File',[
+      ['New',[
+        'Blank',
+        'From Template']],
+      'Open',
+      'Quit']
+    ],
+    ['Edit',[
+      'Select All',
+      'Copy',
+      'Paste',
+      'Preferences']
+    ],
+    ['Help',
+      ['About']
+    ]
+  ],:size=>[-1,25])
+
+  b.add mb
+
   b.add Rwt::Label.new(b,"""Some text to demonstrate a
    multiline area of formatted text that
    etc ...
-  """,:size=>[-1,50])
-  b.add Rwt::HRule.new(b,:position=>[0,63]) 
-  b.add Rwt::Entry.new(b,:position=>[0,77])
-  b.add Rwt::TextView.new(b,File.read(__FILE__),:position=>[0,103])
+  """,:size=>[-1,50],:position=>[0,25])
+  b.add Rwt::HRule.new(b,:position=>[0,88]) 
+  b.add Rwt::Entry.new(b,:position=>[0,102])
+  b.add Rwt::TextView.new(b,File.read(__FILE__),:position=>[0,128])
   uw.show
 
   tw = Rwt::Window.new(doc.get_element_by_id('foo'),"Table example",:size=>[400,200],:position=>[365,35])
@@ -56,20 +78,8 @@ def on_webview_load_finished ctx
   rc = Rwt::Collection.new(doc)
   p rc[".panel",".label","#foo"]
   
-  mb = Rwt::Menubar.new(doc.get_element_by_id('moof'))
-  5.times do 
-    m = Rwt::Menu.new(mb,'foo')
-    mb.add_menu(m)
-    5.times do 
-      m2 = Rwt::Menu.new(m,'bar')
-      m.add_menu(m2)
-      5.times do
-        i = Rwt::MenuItem.new(m2,'here')
-        m2.add_item(i)
-      end
-    end 
-  end  
-  mb.show
+
+  p mb.element.clientHeight
 end
 
 w.signal_connect('delete-event') do 
