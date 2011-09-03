@@ -32,7 +32,7 @@ module Rwt
     o[:scripts] << File.join(File.dirname(__FILE__),'resources',"uki.dev.js") 
     
     JS::Style.load doc,o[:style]
-    JS::Style.load doc,File.join(File.dirname(__FILE__),'resources','rwt_theme_default_menu.css')
+
     o[:scripts].each do |s|
       JS::Script.load doc.context,s
     end 
@@ -584,86 +584,80 @@ module Rwt
     } 
   end
   
-  class Menubar < Container
-    def initialize par,*opts
-      opts << {} if opts.empty?
-      raise unless (opts=opts[0]).is_a?(Hash)
-      opts[:size] ||= [-1,20]    
+  class Menubar < Drawable
+    def initialize par,*o
       super
-      Collection.new(self,[self]).add_class "menu_bar"
+      
+      self.className=("menu_bar")
     end
     
-    def add_menu m
-      add m
+    def add text
+      Menu.new(self,text)
+    end
+    
+    def self.from_array par,a,*o
+      sub = proc do |a,d|
+        m=d.add a[0]
+        a[1].each do |i|
+          if i.is_a?(Array)
+            sub.call(i,m)
+          else
+            m.add(i)
+          end
+        end
+      end
+      mb = Menubar.new(par,*o)
+      a.each do |m|
+        sub.call(m,mb)
+      end
+      mb
     end
   end
-  
-  class Menu < Container
+
+  class Menu < Rwt::Object
+    attr_accessor :label,:item
+    def initialize par,text
+      super par,'ul'
+      
+      Collection.new(self,[self]).add_class("menu")
+      @item = Rwt::Object.new(self,'li') 
+      @label = Rwt::Object.new(@item,'h2')  
+      @label.element.innerText = text  
+      @inner = Rwt::Object.new(@item,'ul')
+      Collection.new(self,[@item]).add_class('menu_root_item')
+      Collection.new(self,[@inner]).add_class("sub_menu")       
+    end
+    def add q
+      MenuItem.new(@inner,q)
+    end
+  end
+
+  class MenuItem < Rwt::Object
     attr_accessor :label
-    def initialize par,q,*o
-      text = q
-      if q.is_a? Hash
-        o = [q]    
-        text=nil    
+    def initialize par,text
+      super par,'li'
+      
+      Collection.new(self,[self]).add_class("menu_item")
+      @label = Rwt::Object.new(self,'span')  
+      @label.element.innerText = text  
+      
+      Collection.new(self,[self]).bind(:click) do |*o|
+        @activate_event.call(*o) if @activate_event   
+      end  
+    end
+    
+    def add q
+      if !@inner
+        @inner = Rwt::Object.new(self,'ul')
+        Collection.new(self,[@inner]).add_class("sub_menu")     
       end
       
-      super par,*o
-      Collection.new(self,[self]).add_class "menu"
-      set_size(45,20)
-      @label = Rwt::Label.new(self,text,:size=>[45,20],:position=>[0,0])
-      Collection.new(self,[@label]).add_class "menu_root_link"
-      add @label
-      Collection.new(self,[@label]).bind(:click) do
-        children[1..children.length-1].map do |c| 
-          c.set_position Point.new(0,20)
-          c.set_size Size.new(45,20)
-          c.show 
-        end
-      end 
+      MenuItem.new(@inner,q)
     end
     
-    def show()
-      super(nil)
-      @label.show()
-      children[1..children.length-1].map do |c| c.show;c.hide end
-    end
-    
-    def add_item i
-      add i
-    end
-  end
-  
-  class MenuItem < Container
-    def initialize par,q,*o
-      text = q
-      if q.is_a? Hash
-        o = [q]    
-        text=nil    
-      end
-      
-      super par,*o
-      
-      @label = Rwt::Label.new(self,text,:size=>[45,20],:position=>[0,0])
-      add @label
-      Collection.new(self,[self]).add_class "menu_item"
-      Collection.new(self,[self]).add_class "menu_item_link"     
-      Collection.new(self,[@label]).bind(:click) do
-        children[1..children.length-1].map do |c| 
-          c.set_position Point.new(45,0)
-          c.set_size Size.new(45,20)
-          c.show
-        end
-      end
-    end
-    
-    def show();
-      super(nil);
-      @label.show
-      children[1..children.length-1].map do |c| c.show;c.hide end
-    end
-    
-    def add_item i
-      add i
+    def on_activate &b
+      @activate_event = b
     end
   end
 end
+
