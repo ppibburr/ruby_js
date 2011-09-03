@@ -6,13 +6,14 @@ require 'JS/props2methods'
 require 'JS/webkit'
 
 require 'JS/resource'
-require 'JS/rwt'
+require '/home/ppibburr/git/ruby_js/src/hard_code/rwt'
 
 require 'tab'
 w = Gtk::Window.new()
 v = WebKit::WebView.new
 
-v.load_html_string("""<!doctype html><html><body><div id=foo height=500 width=300></div><div id=bar></div> <div id=moof></div></body></html>""",nil)
+v.load_html_string("""<!doctype html><html><body><div id=foo height=500 width=300></div><div id=bar></div> <div id=moof style='position: relative;float: left'>
+</div></body></html>""",nil)
 w.add v
 w.resize(600,400)
 w.show_all
@@ -23,7 +24,7 @@ def on_webview_load_finished ctx
   
   Rwt.init doc
   
-  JS::Style.load(doc,"/home/ppibburr/tab.css")
+  JS::Style.load(doc,"/home/ppibburr/git/ruby_js/samples/tab.css")
 
   uw=Rwt::Window.new(doc.get_element_by_id('bar'),"Core example",:position=>[15,35],:size=>[300,230])
   uw.add b=Rwt::Container.new(uw)   
@@ -83,17 +84,15 @@ def on_webview_load_finished ctx
 
   p mb.element.clientHeight
   
-  tbw = Rwt::Window.new(doc.get_element_by_id('bar'),:size=>[500,400],:position=>[15,400])
-  tb = Rwt::Tabbed.new(tbw)
-  page = tb.add "A Page"
-    page = tb.add "A Page"
-      page = tb.add "A Page"
-      tb.children[0][0].element.className = "tab_active"
-  page.add Rwt::Panel.new(page,'Foo')
-  tbw.add(tb)
-  tbw.show
+  tb=Rwt::Tabbed.new(doc.body,:size=>[400,300])
+  for i in 1..15
+    tb.add "Page #{i}"
+  end
+  pg = tb.add "Here"
+  p tb.tab_bar.inner.element.properties.sort
   
-  puts tb.element.outerHTML
+  
+  tb.show
 end
 
 w.signal_connect('delete-event') do 
