@@ -4,7 +4,7 @@ module Rwt
     o[:style] ||= File.join(File.dirname(__FILE__),'resources',"rwt_theme_default.css")
     o[:scripts] ||= []
     o[:scripts] << File.join(File.dirname(__FILE__),'resources',"uki.dev.js") 
-    
+    o[:scripts] << File.join(File.dirname(__FILE__),'resources',"uki-more.js")     
     JS::Style.load doc,o[:style]
 
     o[:scripts].each do |s|
@@ -52,6 +52,16 @@ module Rwt
     
     def style k,v
     
+    end
+    
+    def find_name q
+      if @from.is_a?(Collection)
+        @from.find! do |o| o.name == q.to_s end  
+      elsif @from.is_a?(JS::Object)
+        @from.get_elements_by_name(q.to_s)[0]
+      elsif @from.is_a?(Rwt::Object)
+        @from.element.ownerDocument.get_elements_by_name(q.to_s)[0]
+      end      
     end
     
     def find_id(q)
@@ -232,6 +242,7 @@ module Rwt
   end
 
   class Drawable < Object
+    CSS_CLASS = "drawable"
     include Rect
     def initialize parent,*opts         
       opts << {} if opts.empty?
@@ -239,16 +250,14 @@ module Rwt
       opts[:tag] ||= 'div'
       
       super(parent,opts[:tag])    
-      
-      opts[:size] ||= Size.new(-1,-1)
-      opts[:position] ||= Point.new(0,0)
-      
+      element.className = (element.className + " #{CSS_CLASS}").strip      
+      apply_default_size
+      opts[:position] ||= [0,0]
       [:size,:position].each do |k|
+        next unless opts[k]
         opts[k] = [opts[k]] unless opts[k].is_a?(Array)
         send("set_#{k}",*opts[k])
       end
-      
-      element.className = (element.className + " drawable").strip
     end
     
     def show
@@ -272,11 +281,12 @@ module Rwt
   end
 
   class Container < Drawable
+    CSS_CLASS = "container"
     attr_reader :children
     def initialize *o
       @children = []
       super *o
-      element.className = (element.className + " container").strip      
+      element.className = (element.className + " #{CSS_CLASS}").strip      
     end
     
     def add q
@@ -293,6 +303,7 @@ module Rwt
   end
 
   class Bin < Container
+    CSS_CLASS = "bin"
     def child
       children[0]
     end
@@ -304,7 +315,9 @@ module Rwt
   end
 
   class Panel < Bin
+    CSS_CLASS = "panel"
     class Handle < Container
+      CSS_CLASS = "panel_handle"
       def initialize par,q,*o
         title = q
         if q.is_a? Hash
@@ -316,8 +329,8 @@ module Rwt
         
         Collection.new(self,[self]).add_class("panel_handle")
         
-        add Label.new(self,title,:size=>[-30,-1])
-        add @shade=Drawable.new(self,:size=>[30,-1])
+        add Label.new(self,title,:size=>Rwt::Size.get_size(:panel_handle))
+        add @shade=Drawable.new(self,:size=>Rwt::Size.get_size(:panel_shade))
         
         toggle_state(:unshaded)
         
@@ -356,9 +369,9 @@ module Rwt
       
       element.className = (element.className + " panel").strip
       
-      add c=@root=Container.new(self,:size=>[-1,-1])
-      c.add @l=Rwt::Panel::Handle.new(c,title.to_s,:size=>[-1,18])    
-      @inner=Rwt::Bin.new(self,:size=>[-1,-20],:position=>[0,21]) 
+      add c=@root=Container.new(self)
+      c.add @l=Rwt::Panel::Handle.new(c,title.to_s)    
+      @inner=Rwt::Bin.new(self,:size=>Rwt::Size.get_size(:panel_inner),:position=>[0,21]) 
       c.add @inner
       
       def self.add q
@@ -405,16 +418,20 @@ module Rwt
   end
   
   class Window < Panel
+    CSS_CLASS = "window"
     def initialize *o
       super
       element.className = (element.className + " window").strip
+      style.position='fixed'
     end
   end
 
   class Scrollable < Bin
+    CSS_CLASS = "scrollable"
   end
   
   class Rule < Drawable
+    CSS_CLASS = "rule"
     def initialize *o
       super
       element.className = (element.className + " rule").strip
@@ -422,18 +439,18 @@ module Rwt
   end
   
   class HRule < Rule
+    CSS_CLASS = 'hrule'
     def initialize *o
       super
-      size[1] = 5
     end
     
     def show()
-      size[0] = -1
       super()
     end  
   end
  
   class Label < Drawable
+    CSS_CLASS = "label"
     def initialize par,q,*o
       text = q
       if q.is_a? Hash
@@ -450,6 +467,7 @@ module Rwt
   end 
   
   class Entry < Drawable
+    CSS_CLASS = "entry"
     def initialize par,q,*o
       text = q
       if q.is_a? Hash
@@ -458,18 +476,16 @@ module Rwt
       end
       
       super par,*o
-  
       element.innerText = text.to_s     
-      size[1] = 20
       element.className = (element.className + " entry").strip
       element.contentEditable = true;
     end    
   end
   
   class TextView < Entry
+    CSS_CLASS = "textarea"
     def initialize *o
       super
-      size[1] = 100
       element.className = (element.className + " textview scrollable").strip
       element.contentEditable = true;
     end   
@@ -485,8 +501,59 @@ module Rwt
       super() if q
     end
   end
+ 
+  class TreeList < Foriegn
+    CSS_CLASS = "treelist"
+    def initialize par,*o
+      super
+
+      begin
+        @uki = JS.execute_script(parent.element.context,"uki;")
+      rescue
+        raise RuntimeError.new("resource uki-more.js not found")
+      end
+
+      @opts = o[0] ||= {}
+      @data = @opts[:data]
+    end
+    
+    def show
+      super(true)
+      return if @init
+      @init = true
+      @opts[:anchors] ||= DEF_OPTS[:anchors]
+      
+      if position[1] == 0
+        position[1] = 1
+        size[1] = size[1] - 1
+      end
+
+      @object = @view = @uki.call({ 
+        :view=>'uki.more.view.TreeList', 
+        :rect=>get_rect.join(" "),
+        :anchors=>@opts[:anchors], 
+        :multiselect => true, 
+        :style => {:fontSize=>'11px', :lineHeight=>'11px'}
+      })
+      
+      data(@data) if @data
+      
+      @view.attachTo(element)    
+    end
+    
+    def data a=nil
+      return @data=@view.data(a) if a and @view
+      return @data = a if a 
+      @data = @view.data
+    end
+    
+    DEF_OPTS = {
+      :anchors => 'left top right bottom'
+    } 
+  end 
   
   class Table < Foriegn
+    CSS_CLASS = "table"
     def initialize par,*o
       super
 
@@ -496,7 +563,7 @@ module Rwt
         raise RuntimeError.new("resource uki.js not found")
       end
 
-      @opts = o[0]
+      @opts = o[0] ||= {}
       @columns = @opts[:columns] ||= []
       @data = @opts[:data]
     end
@@ -534,7 +601,7 @@ module Rwt
       
       data(@data) if @data
       
-      @view.attachTo(@parent.element)    
+      @view.attachTo(element)    
     end
     
     def data a=nil
@@ -559,6 +626,7 @@ module Rwt
   end
   
   class Menubar < Drawable
+    CSS_CLASS = "menubar"
     def initialize par,*o
       super
       
@@ -614,7 +682,7 @@ module Rwt
       Collection.new(self,[self]).add_class("menu_item")
       @label = Rwt::Object.new(self,'span')  
       @label.element.innerText = text  
-      
+      self.name= text
       Collection.new(self,[self]).bind(:click) do |*o|
         @activate_event.call(*o) if @activate_event   
       end  

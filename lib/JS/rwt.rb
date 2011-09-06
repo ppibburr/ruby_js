@@ -484,9 +484,8 @@ module Rwt
       end
       
       super par,*o
-  
+      size[1]=20 if size[1]==-1 if self.is_a?(Entry)
       element.innerText = text.to_s     
-      size[1] = 20
       element.className = (element.className + " entry").strip
       element.contentEditable = true;
     end    
@@ -495,7 +494,6 @@ module Rwt
   class TextView < Entry
     def initialize *o
       super
-      size[1] = 100
       element.className = (element.className + " textview scrollable").strip
       element.contentEditable = true;
     end   
@@ -560,7 +558,7 @@ module Rwt
       
       data(@data) if @data
       
-      @view.attachTo(@parent.element)    
+      @view.attachTo(element)    
     end
     
     def data a=nil

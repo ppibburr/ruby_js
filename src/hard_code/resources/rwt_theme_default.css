@@ -134,12 +134,14 @@ background: none;
 
 .menu_root_item:hover {
 background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#d4e4ef), color-stop(100%,#86aecc)); /* Chrome,Safari4+ */
+cursor: pointer;
 }
 
 .menu_bar span {
 color: #000;
 background: #efefef;
 text-decoration: none;
+cursor: pointer;
 }
 
 .menu_bar span:hover {
