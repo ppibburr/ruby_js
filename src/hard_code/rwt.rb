@@ -639,14 +639,14 @@ module Rwt
     
     def self.from_array par,a,*o
       sub = proc do |a,d|
-        m=d.add a[0]
-        a[1].each do |i|
-          if i.is_a?(Array)
-            sub.call(i,m)
-          else
-            m.add(i)
-          end
+        m=d.add a[:label]
+        (a[:children]||=[]).each do |i|
+          sub.call(i,m)
         end
+        Collection.new(m,[m]).bind(:click) do
+          m.send a[:activate]
+        end if a[:activate]
+        m.id = a[:id] if a[:id]
       end
       mb = Menubar.new(par,*o)
       a.each do |m|
@@ -682,7 +682,7 @@ module Rwt
       Collection.new(self,[self]).add_class("menu_item")
       @label = Rwt::Object.new(self,'span')  
       @label.element.innerText = text  
-      self.name= text
+      element.name= text
       Collection.new(self,[self]).bind(:click) do |*o|
         @activate_event.call(*o) if @activate_event   
       end  

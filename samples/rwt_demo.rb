@@ -20,7 +20,9 @@ v.load_html_string("""<!doctype html><html><body><div id=foo height=500 width=30
 w.add v
 w.resize(800,600)
 w.show_all
-
+def on_item_activated *o
+  p :activate_event
+end
 def on_webview_load_finished ctx
   globj = ctx.get_global_object
   doc = globj['document']
@@ -34,26 +36,28 @@ def on_webview_load_finished ctx
   uw.add b=Rwt::Container.new(uw)   
   
   mb = Rwt::Menubar.from_array(b,[
-    ['File',[
-      ['New',[
-        'Blank',
-        'From Template']],
-      'Open',
-      'Quit']
-    ],
-    ['Edit',[
-      'Select All',
-      'Copy',
-      'Paste',
-      'Preferences']
-    ],
-    ['Help',
-      ['About']
-    ]
+    {:label=>"File",:children=>[
+      {:label=>'New  ->',:children=>[
+        {:label=>'From Template',:activate=>:on_item_activated},
+        {:label=>'Blank',:id=>:blank}     
+      ]},
+      {:label=>'Open',:activate=>:on_item_activated},
+      {:label=>'Quit',:activate=>:on_item_activated}
+    ]},       
+    {:label=>'Edit',:children=>[
+      {:label=>'Find',:activate=>:on_item_activated},
+      {:label=>'Copy',:activate=>:on_item_activated},
+      {:label=>'Paste',:activate=>:on_item_activated}            
+    ]},
+    {:label=>'Help',:children=>[
+      {:label=>'About',:activate=>:on_item_activated}
+    ]}
   ],:size=>[-1,25])
 
   b.add mb
-  p Rwt::Collection.new(mb).find('Blank');exit
+  
+  
+
   b.add Rwt::Label.new(b,"""Some text to demonstrate a
    multiline area of formatted text that
    etc ...
