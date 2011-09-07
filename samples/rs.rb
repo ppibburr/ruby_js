@@ -12,7 +12,7 @@ require 'tab'
 require 'sizing'
 require 'box'
 require 'button'
-
+require 'panel'
 w = Gtk::Window.new()
 v = WebKit::WebView.new
 
@@ -33,21 +33,14 @@ def on_webview_load_finished ctx
   rwt=Rwt::Collection.new(doc,[doc])  
   Rwt.init doc
 
+
   
   JS::Style.load(doc,"/home/ppibburr/git/ruby_js/samples/tab.css")
   JS::Style.load(doc,"/home/ppibburr/git/ruby_js/samples/box.css")
   JS::Style.load(doc,"/home/ppibburr/git/ruby_js/samples/button.css") 
   
 
-  vb=Rwt::VBox.new(doc.body,:size=>[100,50])
-  vb.add handle=Rwt::HBox.new(vb,:size=>[20,20]),1,'20px','20px'
-  handle.style['background-color']='blue'
-  vb.style.resize='both'
-  vb.style.overflow='hidden'
-  Rwt::Collection.new(vb,[vb]).add_class "listen_resize"
-  vb.element['onresize'] = proc do
-    p 1
-  end
+  vb=Rwt::Dow.new(doc.body,:size=>[100,50])
   vb.show
 
 end

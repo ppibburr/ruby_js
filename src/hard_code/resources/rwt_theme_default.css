@@ -23,7 +23,7 @@
 }
 
 .panel * {
-/*  resize: none;*/
+  resize: none;
 }
 
 .listen_resize {
