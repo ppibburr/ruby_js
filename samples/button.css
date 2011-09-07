@@ -1,0 +1,20 @@
+.button {
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(50%,#f1f1f1), color-stop(51%,#e1e1e1), color-stop(100%,#f6f6f6)); /* Chrome,Safari4+ */
+  -webkit-box-shadow:1px 1px 1px #aaaaaa; /* Safari */
+  border-width: 1px;
+  border-style: solid;
+  border-color: #ABA2A2;  
+  border-radius: 3px;
+  cursor: pointer;
+  text-align: center;
+  vertical-align: middle;  
+}
+
+.button:hover {
+background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(246,248,249,1)), color-stop(50%,rgba(229,235,238,1)), color-stop(51%,rgba(215,222,227,1)), color-stop(100%,rgba(245,247,249,1))); /* Chrome,Safari4+ */
+}
+
+.button_label {
+  text-align: center;
+  vertical-align: middle;
+}

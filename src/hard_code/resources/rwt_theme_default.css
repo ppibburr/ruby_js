@@ -22,6 +22,10 @@
   color: #666;
 }
 
+.panel * {
+  resize: none;
+}
+
 .panel_handle {
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ebf1f6), color-stop(50%,#abd3ee), color-stop(51%,#89c3eb), color-stop(100%,#d5ebfb));
   border-top-left-radius: 0.5em;

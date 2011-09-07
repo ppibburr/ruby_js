@@ -11,6 +11,7 @@ require '/home/ppibburr/git/ruby_js/src/hard_code/rwt'
 require 'tab'
 require 'sizing'
 require 'box'
+require 'button'
 
 w = Gtk::Window.new()
 v = WebKit::WebView.new
@@ -23,14 +24,16 @@ w.show_all
 def on_item_activated *o
   p :activate_event
 end
+
 def on_webview_load_finished ctx
   globj = ctx.get_global_object
   doc = globj['document']
-  
+  rwt=Rwt::Collection.new(doc,[doc])  
   Rwt.init doc
   
   JS::Style.load(doc,"/home/ppibburr/git/ruby_js/samples/tab.css")
   JS::Style.load(doc,"/home/ppibburr/git/ruby_js/samples/box.css")
+  JS::Style.load(doc,"/home/ppibburr/git/ruby_js/samples/button.css") 
   
   uw=Rwt::Window.new(doc.get_element_by_id('bar'),"Core example",:position=>[15,35],:size=>[300,250])
   uw.add b=Rwt::Container.new(uw)   
@@ -53,6 +56,10 @@ def on_webview_load_finished ctx
       {:label=>'About',:activate=>:on_item_activated}
     ]}
   ],:size=>[-1,25])
+
+  rwt.find(:blank).bind(:click) do
+    on_item_activated
+  end
 
   b.add mb
   
@@ -86,8 +93,7 @@ def on_webview_load_finished ctx
   tw.add t
   tw.show
   
-  rc = Rwt::Collection.new(doc)
-  p rc[".panel",".label","#foo"]
+  rwt.find *[".panel",".label","#foo"]
   
 
   p mb.element.clientHeight
@@ -95,6 +101,7 @@ def on_webview_load_finished ctx
   tbw = Rwt::Window::new(doc.get_element_by_id('moof'),"TabBook Example",:size=>[300,250],:position=>[15,300])
   tb=Rwt::Tabbed.new(tbw)
   for i in 1..7
+  
     pg=tb.add "Page #{i}"
     pg.add Rwt::Label.new(pg,"this is page #{i}")
   end  
@@ -104,9 +111,9 @@ def on_webview_load_finished ctx
   bw = Rwt::Window::new(doc.get_element_by_id('cow'),"Layout Example",:size=>[400,250],:position=>[380,300])
   bw.add vb=Rwt::VBox.new(bw) 
   for i in 0..3
-    vb.add hb=Rwt::HBox.new(vb,:size=>[-1,20]),i
-    for ii in 0..2
-      hb.add Rwt::Label.new(hb,"item #{i}:#{ii}",:size=>[80,-1]),ii
+    vb.add hb=Rwt::HBox.new(vb),i
+    for ii in 0..3
+      hb.add Rwt::Button.new(hb,"item #{i}:#{ii}"),ii
     end
   end
   bw.show  

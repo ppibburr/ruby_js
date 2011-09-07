@@ -1,5 +1,6 @@
 .box {
   display: -webkit-box;
+  overflow:hidden;
 }
 
 .hbox {

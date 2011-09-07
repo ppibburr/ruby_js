@@ -8,12 +8,9 @@ module Rwt
       @children = []
     end
     
-    def add e,w=0,min=nil,max=nil
-      e.style['-webkit-box-flex']=w
-      e.style['max-width'] = max if max
-      e.style['min-width'] = min if min      
+    def add e,w=0
+      e.style['-webkit-box-flex']=w     
       e.style.position = "static"
-   #   e.set_size(Size.new.push(*[0,0]))
       @children << e
     end
     
@@ -21,6 +18,8 @@ module Rwt
       super
       @children.each do |c|
         c.show
+        c.style.height='auto'
+        c.style.width='auto'
       end
     end
   end
@@ -31,6 +30,12 @@ module Rwt
       super
       Collection.new(self,[self]).add_class CSS_CLASS
     end
+    
+    def add e,w=0,min=nil,max=nil
+      super e,w
+      e.style['max-width'] = max if max
+      e.style['min-width'] = min if min       
+    end
   end
   
   class VBox < Box
@@ -40,5 +45,11 @@ module Rwt
       super
       Collection.new(self,[self]).add_class CSS_CLASS      
     end
+    
+    def add e,w=0,min=nil,max=nil
+      super e,w
+      e.style['max-height'] = max if max
+      e.style['min-height'] = min if min       
+    end    
   end
 end

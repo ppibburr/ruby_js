@@ -18,9 +18,9 @@ module Rwt
       super(*o)
     end
     
-    def [] *o
-      find *o
-    end
+    #def [] *o
+     # find *o
+    #end
     
     def bind *o,&b
       o.each do |e|
@@ -32,6 +32,7 @@ module Rwt
           end
         end
       end
+      self
     end
     
     def add_class n
@@ -374,6 +375,14 @@ module Rwt
       @inner=Rwt::Bin.new(self,:size=>Rwt::Size.get_size(:panel_inner),:position=>[0,21]) 
       c.add @inner
       
+      style.resize = 'both'
+      style.overflow= 'hidden'
+      
+      Collection.new(d=element.context.get_global_object.window,[d]).bind(:resize) do
+      p 6
+        show
+      end
+      
       def self.add q
         @inner.add q
       end    
@@ -637,20 +646,32 @@ module Rwt
       Menu.new(self,text)
     end
     
-    def self.from_array par,a,*o
-      sub = proc do |a,d|
-        m=d.add a[:label]
-        (a[:children]||=[]).each do |i|
-          sub.call(i,m)
-        end
-        Collection.new(m,[m]).bind(:click) do
-          m.send a[:activate]
-        end if a[:activate]
-        m.id = a[:id] if a[:id]
+    def self.fill a,d
+      i=d.add a[:label]
+      (a[:children]||=[]).each do |c|
+        fill(c,i)
       end
+      
+      if q=a[:activate]      
+        if q.is_a?(Symbol)
+          q=proc do
+            i.send a[:activate]
+          end
+        end
+        i.on_activate &q
+      end
+      i.id = a[:id].to_s if a[:id] 
+      if a[:id]
+        puts a
+        puts i.class
+        puts i.id
+      end
+    end
+    
+    def self.from_array par,a,*o
       mb = Menubar.new(par,*o)
       a.each do |m|
-        sub.call(m,mb)
+        fill(m,mb)
       end
       mb
     end
