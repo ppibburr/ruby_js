@@ -8,7 +8,7 @@
   :menu_bar=>[-1,20],
   :panel_handle=>[-30,18],
   :panel_shade=>[30,18],
-  :panel_inner=>[-1,-20],
+  :panel_inner=>[-1,-28],
   :table=>:default,
   :treelist=>:default,
   :list=>:default,

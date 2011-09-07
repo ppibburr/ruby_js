@@ -117,6 +117,8 @@ def on_webview_load_finished ctx
     end
   end
   bw.show  
+  
+  p Rwt::Collection.new(doc).find(".listen_resize")
 end
 
 w.signal_connect('delete-event') do 

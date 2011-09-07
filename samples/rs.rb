@@ -32,28 +32,23 @@ def on_webview_load_finished ctx
   doc = globj['document']
   rwt=Rwt::Collection.new(doc,[doc])  
   Rwt.init doc
-  last=nil
-  GLib::Idle.add 100 do
-    cur=rwt.find(".listen_resize")
-    if last
-      cur.each do
-    end
-  end  
+
   
   JS::Style.load(doc,"/home/ppibburr/git/ruby_js/samples/tab.css")
   JS::Style.load(doc,"/home/ppibburr/git/ruby_js/samples/box.css")
   JS::Style.load(doc,"/home/ppibburr/git/ruby_js/samples/button.css") 
   
-  rs=Rwt::Bin.new(doc.body,:size=>[100,100])
-  rs.add vb=Rwt::VBox.new(rs,:size=>[-1,-1])
-  vb.style.width = "auto"
+
+  vb=Rwt::VBox.new(doc.body,:size=>[100,50])
   vb.add handle=Rwt::HBox.new(vb,:size=>[20,20]),1,'20px','20px'
-  handle.style.width="auto"
   handle.style['background-color']='blue'
-  rs.style.resize='both'
-  rs.style.overflow='hidden'
-  vb.style.resize=handle.style.resize='none'
-  rs.show
+  vb.style.resize='both'
+  vb.style.overflow='hidden'
+  Rwt::Collection.new(vb,[vb]).add_class "listen_resize"
+  vb.element['onresize'] = proc do
+    p 1
+  end
+  vb.show
 
 end
 

@@ -1,4 +1,39 @@
 module Rwt
+  class SizeNotify
+    attr_reader :doc
+    def initialize doc
+      @doc = doc
+      @watching={}
+    end
+    
+    def start
+      @running = true
+    end
+    
+    def stop
+      @running = false
+    end
+    
+    def running?
+      @running
+    end
+    
+    def poll
+      Collection.new(doc).find(".listen_resize").each do |e|
+        if @watching[e] != (current=[e.clientWidth,e.clientHeight]) and @watching[e]
+          w,h = @watching[e]
+          nw,nh=current
+          cw = nw-w
+          ch = nh-h
+          p 5
+          e.onresize(cw,ch) if e['onresize'] and e['onresize'].is_a?(JS::Object) and e['onresize'].is_function
+          p 6
+        end
+        @watching[e] = current
+      end
+    end
+  end
+
   def self.init doc,o={}
     raise if !o.is_a? Hash
     o[:style] ||= File.join(File.dirname(__FILE__),'resources',"rwt_theme_default.css")
@@ -10,6 +45,15 @@ module Rwt
     o[:scripts].each do |s|
       JS::Script.load doc.context,s
     end 
+    
+    size_notifier = SizeNotify.new(doc)
+    
+    size_notifier.start
+
+    GLib::Idle.add 200 do
+      size_notifier.poll if size_notifier.running?
+      true
+    end    
   end
 
   class Collection < Array  
@@ -368,19 +412,28 @@ module Rwt
       
       super par,*o
       
-      element.className = (element.className + " panel").strip
+      element.className = (element.className + " panel listen_resize").strip
       
       add c=@root=Container.new(self)
       c.add @l=Rwt::Panel::Handle.new(c,title.to_s)    
-      @inner=Rwt::Bin.new(self,:size=>Rwt::Size.get_size(:panel_inner),:position=>[0,21]) 
+      @inner=Rwt::Bin.new(c,:size=>Rwt::Size.get_size(:panel_inner),:position=>[0,21]) 
       c.add @inner
       
-      style.resize = 'both'
-      style.overflow= 'hidden'
-      
-      Collection.new(d=element.context.get_global_object.window,[d]).bind(:resize) do
-      p 6
-        show
+      collection!.bind(:resize) do |t,cw,ch|
+      p [cw,ch]
+        if size[0] < 0
+          size[0]=element.clientWidth
+        else
+          size[0]=size[0]+cw
+        end
+        
+        if size[1] < 0
+          size[1]=element.clientHeight
+        else
+          size[1]=size[1]+ch
+        end
+        @children.each do |c| c.show() end
+        p element.clientHeight
       end
       
       def self.add q

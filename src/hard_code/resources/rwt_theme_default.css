@@ -23,7 +23,12 @@
 }
 
 .panel * {
-  resize: none;
+/*  resize: none;*/
+}
+
+.listen_resize {
+  resize: both;
+  overflow: hidden;
 }
 
 .panel_handle {
