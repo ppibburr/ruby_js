@@ -1,5 +1,5 @@
 module Rwt
-  module Resizeable
+  module Resizer
     def initialize *o
       super
       collection!.add_class("listen_resize")
@@ -21,14 +21,17 @@ module Rwt
   end
   
   class Dow < VBox
-    include Resizeable
+    include Resizer
     CSS_CLASS = "panel"
-    attr_reader :shaded
+    attr_reader :shaded,:inner
     def initialize *o
       super
       add! @handle=Handle.new(self),1,'20px','20px'
-      add! @inner=Bin.new(self),1
+      add!((i=Bin.new(self)),1)
+      @inner=i
       collection!.add_class(CSS_CLASS)
+      collection!.add_class("toplevel")
+      collection!.remove_class "fixed_child"
       collection!.bind(:resize) do |this,cw,ch|
         size[0] = size[0]-cw
         size[1] = size[1]-ch
@@ -52,8 +55,13 @@ module Rwt
     
     alias :'add!' :add
     
+    def parent?
+      @inner || self
+    end
+    
     def add *o
       @inner.add *o
+      o[0].style.position='relative'      
     end
   end
 end

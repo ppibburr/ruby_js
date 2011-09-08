@@ -4,13 +4,15 @@ module Rwt
     attr_reader :children
     def initialize *o
       super
-      Collection.new(self,[self]).add_class CSS_CLASS      
+      Collection.new(self,[self]).add_class CSS_CLASS 
+      
       @children = []
     end
     
     def add e,w=0
       e.style['-webkit-box-flex']=w     
-      e.style.position = "static"
+      e.collection!.add_class("box_child")
+      e.collection!.remove_class("fixed_child")      
       @children << e
     end
     
@@ -19,7 +21,7 @@ module Rwt
       @children.each do |c|
         c.show
         c.style.height='auto'
-        c.style.width='auto'
+
       end
     end
   end

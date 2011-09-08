@@ -1,0 +1,15 @@
+.box_child {
+  position: static;
+}
+
+.fixed_child {
+  position: relative;
+}
+
+.toplevel {
+  position: fixed;
+}
+
+.container {
+  overflow: hidden;
+}

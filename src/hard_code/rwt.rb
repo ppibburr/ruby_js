@@ -236,6 +236,8 @@ module Rwt
       
       @element = parent.ownerDocument.createElement(tag)
       @parent.element.appendChild(@element)
+      
+      collection!.add_class("fixed_child")      
     end
     
     def id
@@ -693,6 +695,7 @@ module Rwt
       super
       
       self.className=("menu_bar")
+      collection!.add_class "box_child"
     end
     
     def add text

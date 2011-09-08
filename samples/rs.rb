@@ -38,10 +38,13 @@ def on_webview_load_finished ctx
   JS::Style.load(doc,"/home/ppibburr/git/ruby_js/samples/tab.css")
   JS::Style.load(doc,"/home/ppibburr/git/ruby_js/samples/box.css")
   JS::Style.load(doc,"/home/ppibburr/git/ruby_js/samples/button.css") 
-  
+  JS::Style.load(doc,"/home/ppibburr/git/ruby_js/samples/proper.css")   
 
-  vb=Rwt::Dow.new(doc.body,:size=>[100,50])
-  vb.show
+  w=Rwt::Dow.new(doc.body,:size=>[100,100])
+  vb = Rwt::VBox.new(w)
+  w.add vb
+  vb.add Rwt::Button.new(vb,"test"),1
+  w.show
 
 end
 
