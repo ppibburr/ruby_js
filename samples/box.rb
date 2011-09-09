@@ -1,16 +1,27 @@
 module Rwt
+  class Object
+    attr_reader :resizable
+  end
   class Box < Drawable
     CSS_CLASS = "box"
     attr_reader :children
     def initialize *o
       super
-      Collection.new(self,[self]).add_class CSS_CLASS 
-      
+      Collection.new(self,[self]).add_class Box::CSS_CLASS 
+      @resizable = true
       @children = []
     end
     
-    def add e,w=0
-      e.style['-webkit-box-flex']=w     
+    def resize_to x,y
+      set_size(Size.new.push(x,y))
+      p children[0].class
+      show
+    end
+    
+    def add e,major=0,minor=0
+    p [e.class,:hhhhhhhh]
+      e.style['-webkit-box-flex']=major
+      e.layout = FlexLayout.new(e,major,minor)     
       e.collection!.add_class("box_child")
       e.collection!.remove_class("fixed_child")      
       @children << e
@@ -20,38 +31,28 @@ module Rwt
       super
       @children.each do |c|
         c.show
-        c.style.height='auto'
-
+        c.layout.layout
       end
     end
   end
   
   class HBox < Box
     CSS_CLASS = "hbox"
+    attr_reader :major_axis
     def initialize *o
       super
-      Collection.new(self,[self]).add_class CSS_CLASS
-    end
-    
-    def add e,w=0,min=nil,max=nil
-      super e,w
-      e.style['max-width'] = max if max
-      e.style['min-width'] = min if min       
+      @major_axis = Rwt::FlexLayout::X_MAJOR
+      Collection.new(self,[self]).add_class HBox::CSS_CLASS
     end
   end
   
   class VBox < Box
     CSS_CLASS = "vbox"
-
+    attr_reader :major_axis
     def initialize *o
+      @major_axis = Rwt::FlexLayout::Y_MAJOR    
       super
-      Collection.new(self,[self]).add_class CSS_CLASS      
+      Collection.new(self,[self]).add_class VBox::CSS_CLASS      
     end
-    
-    def add e,w=0,min=nil,max=nil
-      super e,w
-      e.style['max-height'] = max if max
-      e.style['min-height'] = min if min       
-    end    
   end
 end

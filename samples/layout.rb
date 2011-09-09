@@ -1,26 +1,27 @@
-class Layout
+module Rwt;end
+class Rwt::FlexLayout
   X_MAJOR = 0
   Y_MAJOR = 1
-  attr_reader :minor,:major
-  def initialize object,min=0,maj=0
+  attr_reader :object,:minor,:major
+  def initialize object,maj=0,min=0
     @minor=min
     @major=maj
     @object=object
   end
   
   def layout
+    q=nil
     if omaj=object.parent.respond_to?(:major_axis)
-      if omaj <=> 1 < 0
-        fill_x
+      if object.parent.major_axis < 1
+        fill_x if major > 0
         fill_y if minor > 0
+        q = :Width
       else
-        fill_y
+        fill_y if major > 0
         fill_x if minor > 0
+        q = :Height
       end
-      return
     end
-    
-    
   end
   
   def fill_x

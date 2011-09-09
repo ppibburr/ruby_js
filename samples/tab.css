@@ -40,4 +40,5 @@ background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(2
   border-width:1px;
   border-color:#666;
   border-radius:4px;
+  width: 100%;
 }

@@ -291,6 +291,7 @@ module Rwt
   class Drawable < Object
     CSS_CLASS = "drawable"
     include Rect
+    attr_accessor :layout
     def initialize parent,*opts         
       opts << {} if opts.empty?
       raise unless (opts=opts[0]).is_a?(Hash)
@@ -324,6 +325,7 @@ module Rwt
       end
       
       super
+      layout.layout if layout
     end
   end
 

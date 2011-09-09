@@ -1,5 +1,5 @@
 module Rwt
-  class Tabbed < Container
+  class Tabbed < VBox
     CSS_CLASS = "tabbed"
     attr_reader :tab_bar,:active
     def initialize(par,*o)
@@ -7,11 +7,12 @@ module Rwt
       
       Collection.new(self,[self]).add_class('tabbed')
       @tab_bar = TabBar.new(self)
-      add! @tab_bar
+      add! @tab_bar,0,1
     end
+    
     alias :'add!' :add
     def add l="..."
-      add! page = Page.new(self,:position=>[1,25])
+      add!(page = Page.new(self),1,1)
       @tab_bar.add l=PageLabel.new(@tab_bar,page,l)
       page.label = l
       children.last.hide
@@ -31,8 +32,7 @@ module Rwt
     end
     
     def show
-      super(nil)
-      @tab_bar.show
+      super
       children.each_with_index do |c,i|
         if i+1 <= children.length and i > 0
           c.show;
@@ -87,16 +87,16 @@ module Rwt
       end
     end
     
-    class TabBar < Container
+    class TabBar < HBox
       CSS_CLASS = "tab_bar"
       attr_accessor :inner
       def initialize par,*o
         super
         
-        add! @left=Label.new(self,'<<',:size=>Rwt::Size.get_size(:tab_shift))
-        add! @right=Label.new(self,">>",:size=>Rwt::Size.get_size(:tab_shift))
-        @inner = Container.new(self,:position=>[51,-1],:size=>Rwt::Size.get_size(:tab_bar_inner))
-        
+        add! @left=Label.new(self,'<<',:size=>Rwt::Size.get_size(:tab_shift)),1
+        add! i = Container.new(self,:size=>Rwt::Size.get_size(:tab_bar_inner)),2
+        add! @right=Label.new(self,">>",:size=>Rwt::Size.get_size(:tab_shift)),1     
+        @inner = i
         Collection.new(self,[self]).add_class("tab_bar")
         
         Collection.new(self,[@right]).bind(:click) do
@@ -174,12 +174,7 @@ module Rwt
         @inner.add pl
       end
       def show
-        super(nil)
-        @left.show
-        @inner.size[0] = element.clientWidth.to_f-102
-        @inner.show
-        @right.position[0]=element.clientWidth.to_f-50
-        @right.show
+        super
         hide_not_displayed
       end
     end

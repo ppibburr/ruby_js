@@ -1,5 +1,7 @@
 .box_child {
-  position: static;
+  position: relative;
+  width: auto;
+  height: auto;
 }
 
 .fixed_child {
