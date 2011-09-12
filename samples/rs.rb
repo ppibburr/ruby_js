@@ -8,13 +8,13 @@ require 'JS/webkit'
 require 'JS/resource'
 require '/home/ppibburr/git/ruby_js/src/hard_code/rwt'
 require 'box'
-require 'tab'
 require 'sizing'
 require 'box'
 
 require 'button'
 require 'panel'
 require 'layout'
+require 'tab'
 w = Gtk::Window.new()
 v = WebKit::WebView.new
 
@@ -42,7 +42,7 @@ def on_webview_load_finished ctx
   JS::Style.load(doc,"/home/ppibburr/git/ruby_js/samples/button.css") 
   JS::Style.load(doc,"/home/ppibburr/git/ruby_js/samples/proper.css")   
 
-  w=Rwt::Dow.new(doc.body,:size=>[100,100])
+  w=Rwt::Dow.new(doc.body,'',:size=>[100,100])
   vb = Rwt::VBox.new(w)
   w.add vb
   tb=Rwt::Tabbed.new(vb)

@@ -21,27 +21,26 @@ module Rwt
     
     def set_active pg
       @tab_bar.set_active(pg.label)
-      pg.show    
-      return if pg == @active
-      children.each_with_index do |c,i|
-        if i > 0
-          c.hide if c!=pg
-        end
+      if @active != pg
+        @active.hide if @active
       end
-      @active = pg
+      @active = pg 
+      pg.show if !pg.shown
+      pg
     end
     
     def show
       super
+      @active ||= set_active page(0)
+      hide_inactive
+    end
+    
+    def hide_inactive
       children.each_with_index do |c,i|
-        if i+1 <= children.length and i > 0
-          c.show;
-          c.hide
-        else
-          c.show
+        if i > 0
+          c.hide if c!=@active
         end
-      end
-      set_active @active||children[1]
+      end    
     end
     
     def pages
@@ -49,15 +48,29 @@ module Rwt
     end
     
     def page i
-      pages(i)
+      pages[i]
     end
     
-    class Page < Rwt::Scrollable
+    class Page < Rwt::Bin
       CSS_CLASS = "tab_page"
+      include Rwt::Resizer
       attr_accessor :label
       def initialize *o
         super
         Collection.new(self,[self]).add_class('tab_page')
+        collection!.bind(:resize) do |this,cw,ch|
+          size[0] = element.clientWidth.to_f
+          size[1] = element.clientHeight.to_f
+          if child.resizable
+            child.resize_to *[size[0]-15,size[1]-15]
+            p size
+            p child.size
+          end        
+        end
+      end
+      def show
+        super
+        p child.size
       end
     end
     
@@ -74,6 +87,8 @@ module Rwt
         end
         
         @class_name = self.className
+        
+        style.position = 'relative'
       end
       
       def show

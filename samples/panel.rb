@@ -8,10 +8,16 @@ module Rwt
   
   class Handle < HBox
     CSS_CLASS = "panel_handle"
-    def initialize *o
-      super
+    def initialize par,text='',*o
+      if !text.is_a?(String)
+        o=text
+        if !o.is_a?(Array)
+          o=[0]
+        end
+      end
+      super par,*o
       collection!.add_class(CSS_CLASS)    
-      add @label = Rwt::Label.new(self,"Resizable Panel Example"),1
+      add @label = Rwt::Label.new(self,text),1
       add @shade = Rwt::Container.new(self,:size=>[50,-1])
       @shade.element.innerText = "[-]"
       collection!.bind(:click) do
@@ -24,9 +30,15 @@ module Rwt
     include Resizer
     CSS_CLASS = "panel"
     attr_reader :shaded,:inner
-    def initialize *o
-      super
-      add! @handle=Handle.new(self),0,1
+    def initialize par,text='',*o
+      if !text.is_a?(String)
+        o=text
+        if !o.is_a?(Array)
+          o=[0]
+        end
+      end
+      super par,*o
+      add! @handle=Handle.new(self,text),0,1
       add!((i=Bin.new(self,:size=>[-10,-25],:position=>[5,0])),0,0)
       @inner=i
       collection!.add_class(CSS_CLASS)
@@ -42,6 +54,14 @@ module Rwt
           e.resize_to *@inner.size.map do |d| d-1 end
         end        
       end
+      
+      @resizable = true
+    end
+    
+    def resize_to x,y
+    p x,y,:hhhh
+      set_size(Size.new().push(x,y))
+      show
     end
     
     def toggle
