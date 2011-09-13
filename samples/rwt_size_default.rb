@@ -21,6 +21,7 @@
   :container=>:default,
   :drawable=>:default,
   :hrule=>[-1,5],
+  :vrule=>[5,-1],  
   :bin=>:default,
   :object=>:default,
   :button=>[45,20]

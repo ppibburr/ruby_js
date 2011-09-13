@@ -19,7 +19,6 @@
   border-top-left-radius: 0.5em;
   border-top-right-radius: 0.5em;
   background-color: #eeeeef;
-  color: #666;
 }
 
 .panel * {
@@ -32,7 +31,7 @@
 }
 
 .panel_handle {
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ebf1f6), color-stop(50%,#abd3ee), color-stop(51%,#89c3eb), color-stop(100%,#d5ebfb));
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f7f7f7), color-stop(50%,#ebebeb), color-stop(51%,#dedede));
   border-top-left-radius: 0.5em;
   border-top-right-radius: 0.5em;
   border-style:solid;
@@ -43,15 +42,23 @@
   border-right-color:#ebebeb;  
   height: 20px;
   text-align: center;  
-  color: #666;
 }
+
+.penLabel {
+        position: absolute;
+        z-index = 1000;
+        background-color: gray;
+        border-style: solid;
+        border-color: #666;
+        border-width: 1px;
+        -webkit-border-top-left-radius: 0.5em;
+        -webkit-border-bottom-left-radius: 0.5em;
+      }
 
 .label {
   height: 18px;
-  font-family:     "Courier New",
-                    Courier,
-                    monospace;
-  font-size: 10pt;
+  font-family: arial, helvetica, sans-serif;
+  font-size: 8pt;
   margin: 0px;
   padding: 1px;  
 }
@@ -60,6 +67,9 @@
 
 }
 
+.canvas {
+  background-color: white;
+}
 
 .entry {
   background-color: white;
@@ -89,6 +99,11 @@
   border-top-right-radius: 0.25em;
   border-bottom-left-radius: 0.25em;
   border-bottom-right-radius: 0.25em;
+}
+
+.vrule {
+  width: 5px;
+  height: auto;
 }
 
 .scrollable {
@@ -137,7 +152,7 @@ padding: 4px 3px;
 }
 
 .menu_bar h2 {
-color: #666;
+color: #000;
 background: none;
 }
 

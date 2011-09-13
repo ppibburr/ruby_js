@@ -363,134 +363,7 @@ module Rwt
     end
   end
 
-  class Panel < Bin
-    CSS_CLASS = "panel"
-    class Handle < Container
-      CSS_CLASS = "panel_handle"
-      def initialize par,q,*o
-        title = q
-        if q.is_a? Hash
-          o = [q]    
-          title=nil    
-        end    
-        
-        super par,*o
-        
-        Collection.new(self,[self]).add_class("panel_handle")
-        
-        add Label.new(self,title,:size=>Rwt::Size.get_size(:panel_handle))
-        add @shade=Drawable.new(self,:size=>Rwt::Size.get_size(:panel_shade))
-        
-        toggle_state(:unshaded)
-        
-        @shade.style.cursor = "pointer"
-        
-        Collection.new(self,[@shade]).bind(:click) do
-          parent.parent.toggle_state()
-        end      
-      end
-      
-      def toggle_state(s)
-        case s
-          when :shaded
-            @shade.element.innerText = "[+]"
-        else
-          @shade.element.innerText = "[-]"
-        end
-      end
-      
-      def show *o
-        super *o
-        @shade.style.left = (@element.clientWidth.to_f-31).to_s+"px"
-      end
-    end
-  
-  
-    attr_reader :handle
-    def initialize par,q,*o
-      title = q
-      if q.is_a? Hash
-        o = [q]    
-        title=nil    
-      end    
-      
-      super par,*o
-      
-      element.className = (element.className + " panel listen_resize").strip
-      
-      add c=@root=Container.new(self)
-      c.add @l=Rwt::Panel::Handle.new(c,title.to_s)    
-      @inner=Rwt::Bin.new(c,:size=>Rwt::Size.get_size(:panel_inner),:position=>[0,21]) 
-      c.add @inner
-      
-      collection!.bind(:resize) do |t,cw,ch|
-      p [cw,ch]
-        if size[0] < 0
-          size[0]=element.clientWidth
-        else
-          size[0]=size[0]+cw
-        end
-        
-        if size[1] < 0
-          size[1]=element.clientHeight
-        else
-          size[1]=size[1]+ch
-        end
-        @children.each do |c| c.show() end
-        p element.clientHeight
-      end
-      
-      def self.add q
-        @inner.add q
-      end    
-    
-      def self.child
-        @inner.child
-      end
-    
-      def self.children
-        @inner.children
-      end 
-      
-      @handle = @l
-    end
-    
-    def parent?
-      @inner || self
-    end
-    
-    def toggle_state
-      h = @inner.element.client_height
-      if @inner.shown
-        @pre_shaded_size = size[1]
-        size[1] = size[1] - h
-        show
-        @inner.hide
-        @handle.toggle_state(:shaded)
-      else
-        size[1] = @pre_shaded_size
-        show
-        @handle.toggle_state(:unshaded)        
-      end     
-    end
-    
-    alias :show! :show
-    def show  
-      show!(nil)
-      
-      @root.show
-      @handle.style.width = (@handle.parent.element.clientWidth.to_f-3).to_s+"px"
-    end
-  end
-  
-  class Window < Panel
-    CSS_CLASS = "window"
-    def initialize *o
-      super
-      element.className = (element.className + " window").strip
-      style.position='fixed'
-    end
-  end
+
 
   class Scrollable < Bin
     CSS_CLASS = "scrollable"
@@ -514,6 +387,17 @@ module Rwt
       super()
     end  
   end
+ 
+  class VRule < Rule
+    CSS_CLASS = 'vrule'
+    def initialize *o
+      super
+    end
+    
+    def show()
+      super()
+    end  
+  end 
  
   class Label < Drawable
     CSS_CLASS = "label"
@@ -697,7 +581,7 @@ module Rwt
       super
       
       self.className=("menu_bar")
-      collection!.add_class "box_child"
+      collection!.remove_class("box_child")  
     end
     
     def add text
@@ -746,7 +630,9 @@ module Rwt
       @label.element.innerText = text  
       @inner = Rwt::Object.new(@item,'ul')
       Collection.new(self,[@item]).add_class('menu_root_item')
-      Collection.new(self,[@inner]).add_class("sub_menu")       
+      Collection.new(self,[@inner]).add_class("sub_menu")   
+      collection!.remove_class("fixed_child")       
+      p element.style.css_text     
     end
     def add q
       MenuItem.new(@inner,q)
@@ -765,6 +651,9 @@ module Rwt
       Collection.new(self,[self]).bind(:click) do |*o|
         @activate_event.call(*o) if @activate_event   
       end  
+      collection!.remove_class("fixed_child")  
+      p className
+      p element.style.cssText
     end
     
     def add q

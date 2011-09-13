@@ -1,5 +1,5 @@
 class Rwt::Size
-  DEFAULT = eval(File.read('rwt_size_default.rb'))
+  DEFAULT = eval(File.read('/home/ppibburr/git/ruby_js/samples/rwt_size_default.rb'))
 end
 
 class Rwt::Drawable

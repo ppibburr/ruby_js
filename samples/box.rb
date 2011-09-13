@@ -14,19 +14,22 @@ module Rwt
     
     def resize_to x,y
       set_size(Size.new.push(x,y))
-      p children[0].class
       show
     end
     
+    def add_space x,y,major
+      add! Rwt::Drawable.new(self,:size=>[x,y]),major
+    end
+    
     def add e,major=0,minor=0
-    p [e.class,:hhhhhhhh]
       e.style['-webkit-box-flex']=major
       e.layout = FlexLayout.new(e,major,minor)     
       e.collection!.add_class("box_child")
       e.collection!.remove_class("fixed_child")      
       @children << e
     end
-    
+    alias :'add!' :add
+       
     def show
       super
       @children.each do |c|
@@ -53,6 +56,10 @@ module Rwt
       @major_axis = Rwt::FlexLayout::Y_MAJOR    
       super
       Collection.new(self,[self]).add_class VBox::CSS_CLASS      
+    end
+    
+    def set_menu m
+      m.collection!.remove_class("box_child")
     end
   end
 end

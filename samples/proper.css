@@ -8,10 +8,18 @@
   position: absolute;
 }
 
+.menu_bar * {
+  position: static;
+}
+
 .toplevel {
   position: fixed;
 }
 
 .container {
   overflow: hidden;
+}
+
+.container * {
+  resize: none;
 }

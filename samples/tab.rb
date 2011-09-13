@@ -86,8 +86,9 @@ module Rwt
           @page.parent.set_active(@page)
         end
         
-        @class_name = self.className
+        collection!.add_class("label")
         
+        @class_name = self.className        
         style.position = 'relative'
       end
       
