@@ -21,6 +21,8 @@
   height: 26px;
   cursor: pointer;
   font-size: 10pt;  
+  min-width: 50px;
+  text-align: center;
 }
 
 .tab_label_active {

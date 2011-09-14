@@ -27,7 +27,7 @@ class HMI
     vb.style['background-color']="#EEEEEF"
     mk_menu(vb)
     vb.add hb=Rwt::HBox.new(vb),1,1
-    hb.add vbx=Rwt::PanelGroup.new(hb),0.2,1
+    hb.add vbx=Rwt::PanelGroup.new(hb,:size=>[-1,-5]),0.2,1
 
 
     vbx.add_space(-1,2,0)  
@@ -61,33 +61,30 @@ class HMI
   
   def mk_menu par
     par.add m=Rwt::Menubar.from_array(par,[
-    {:label=>"File",:children=>[
-      {:label=>'New  ->',:children=>[
-        {:label=>'From Template',:activate=>:on_item_activated},
-        {:label=>'Blank',:id=>:blank}     
+      {:label=>"File",:children=>[
+        {:label=>'New  ->',:children=>[
+          {:label=>'From Template',:activate=>:on_item_activated},
+          {:label=>'Blank',:id=>:blank}     
+        ]},
+        {:label=>'Open',:activate=>:on_item_activated},
+        {:label=>'Quit',:activate=>:on_item_activated}
+      ]},       
+      {:label=>'Edit',:children=>[
+        {:label=>'Find',:activate=>:on_item_activated},
+        {:label=>'Copy',:activate=>:on_item_activated},
+        {:label=>'Paste',:activate=>:on_item_activated}            
       ]},
-      {:label=>'Open',:activate=>:on_item_activated},
-      {:label=>'Quit',:activate=>:on_item_activated}
-    ]},       
-    {:label=>'Edit',:children=>[
-      {:label=>'Find',:activate=>:on_item_activated},
-      {:label=>'Copy',:activate=>:on_item_activated},
-      {:label=>'Paste',:activate=>:on_item_activated}            
-    ]},
-    {:label=>'Help',:children=>[
-      {:label=>'About',:activate=>method(:on_item_activated)}
-    ]}
-  ],:size=>[-1,25]),0,1
-  par.set_menu m
-  @m=m
-  p m.className
+      {:label=>'Help',:children=>[
+        {:label=>'About',:activate=>method(:on_item_activated)}
+      ]}
+    ],:size=>[-1,25]),0,1
   end
   
   def build
     tag_page.add @tt=Rwt::Table.new(tag_page,:columns=>[
-    {:label=>"Item"},
-    {:label=>"Description"}
-  ],:size=>[-1,600])
+      {:label=>"Item"},
+      {:label=>"Description"}
+    ],:size=>[-1,600])
     trend_page.add Rwt::VBox.new(trend_page)
     display_page.add Rwt::VBox.new(display_page)
   end
@@ -95,9 +92,11 @@ class HMI
   def collection!
     @collection
   end
+  
   def on_item_activated *o
     p @m.className
-  end  
+  end
+    
   def show
     @vb.resize_to *@vb.size
     @vb.show

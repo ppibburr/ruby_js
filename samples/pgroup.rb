@@ -41,14 +41,14 @@ module Rwt
       @panels.find_all do |k,v|
         !v
       end.each do |k,v|
-        sub=sub+k.element.clientHeight+5
+        sub=sub+k.element.clientHeight
       end
       
       if !shaded.empty?
-        amt = (element.clientHeight - (shaded.length * shaded[0][0].size[1])) / (@panels.find_all do |k,v| v end.length - shaded.length)
+        amt = (element.clientHeight - 7 - (shaded.length * shaded[0][0].size[1])) / (@panels.find_all do |k,v| v end.length - shaded.length)
         amt = amt-sub
       else
-        amt = element.clientHeight - sub
+        amt = element.clientHeight - 7 - sub
         amt=amt/@panels.find_all do |k,v| v end.length        
       end  
 

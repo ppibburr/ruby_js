@@ -16,6 +16,7 @@ module Rwt
         end
       end
       super par,*o
+      
       collection!.add_class(CSS_CLASS)    
       add @label = Rwt::Label.new(self,text),1
       add @shade = Rwt::Container.new(self,:size=>[50,-1])
@@ -45,10 +46,14 @@ module Rwt
           o=[0]
         end
       end
+      
       super par,*o
+      
       add! @handle=Handle.new(self,text),0,1
       add!((i=Bin.new(self,:size=>[-10,-25],:position=>[5,0])),0,0)
+      
       @inner=i
+      
       collection!.add_class(CSS_CLASS)
       collection!.add_class("toplevel")
       collection!.remove_class "fixed_child"
@@ -67,8 +72,10 @@ module Rwt
     def on_resize t,w,h
       size[0] = element.clientWidth.to_f
       size[1] = element.clientHeight.to_f
+      
       @inner.style.width = (@inner.size[0]=size[0]-10).to_s+"px"
       @inner.style.height = (@inner.size[1]=size[1]-25).to_s+"px"
+      
       if @inner.child.resizable
         e=@inner.child
         e.resize_to *@inner.size.map do |d| d-1 end
@@ -76,7 +83,6 @@ module Rwt
     end
     
     def resize_to x,y
-    p x,y,:hhhh
       set_size(Size.new().push(x,y))
       show
     end
@@ -94,6 +100,7 @@ module Rwt
         element.style.maxHeight = "100%"        
         @shaded = false
       end
+      
       @handle.toggle
     end
     
@@ -107,7 +114,6 @@ module Rwt
       super
 
     end
-
     
     def add *o
       @inner.add *o

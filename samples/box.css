@@ -10,3 +10,7 @@
 .vbox {
   -webkit-box-orient: vertical;
 }
+
+.box * {
+  resize: none;
+}
