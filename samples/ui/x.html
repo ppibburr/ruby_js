@@ -1,0 +1,17 @@
+<html><head><script src="xui.js" type='text/javascript'></script>
+
+</head>
+<body>
+<script type='text/javascript'>
+var q={test: function() {
+    alert(xui.events[0])
+  }
+};
+xui.events['baz']=true;
+xui('body').on('baz',q.test,{});
+xui('body').fire('baz',null);
+</script>
+
+</body>
+
+</html>
