@@ -54,6 +54,8 @@ module Rwt
       
       @element = parent.ownerDocument.createElement(opts[:tag])
       @element.extend(UI::Object)
+      @element.to_collection.set_style("margin","0px 0px 0px 0px")
+      
       @_display = to_collection.get_style('display')[0]
       
       @collection = to_collection
@@ -77,7 +79,8 @@ module Rwt
     end
     
     def hide
-      @shown = false
+      @_display = to_collection.get_style('display')[0] if @shown && to_collection.get_style('display')[0]!='none'
+      @shown = false   
       style.display = 'none'
     end
   end
@@ -90,7 +93,17 @@ module Rwt
   STYLE::RELATIVE=8
   STYLE::ABSOLUTE=16
   STYLE::FIXED=32
-  STYLE::DEFAULT = 64
+  STYLE::BORDER=64
+  STYLE::BORDER_ROUND = 128
+  STYLE::BORDER_ROUND_LEFT = 256
+  STYLE::BORDER_ROUND_RIGHT = 512
+  STYLE::BORDER_ROUND_TOP = 1024
+  STYLE::BORDER_ROUND_BOTTOM = 2048
+  STYLE::SHADOW = 4096
+  STYLE::SHADOW_INSET = 8192
+  STYLE::RAISED = STYLE::SHADOW|STYLE::BORDER
+  STYLE::SUNKEN = STYLE::SHADOW_INSET|STYLE::BORDER
+  STYLE::FLAT = STYLE::SHADOW_INSET*2|STYLE::BORDER|STYLE::SHADOW
   class Drawable < Object
     class Layout
       attr_reader :object
@@ -120,8 +133,8 @@ module Rwt
           x = object.parent.clientWidth/2
           y = object.parent.clientHeight/2
           
-          ox = ox+(x-ox)
-          oy = oy+(y-oy)
+          ox = ox=(x-ox)
+          oy = oy=(y-oy)
           
           sub_x=object.clientWidth/2
           sub_y=object.clientHeight/2
@@ -131,35 +144,33 @@ module Rwt
           
           object.style.top = (y).to_s+"px"
           object.style.left = (x).to_s+"px"
+          
         elsif object._style&STYLE::FIXED == STYLE::FIXED
-          x = object.context.get_global_object.window.clientWidth
-          y = object.context.get_global_object.window.clientHeight
+          bc=UI::Collection.new(nil,[object.context.get_global_object.document.body])
+          x = bc.get_style('width')[0].to_f
+          y = bc.get_style('height')[0].to_f
           
           sub_y = object.collection.get_style('height')[0].to_f/2
           sub_x = object.collection.get_style('width')[0].to_f/2
           
           object.style.top = ((y/2.0)-sub_y).to_s+"px"
           object.style.left = ((x/2.0)-sub_x).to_s+"px"
+          
         elsif object._style&STYLE::ABSOLUTE == STYLE::ABSOLUTE
-          x = object.parent.offsetLeft
-          y = object.parent.offsetTop
-          puts "::::::::::::"
-          p x
-          x = x+object.parent.clientWidth
-          y = y+object.parent.clientHeight
-          p x
+          x = object.parent.clientWidth/2
+          y = object.parent.clientHeight/2
+
           sub_y = object.collection.get_style('height')[0].to_f/2
           sub_x = object.collection.get_style('width')[0].to_f/2
-          p sub_x,:u88888888888
-          object.style.top = ((y-sub_y)/2.0).to_s+"px"
-          object.style.left = ((x-sub_x)/2.0).to_s+"px"        
+
+          object.style.top = ((y-sub_y)).to_s+"px"
+          object.style.left = ((x-sub_x)).to_s+"px"        
         else
           raise "Unsupported Style"
         end
       end
       
       def update
-        p @object._style
         if object._style&STYLE::TAKE_ALL ==STYLE::TAKE_ALL
           take_all @trim_w,@trim_h
         end
@@ -170,8 +181,139 @@ module Rwt
       end
     end
     
+    class Border
+      attr_reader :object
+      def initialize object
+        @object = object
+        init
+      end
+      
+      def init
+        width 1
+        color "#666"
+        style "solid"
+      end
+      
+      def color col
+        object.style['border-color'] = col
+      end
+      
+      def style sty
+        object.style['border-style'] = sty
+      end
+      
+      def width px
+        object.style['border-width'] = "#{px}px"
+      end
+      
+      def round
+        top_radius 3
+        bottom_radius 3
+      end
+      
+      def bottom_radius px
+        bottom_left_radius px
+        bottom_right_radius px       
+      end
+      
+      def top_radius px
+        top_left_radius px
+        top_right_radius px        
+      end
+      
+      def left_radius px
+        bottom_left_radius px
+        top_left_radius px     
+      end
+      
+      def right_radius px
+        bottom_right_radius px
+        top_right_radius px       
+      end
+      
+      def bottom_left_radius px    
+        object.style['border-bottom-left-radius'] = px.to_s+"px"
+      end
+     
+      def top_left_radius px    
+        object.style['border-top-left-radius'] = px.to_s+"px"
+      end   
+
+      def bottom_right_radius px    
+        object.style['border-bottom-right-radius'] = px.to_s+"px"
+      end   
+      
+      def top_right_radius px    
+        object.style['border-top-right-radius'] = px.to_s+"px"
+      end                                    
+    end
+    
+    class Shadow
+      attr_reader :object
+      def initialize object
+        @object=object
+        init
+      end
+      
+      def init
+        y_offset 1
+        x_offset 1
+        blur 0
+        spread 0
+      end
+      
+      def inset
+        @inset = "inset "
+        set
+      end
+      
+      def normal
+        @inset = ''
+        set
+      end
+      
+      def y_offset px=nil
+        px ||= @y_offset ||= 0 
+        @y_offset=px        
+        set
+        @y_offset      
+      end
+ 
+      def x_offset px=nil
+        px ||= @x_offset ||= 0 
+        @x_offset=px      
+        set
+        @x_offset     
+      end
+      
+      def spread px=nil
+        px ||= @shadow ||= 0 
+        @spread=px      
+        set      
+        @spread
+      end
+      
+      def blur px=nil
+        px ||= @blur ||= 0 
+        @blur=px
+        set
+        @blur     
+      end
+      
+      def color col=nil
+        col ||= @color ||= '#666' 
+        @color=col
+        set
+        @color     
+      end   
+      
+      def set
+        object.style['-webkit-box-shadow'] = "#{@inset}#{@x_offset||0}px #{@y_offset||0}px #{@blur||0}px #{@spread||0}px #{@color||'#666'}"      
+      end   
+    end
+    
     # parent,size,position,style,opts={}
-    attr_accessor :_style
+    attr_accessor :_style,:_border,:_shadow
     def initialize *o
       opts={}
       long = [:parent,:size,:position,:style]
@@ -233,7 +375,7 @@ module Rwt
       else
         raise "Too many arguments"
       end
-      @_style||=0
+
       if size.width < 0 #and size.height >= 0
         @_layout||=Layout.new(self)
         @_layout.trim_w = size.width 
@@ -245,8 +387,6 @@ module Rwt
         @_layout.trim_h = size.height 
         set_style @_style|2
       end  
-      
-      p @_style
       
       [:width,:height].each do |q|
         style.send("#{q}=", size.send(q).to_s+"px")
@@ -301,10 +441,76 @@ module Rwt
       elsif flags&STYLE::FIXED == STYLE::FIXED
         style.position = 'fixed'      
       end
+
+      if get_css_style("position") == "fixed"
+        if @_style&STYLE::FIXED != STYLE::FIXED
+          @_style = @_style|STYLE::FIXED
+        end
+      elsif get_css_style("position") == "relative"
+        if @_style&STYLE::RELATIVE != STYLE::RELATIVE
+          @_style = @_style|STYLE::RELATIVE
+        end
+      elsif get_css_style("position") == "absolute"
+        if @_style&STYLE::ABSOLUTE != STYLE::ABSOLUTE
+          @_style = @_style|STYLE::ABSOLUTE
+        end
+      end
+      
+      if flags&STYLE::BORDER == STYLE::BORDER
+        @_border ||= Border.new(self)
+      end
+      if flags&STYLE::BORDER_ROUND == STYLE::BORDER_ROUND
+        @_border ||= Border.new(self)
+        @_border.round
+        @_style=@_style|STYLE::BORDER if @_style&STYLE::BORDER != STYLE::BORDER
+      end
+      if flags&STYLE::BORDER_ROUND_LEFT == STYLE::BORDER_ROUND_LEFT
+        @_border ||= Border.new(self)
+        @_border.left_radius 3
+        @_style=@_style|STYLE::BORDER if @_style&STYLE::BORDER != STYLE::BORDER
+      end  
+      if flags&STYLE::BORDER_ROUND == STYLE::BORDER_ROUND_RIGHT
+        @_border ||= Border.new(self)
+        @_border.right_radius 3
+        @_style=@_style|STYLE::BORDER if @_style&STYLE::BORDER != STYLE::BORDER
+      end 
+      if flags&STYLE::BORDER_ROUND == STYLE::BORDER_ROUND_TOP
+        @_border ||= Border.new(self)
+        @_border.top_radius 3
+        @_style=@_style|STYLE::BORDER if @_style&STYLE::BORDER != STYLE::BORDER
+      end 
+      if flags&STYLE::BORDER_ROUND == STYLE::BORDER_ROUND_BOTTOM
+        @_border ||= Border.new(self)
+        @_border.bottom_radius 3
+        @_style=@_style|STYLE::BORDER if @_style&STYLE::BORDER != STYLE::BORDER
+      end    
+      
+      if flags&STYLE::SHADOW == STYLE::SHADOW
+        @_shadow||=Shadow.new(self)
+      end 
+      if flags&STYLE::SHADOW_INSET == STYLE::SHADOW_INSET
+        @_shadow||=Shadow.new(self)
+        @_shadow.inset
+        @_style=@_style|STYLE::SHADOW if @_style&STYLE::SHADOW != STYLE::SHADOW
+      end   
+      
+      if @_style&STYLE::RAISED == STYLE::RAISED
+        style['background-color']="#efefff"
+      end
+      if @_style&STYLE::SUNKEN == STYLE::SUNKEN
+        style['background-color']="#ececec"
+      end
+      if @_style&STYLE::FLAT == STYLE::FLAT
+        style['background-color']="#EEEEEE"
+        _shadow.x_offset 0
+        _shadow.y_offset 0
+        _shadow.spread 0
+        _shadow.blur 5  
+      end                                      
     end
     
     def get_css_style prop
-      collection.get_style prop
+      collection.get_style(prop)[0]
     end
     
     def onsized
@@ -350,11 +556,37 @@ end
 STYLE = Rwt::STYLE
 
 if __FILE__ == $0
+ def example1 document
   root = UI::Collection.new(document)
-  document.body.innerHTML="<div id=test style='width:500px;height:500px;'></div>"
-  o=Rwt::Container.new(root.find(:test)[0],:size=>[100,100],:style=>STYLE::CENTER|STYLE::RELATIVE)
-  o.hide
-  p o.collection.get_style('display')
-  o.show
-  p o.get_css_style('left')  
+  document.body.innerHTML="<div id=test style='width:800px;height:800px;background-color:#ebebeb;'></div>"
+  
+  r=Rwt::Container.new(root.find(:test)[0],:size=>[500,500],:style=>STYLE::CENTER|STYLE::FIXED|STYLE::BORDER_ROUND_LEFT|STYLE::FLAT) 
+  r.innerHTML="<p>I am FIXED position and CENTER of window</p>" 
+  
+  r.add o=Rwt::Container.new(r,:size=>[300,300],:style=>STYLE::CENTER|STYLE::ABSOLUTE|STYLE::RAISED)
+  o.innerHTML="<p>I am ABSOLUTE position and CENTER of parent</p>"   
+  
+  o.add c1=Rwt::Drawable.new(o,:size=>[150,150],:style=>STYLE::CENTER|STYLE::SUNKEN)
+  c1.innerHTML="<p>I am RELATIVE position and CENTER of parent</p>" 
+    
+  UI::Collection.new(nil,[r,o,c1]).set_style('color','#666') 
+  r.show
+ end
+ 
+ w = Gtk::Window.new
+ v = WebKit::WebView.new
+ w.add v
+ v.load_html_string "<html><body style='width:800px;'></body></html>",nil
+ 
+ v.signal_connect('load-finished') do |o,f|
+   example1 f.get_global_context.get_global_object.document
+ end
+ 
+ w.signal_connect("delete-event") do
+   Gtk.main_quit
+ end
+ 
+ w.show_all
+ 
+ Gtk.main
 end
