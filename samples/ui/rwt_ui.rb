@@ -14,7 +14,17 @@ module UI
 
   class Collection < Array
     def initialize from=nil,array=nil
-      super array || []
+      array = array.map do |el|
+        if el.respond_to?(:element)
+          el.element 
+        else
+         el 
+        end
+      end if array
+      array ||= []
+      
+      super array
+      
       @from  = from
     end
     
@@ -234,7 +244,7 @@ if __FILE__ == $0
   aUi.find('div')[0].fire('click')
   p aUi.has(".bar")[1]['id']
   p aUi.not(".foo")[0]['id']
-  p aUi.set_style("color","blue").get_style('color')
+  p aUi.set_style("color","blue").get_style('display')
   p aUi.attr('name','6').attr('name')
   #GLOBAL.xui('.foo')['find'].call('div').fire('click')
 end
