@@ -81,7 +81,16 @@ module Rwt
       style.display = 'none'
     end
   end
-  
+
+  class STYLE;end
+  STYLE::TAKE_WIDTH = 1
+  STYLE::TAKE_HEIGHT = 2
+  STYLE::TAKE_ALL = 3
+  STYLE::CENTER=4
+  STYLE::RELATIVE=8
+  STYLE::ABSOLUTE=16
+  STYLE::FIXED=32
+  STYLE::DEFAULT = 64
   class Drawable < Object
     class Layout
       attr_reader :object
@@ -105,7 +114,23 @@ module Rwt
       
       def center
         if (object._style&STYLE::RELATIVE) == STYLE::RELATIVE
-          raise "Can't center when 'position:relative';"
+          ox = object.offsetLeft
+          oy = object.offsetTop
+          
+          x = object.parent.clientWidth/2
+          y = object.parent.clientHeight/2
+          
+          ox = ox+(x-ox)
+          oy = oy+(y-oy)
+          
+          sub_x=object.clientWidth/2
+          sub_y=object.clientHeight/2
+          
+          y = oy-sub_y
+          x = ox-sub_x
+          
+          object.style.top = (y).to_s+"px"
+          object.style.left = (x).to_s+"px"
         elsif object._style&STYLE::FIXED == STYLE::FIXED
           x = object.context.get_global_object.window.clientWidth
           y = object.context.get_global_object.window.clientHeight
@@ -126,23 +151,20 @@ module Rwt
           sub_y = object.collection.get_style('height')[0].to_f/2
           sub_x = object.collection.get_style('width')[0].to_f/2
           p sub_x,:u88888888888
-          object.style.top = ((y/2.0)-sub_y).to_s+"px"
-          object.style.left = ((x/2.0)-sub_x).to_s+"px"        
+          object.style.top = ((y-sub_y)/2.0).to_s+"px"
+          object.style.left = ((x-sub_x)/2.0).to_s+"px"        
         else
           raise "Unsupported Style"
         end
       end
-      class STYLE;end
-      STYLE::RELATIVE=8
-      STYLE::ABSOLUTE=16
-      STYLE::FIXED=32
+      
       def update
         p @object._style
-        if object._style&3 ==3
+        if object._style&STYLE::TAKE_ALL ==STYLE::TAKE_ALL
           take_all @trim_w,@trim_h
         end
         
-        if object._style&4 == 4
+        if object._style&STYLE::CENTER == STYLE::CENTER
           center
         end
       end
@@ -159,17 +181,21 @@ module Rwt
         o.delete_at(o.length-1)
       end
       
+      opts[:style]   ||= STYLE::RELATIVE
+      opts[:size]    ||= [-1,-1]
+      opts[:postion] ||= [0,0]
+      
       if o[0]
         super(o[0],opts)
       else
         super(opts)
       end
       
+      style.position = 'relative'
+      
       if flags=opts[:style]
         set_style flags
       end
-      
-      style.position = 'relative'
       
       o.delete_at(0)
       
@@ -267,6 +293,14 @@ module Rwt
     def set_style flags=0
       @_style ||= 0
       @_style = @_style|flags
+      
+      if flags&STYLE::RELATIVE == STYLE::RELATIVE
+        style.position = 'relative'
+      elsif flags&STYLE::ABSOLUTE == STYLE::ABSOLUTE
+        style.position = 'absolute'      
+      elsif flags&STYLE::FIXED == STYLE::FIXED
+        style.position = 'fixed'      
+      end
     end
     
     def get_css_style prop
@@ -313,14 +347,14 @@ module Rwt
   end
 end
 
-
+STYLE = Rwt::STYLE
 
 if __FILE__ == $0
   root = UI::Collection.new(document)
   document.body.innerHTML="<div id=test style='width:500px;height:500px;'></div>"
-  o=Rwt::Container.new(root.find(:test)[0],:size=>[-10,90],:style=>4|16)
+  o=Rwt::Container.new(root.find(:test)[0],:size=>[100,100],:style=>STYLE::CENTER|STYLE::RELATIVE)
   o.hide
   p o.collection.get_style('display')
   o.show
-  p o.get_css_style('top')  
+  p o.get_css_style('left')  
 end
