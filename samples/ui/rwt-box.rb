@@ -1,8 +1,5 @@
-require 'rwt-core'
 if __FILE__ == $0
-  require 'rubygems'
-  require 'ijs'
-  require 'rwt-core'
+  require 'rwt2'
 end
 
 module Rwt
@@ -54,7 +51,7 @@ STYLE = Rwt::STYLE
 
 if __FILE__ == $0
  def example1 document
-  root = UI::Collection.new(document)
+  root = Rwt::UI::Collection.new(document)
   document.body.innerHTML="<div id=test style='width:800px;height:800px;background-color:#ebebeb;'></div>"
   
   r=Rwt::VBox.new(root.find(:test)[0],:size=>[500,500],:style=>STYLE::CENTER|STYLE::FIXED|STYLE::BORDER_ROUND_LEFT|STYLE::FLAT) 
@@ -74,7 +71,7 @@ if __FILE__ == $0
  end
  
  def example2 document
-  root = UI::Collection.new(document)
+  root = Rwt::UI::Collection.new(document)
   document.body.innerHTML="<div id=test1 style='width:800px;height:800px;background-color:#ebebeb;'></div>"
   
   r=Rwt::HBox.new(root.find(:test1)[0],:size=>[500,500],:style=>STYLE::CENTER|STYLE::FIXED|STYLE::BORDER_ROUND_LEFT|STYLE::FLAT) 
@@ -94,7 +91,7 @@ if __FILE__ == $0
  end 
  
  def example3 document
-  root = UI::Collection.new(document)
+  root = Rwt::UI::Collection.new(document)
   document.body.innerHTML="<div id=test2 style='width:800px;height:800px;background-color:#ebebeb;'></div>"
   
   r=Rwt::VBox.new(root.find(:test2)[0],:size=>[500,500],:style=>STYLE::CENTER|STYLE::FIXED|STYLE::BORDER_ROUND_LEFT|STYLE::FLAT) 

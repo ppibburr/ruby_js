@@ -1,8 +1,7 @@
-require 'rwt_ui'
 if __FILE__ == $0
   require 'rubygems'
   require 'ijs'
-  require 'rwt_ui'
+  require 'rwt-ui'
 end
 
 module Rwt
@@ -61,6 +60,9 @@ module Rwt
       @collection = to_collection
       
       parent.appendChild(@element)
+      
+        style['min-width']='20px'
+        style['min-height']='20px'      
     end
     
     def collection
@@ -104,6 +106,7 @@ module Rwt
   STYLE::RAISED = STYLE::SHADOW|STYLE::BORDER
   STYLE::SUNKEN = STYLE::SHADOW_INSET|STYLE::BORDER
   STYLE::FLAT = STYLE::SHADOW_INSET*2|STYLE::BORDER|STYLE::SHADOW
+  
   class Drawable < Object
     class Layout
       attr_reader :object
@@ -206,9 +209,9 @@ module Rwt
         object.style['border-width'] = "#{px}px"
       end
       
-      def round
-        top_radius 3
-        bottom_radius 3
+      def round px = 5
+        top_radius px
+        bottom_radius px
       end
       
       def bottom_radius px
@@ -394,11 +397,27 @@ module Rwt
     end
     
     def get_size
-      w = collection.get_style('width').to_f
-      h = collection.get_style('height').to_f
+      w = get_css_style('width').to_f
+      h = get_css_style('height').to_f
       Rwt::Size.new([w,h])
     end
     alias :size :get_size
+    
+    def grow_x amt
+      w,h = get_size.width,get_size.height
+      set_size w+amt,h    
+    end
+    
+    def grow_y amt
+      w,h = get_size.width,get_size.height
+      set_size w,h+amt   
+    end
+    
+    def grow x,y=nil
+      y ||= x
+      grow_x x
+      grow_y y
+    end
     
     def set_position *o
       if o.length == 1
@@ -469,17 +488,17 @@ module Rwt
         @_border.left_radius 3
         @_style=@_style|STYLE::BORDER if @_style&STYLE::BORDER != STYLE::BORDER
       end  
-      if flags&STYLE::BORDER_ROUND == STYLE::BORDER_ROUND_RIGHT
+      if flags&STYLE::BORDER_ROUND_RIGHT == STYLE::BORDER_ROUND_RIGHT
         @_border ||= Border.new(self)
         @_border.right_radius 3
         @_style=@_style|STYLE::BORDER if @_style&STYLE::BORDER != STYLE::BORDER
       end 
-      if flags&STYLE::BORDER_ROUND == STYLE::BORDER_ROUND_TOP
+      if flags&STYLE::BORDER_ROUND_TOP == STYLE::BORDER_ROUND_TOP
         @_border ||= Border.new(self)
         @_border.top_radius 3
         @_style=@_style|STYLE::BORDER if @_style&STYLE::BORDER != STYLE::BORDER
       end 
-      if flags&STYLE::BORDER_ROUND == STYLE::BORDER_ROUND_BOTTOM
+      if flags&STYLE::BORDER_ROUND_BOTTOM == STYLE::BORDER_ROUND_BOTTOM
         @_border ||= Border.new(self)
         @_border.bottom_radius 3
         @_style=@_style|STYLE::BORDER if @_style&STYLE::BORDER != STYLE::BORDER
@@ -557,7 +576,7 @@ STYLE = Rwt::STYLE
 
 if __FILE__ == $0
  def example1 document
-  root = UI::Collection.new(document)
+  root = Rwt::UI::Collection.new(document)
   document.body.innerHTML="<div id=test style='width:800px;height:800px;background-color:#ebebeb;'></div>"
   
   r=Rwt::Container.new(root.find(:test)[0],:size=>[500,500],:style=>STYLE::CENTER|STYLE::FIXED|STYLE::BORDER_ROUND_LEFT|STYLE::FLAT) 
@@ -569,7 +588,7 @@ if __FILE__ == $0
   o.add c1=Rwt::Drawable.new(o,:size=>[150,150],:style=>STYLE::CENTER|STYLE::SUNKEN)
   c1.innerHTML="<p>I am RELATIVE position and CENTER of parent</p>" 
     
-  UI::Collection.new(nil,[r,o,c1]).set_style('color','#666') 
+  Rwt::UI::Collection.new(nil,[r,o,c1]).set_style('color','#666') 
   r.show
  end
  
