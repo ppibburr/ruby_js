@@ -29,6 +29,7 @@ module Rwt
     class Collection < Array
       def initialize from=nil,array=nil
         array = array.map do |el|
+          el.extend UI::Object if !el.is_a?(UI::Object)
           if el.respond_to?(:element)
             el.element 
           else
