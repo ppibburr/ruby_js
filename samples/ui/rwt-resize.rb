@@ -17,11 +17,11 @@ module Rwt
       def initialize object,type,handler=nil,que=nil
         @object = object
         @handler = handler
-        @lastExecThrottle = 0.500; # limit to one call every "n" msec
+        @lastExecThrottle = 0.048; # limit to one call every "n" msec
         @lastExec = Time.now.to_f
         @timer = nil;
-        
-        @_handler = proc { |t,*o|
+
+        @_handler = proc { |t,g,*o|
            d=Time.now.to_f;
            if (d-@lastExec < @lastExecThrottle) #or (@handler.respond_to?(:arity) and o.length < @handler.arity)
              # This function has been called "too soon," before the allowed "rate" of twice per second
@@ -30,9 +30,8 @@ module Rwt
                object.context.get_global_object.window.clearTimeout(@timer);
              end
              @timer = object.context.get_global_object.window.setTimeout(proc do
-               @_handler.call(t,*o.clone) 
+               @_handler.call(t,g,*o.clone) 
              end, @lastExecThrottle);
-             que.call *o if que
              return false; # exit
           end
           
@@ -40,12 +39,10 @@ module Rwt
           # At this point, actual handler code can be called (update positions, resize elements etc.)
           # self.callResizeHandlerFunctions();
           #p o
-        
-         @handler.call(*o) if @handler
-         p 9;
+         @handler.call(t,g,*o) if @handler
          false
         }
-        Rwt::UI::Collection.new(nil,[@object])[0][type]=@_handler
+        Rwt::UI::Collection.new(nil,[@object])[0][type]=@handler
       rescue => e
         puts e
         raise e
@@ -61,7 +58,8 @@ if __FILE__ == $0
   root = Rwt::UI::Collection.new(document)
   document.body.innerHTML="<div id=test style='width:800px;height:800px;background-color:#ebebeb;'></div>"
   
-  r=Rwt::VBox.new(root.find(:test)[0],:size=>[500,500],:style=>STYLE::CENTER|STYLE::FIXED|STYLE::BORDER_ROUND_TOP|STYLE::FLAT)
+  r=Rwt::VBox.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::FIXED|STYLE::BORDER_ROUND_TOP|STYLE::FLAT)
+  r.add c=Rwt::Drawable.new(r),1,1
   r.add bh = Rwt::HBox.new(r,:size=>[0,0]),0,1
   
   bh.add Rwt::Drawable.new(bh,:size=>[1,0]),1 
@@ -70,29 +68,66 @@ if __FILE__ == $0
     border-bottom: 20px solid silver; 
     border-left: 20px solid transparent;  
   """
-  
+  dh=JS.execute_script(document.context,File.read("/home/ppibburr/dnd.js"))
   bh.style.top = (r.clientHeight-bh.offsetTop-20).to_s+"px"
 
   o.style.cursor = 'se-resize'
-  o.extend Rwt::Draggable
-  data=[0,0,0,0]
-  Rwt::Resizable::EventThrottler.new(o,'drag',proc do |*o|;
-   nx,ny,cx,cy = data#.map do |q| q end;p :lop
-      
-    p nx
-    r.grow cx,cy
-    data=[0,0,0,0]
-    bh.style.top = (bh.style.top.to_f+cy).to_s+"px" #if cy!=0
-    
-    false
-  end, proc do |t,*o|;
-    o.each_with_index do |d,i|;
-      data[i] = data[i]+d;
-    end
-    nil
-  end)
 
-  r.show  
+  hint=Rwt::Drawable.new(root.find(:test)[0],:style=>STYLE::BORDER_ROUND)
+  hint.style['z-index']=100
+  hint.style['position']="absolute"
+  hint.style['border-style']="dashed"
+  #hint.set_size(r.get_size)
+  hint.hide
+  
+  o.element.hint = hint
+
+  o.extend Rwt::Draggable
+  o.dragBegin = proc do
+    o.dnd_handler.grip = hint
+    o.dnd_handler.dragged=hint
+    hint.show
+    hint.set_size r.get_size 
+    hint.set_position [r.offsetLeft,r.offsetTop]   
+    true
+  end
+  
+  hint.dragBegin = proc do |*o| true end
+  
+  hint.drag = JS.execute_script(document.context,"""
+    var f=function(g,nx,ny,cx,cy) {
+      this.style.width = (parseInt(this.style.width)+cx)+'px';
+      return false;
+    };
+    f;
+  """)
+  r.show 
+  
+  r2=Rwt::VBox.new(root.find(:test)[0],:position=>[250,8],:size=>[200,300],:style=>STYLE::FIXED|STYLE::BORDER_ROUND_TOP|STYLE::FLAT)
+  r2.add c=Rwt::Drawable.new(r2),1,1
+  r2.add bh = Rwt::HBox.new(r2,:size=>[0,0]),0,1
+  
+  bh.add Rwt::Drawable.new(bh,:size=>[1,0]),1 
+  bh.add o2=Rwt::Drawable.new(bh,:size=>[0,0]),0
+  o2.style.cssText=o.style.cssText+"""
+    border-bottom: 20px solid silver; 
+    border-left: 20px solid transparent;  
+  """
+  dh=JS.execute_script(document.context,File.read("/home/ppibburr/dnd.js"))
+  bh.style.top = (r2.clientHeight-bh.offsetTop-20).to_s+"px"
+
+  o2.style.cursor = 'se-resize'
+
+  hint2=Rwt::Drawable.new(root.find(:test)[0],:style=>STYLE::BORDER_ROUND)
+  hint2.style['z-index']=100
+  hint2.style['position']="absolute"
+  hint2.style['border-style']="dashed"
+  #hint.set_size(r.get_size)
+  hint2.hide
+  
+  o2.element.hint = hint2
+  dh.initialize(o2.element,r2.element)
+  r2.show
  end
  
  w = Gtk::Window.new

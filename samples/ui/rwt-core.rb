@@ -440,8 +440,8 @@ module Rwt
     end
     
     def get_position
-      x = collection.get_style('left').to_f
-      y = collection.get_style('top').to_f
+      x = get_css_style('left').to_f
+      y = get_css_style('top').to_f
       Rwt::Point.new([x,y])    
     end
     

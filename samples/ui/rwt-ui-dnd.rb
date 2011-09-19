@@ -5,7 +5,7 @@ end
 module Rwt
   module UI
     class DragHandler
-      attr_reader :grip
+      attr_accessor :grip
       attr_accessor :dragged
       # public method. Attach drag handler to an element.
       def initialize grip,drag=nil
@@ -17,15 +17,17 @@ module Rwt
         grip.dragBegin = proc do true end
         grip.drag = proc do true end
         grip.dragEnd = proc do true end
+        
+        @_temp=[]
       end
      
      
       # private method. Begin drag process.
       def dragBegin this,e
-        x = dragged.style.left.to_f;
-        y = dragged.style.top.to_f;
-     
-        return false if !grip.dragBegin(grip, x, y);      
+        x = @_temp[0] = dragged.style.left.to_f;
+        y = @_temp[1] = dragged.style.top.to_f;
+
+        return false if grip['dragBegin'] and !grip.dragBegin(grip, x, y);      
      
         e = grip.context.get_global_object.window.event if !e.is_a?(JS::Object);
         dragged.mouseX = e.clientX;
@@ -39,16 +41,15 @@ module Rwt
      
       # private method. Drag (move) element.
       def drag this,e 
-        x = dragged.style.left.to_f;
-        y = dragged.style.top.to_f;
+        x,y = @_temp
         dx = e.clientX - dragged.mouseX
         dy = e.clientY - dragged.mouseY
         nx = x + (dx) 
         ny = y + (dy)
         dragged.mouseX = e.clientX;
         dragged.mouseY = e.clientY;
-        return false if !grip.drag(grip, nx,ny,dx, dy); 
-     
+        return false if !grip['drag'].call(grip, nx,ny,dx, dy); 
+        @_temp=[nx,ny]
         e = grip.context.get_global_object.window.event if !e.is_a?(JS::Object)
         dragged.style.left = (nx).to_s + 'px';
         dragged.style.top = (ny).to_s + 'px';
