@@ -7,8 +7,6 @@
     left:0px;
   }
 </style>
-<script type='text/javascript' src='dnd.js'>
-</script>
 </head>
 <body>
 <div id=container style="position:relative;left:0px;top:0px;border: 1px solid #000;width:300px;">
@@ -22,10 +20,14 @@
 <script type='text/javascript'>
  var h=document.getElementById('handle');
  var c=document.getElementById('container');
-
- dnd=Rwt.UI.DragHandler;
-
- dnd.attach(h,c);
+ function foo(q) {
+   j=q;
+   f=function() {
+     alert(j);
+   }();  
+ }
+ foo(1); 
+ foo(2);    
 </script>
 </body>
 </html>

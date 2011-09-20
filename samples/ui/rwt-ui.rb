@@ -15,7 +15,7 @@ require "JS/props2methods"
 
 module Rwt
   module UI
-    require 'rwt-ui-dnd'
+    require 'rwt-ui-draggable'
     require 'rwt-ui-expandable'
     
     module AsArray
@@ -112,7 +112,7 @@ module Rwt
             ctx = self[0].context
           end
           responder = JS::Object.new(ctx, proc {|this,event|;
-              if (handler.call(element, event) === false)
+              if (!handler.call(element, event))
                   event.preventDefault();
                   event.stopPropagation();
               end

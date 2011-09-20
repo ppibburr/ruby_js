@@ -33,7 +33,7 @@ module Rwt
       if o[0].is_a?(JS::Object) || o[0].is_a?(Rwt::Object)
         opts[:tag] ||= 'div'
         parent = o[0]
-      elsif opts[:from]
+      elsif opts[:from];p 9999
         @element = opts[:from]
         @element.extend(UI::Object) if !@element.is_a?(UI::Object)
         @parent = @element.parentNode

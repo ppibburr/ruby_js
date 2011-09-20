@@ -109,7 +109,7 @@ module Rwt
     end
     
     def self.extended q
-      q.set_style q.instance_variable_get("@_style")
+      q.set_style q.instance_variable_get("@_style")|STYLE::RESIZABLE
     end
   end    
 end
@@ -130,7 +130,7 @@ if __FILE__ == $0
   root = Rwt::UI::Collection.new(document)
   document.body.innerHTML="<div id=test style='width:800px;height:800px;background-color:#ebebeb;'></div>"
   
-  r=Rwt::VBox.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::FIXED|STYLE::RESIZABLE|STYLE::BORDER_ROUND_TOP|STYLE::FLAT)
+  r=Rwt::VBox.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::FIXED|STYLE::BORDER_ROUND_TOP|STYLE::FLAT)
   r.extend Rwt::Resizable
   r.add Rwt::Button.new(r,'ggg',:size=>[1,1]),1,1
   r.show
