@@ -1,72 +1,61 @@
 if __FILE__ == $0
+  $: << Dir.getwd
   require 'rwt2'
 end
 
 module Rwt
   module UI
-    class DragHandler
-      attr_accessor :grip
-      attr_accessor :dragged
-      # public method. Attach drag handler to an element.
-      def initialize grip,drag=nil
-        @grip = grip
-        @dragged = drag||=@grip
-        grip.onmousedown = method(:dragBegin);
-
-        # callbacks
-        grip.dragBegin = proc do true end
-        grip.drag = proc do true end
-        grip.dragEnd = proc do true end
+    module DragHandler
+      @@instances = {}
+      
+      def attach grip,dragged=nil
+        dragged = grip if !dragged
         
-        @_temp=[]
+        if !grip.is_a?(JS::Object)
+          if grip.respond_to?(:element)
+            grip = grip.element
+          else
+            raise
+          end
+        end
+ 
+        if !dragged.is_a?(JS::Object) 
+          if dragged.respond_to?(:element)
+            dragged = dragged.element
+          else
+            raise
+          end
+        end 
+                
+        native.attach grip,dragged
       end
-     
-     
-      # private method. Begin drag process.
-      def dragBegin this,e
-        x = @_temp[0] = dragged.style.left.to_f;
-        y = @_temp[1] = dragged.style.top.to_f;
-
-        return false if grip['dragBegin'] and !grip.dragBegin(grip, x, y);      
-     
-        e = grip.context.get_global_object.window.event if !e.is_a?(JS::Object);
-        dragged.mouseX = e.clientX;
-        dragged.mouseY = e.clientY;
-     
-        grip.ownerDocument.onmousemove = method(:drag);
-        grip.ownerDocument.onmouseup = method(:dragEnd);
-        return false;
+      
+      def self.attach grip,dragged=nil
+        if !@@instances.has_key?(grip.context)
+          cls = Class.new
+          cls.class_eval do
+            include DragHandler
+            attr_reader :document,:context,:native
+            def initialize document
+              @document = document
+              @context = document.context
+              @native = JS.execute_script(context,File.read("dnd.js"))
+              @@instances[context]=self
+            end
+            
+            def method_missing *o,&b
+              @native.send(*o,&b)
+            end            
+          end
+          
+          cls.new grip.ownerDocument
+        end
+        
+        @@instances[grip.context].attach grip,dragged
       end
-     
-     
-      # private method. Drag (move) element.
-      def drag this,e 
-        x,y = @_temp
-        dx = e.clientX - dragged.mouseX
-        dy = e.clientY - dragged.mouseY
-        nx = x + (dx) 
-        ny = y + (dy)
-        dragged.mouseX = e.clientX;
-        dragged.mouseY = e.clientY;
-        return false if !grip['drag'].call(grip, nx,ny,dx, dy); 
-        @_temp=[nx,ny]
-        e = grip.context.get_global_object.window.event if !e.is_a?(JS::Object)
-        dragged.style.left = (nx).to_s + 'px';
-        dragged.style.top = (ny).to_s + 'px';
-     
-        return false;
-      end
-     
-     
-      # private method. Stop drag process.
-      def dragEnd *o
-        x = dragged.style.left.to_f;
-        y = dragged.style.top.to_f;
-     
-        grip.dragEnd(grip, x, y);
-     
-        grip.ownerDocument.onmousemove = nil;
-        grip.ownerDocument.onmouseup = nil
+      
+      def self.of q
+        @@instances[q.context]
       end
     end
   end
@@ -81,10 +70,10 @@ if __FILE__ == $0
   root.find('div').set_style('position','relative')
   root.find('div',c).set_style('border','1px solid #000').set_style('box-sizing','border-box')
   root.find(:content).set_style("height","280px").set_style('border-top','')
-  Rwt::UI::DragHandler.new(h,c)
+  Rwt::UI::DragHandler.attach(h,c)
  end  
  
- w = Gtk::Window.new
+ w = Gtk::Window.new 0
  v = WebKit::WebView.new
  w.add v
  v.load_html_string "<html><body style='width:800px;'></body></html>",nil
