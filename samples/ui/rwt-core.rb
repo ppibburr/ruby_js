@@ -106,21 +106,22 @@ module Rwt
   STYLE::RAISED = STYLE::SHADOW|STYLE::BORDER
   STYLE::SUNKEN = STYLE::SHADOW_INSET|STYLE::BORDER
   STYLE::FLAT = STYLE::SHADOW_INSET*2|STYLE::BORDER|STYLE::SHADOW
-  
+  STYLE::BOTTOM = STYLE::SHADOW_INSET*2*2
   class Drawable < Object
     class Layout
       attr_reader :object
       attr_accessor :trim_w,:trim_h
       def initialize obj
         @object = obj
+        @trim_w,@trim_h = 0,0
       end
       
       def take_all_width trim=0
-        object.set_size(Size.new([UI::Collection.new(nil,[object.parent]).get_style('width').to_f,object.get_size.height+trim]))
+        object.set_size(Size.new([UI::Collection.new(nil,[object.parent]).get_style('width')[0].to_f+trim,object.get_size.height]))
       end
       
       def take_all_height trim=0
-        object.set_size(Size.new([object.get_size.width,UI::Collection.new(nil,[object.parent]).get_style('height').to_f+trim])   )     
+        object.set_size(Size.new([object.get_size.width,UI::Collection.new(nil,[object.parent]).get_style('height')[0].to_f+trim])   )     
       end
       
       def take_all trim_w=0,trim_h=0
@@ -173,14 +174,61 @@ module Rwt
         end
       end
       
+      def bottom
+        if (object._style&STYLE::RELATIVE) == STYLE::RELATIVE
+          x=0
+          y = object.parent.clientHeight
+          oy = object.offsetTop
+          p [y,oy,object.get_css_style('height').to_f]
+          y=(y-oy)+(oy-object.get_css_style('height').to_f)
+         p object.style.top = (y).to_s+"px"
+          object.style.left = (x).to_s+"px"
+          
+        elsif object._style&STYLE::FIXED == STYLE::FIXED
+          bc=UI::Collection.new(nil,[object.context.get_global_object.document.body])
+          x = bc.get_style('width')[0].to_f
+          y = bc.get_style('height')[0].to_f
+          
+          sub_y = object.collection.get_style('height')[0].to_f/2
+          sub_x = object.collection.get_style('width')[0].to_f/2
+          
+          object.style.top = ((y/2.0)-sub_y).to_s+"px"
+          object.style.left = ((x/2.0)-sub_x).to_s+"px"
+          
+        elsif object._style&STYLE::ABSOLUTE == STYLE::ABSOLUTE
+          x = object.parent.clientWidth/2
+          y = object.parent.clientHeight/2
+
+          sub_y = object.collection.get_style('height')[0].to_f/2
+          sub_x = object.collection.get_style('width')[0].to_f/2
+
+          object.style.top = ((y-sub_y)).to_s+"px"
+          object.style.left = ((x-sub_x)).to_s+"px"        
+        else
+          raise "Unsupported Style"
+        end
+      end
+      
       def update
         if object._style&STYLE::TAKE_ALL ==STYLE::TAKE_ALL
           take_all @trim_w,@trim_h
         end
+
+        if object._style&STYLE::TAKE_ALL ==STYLE::TAKE_WIDTH
+          take_all_width @trim_w
+        end
+        
+        if object._style&STYLE::TAKE_ALL ==STYLE::TAKE_HEIGHT
+          take_all_height @trim_h
+        end        
         
         if object._style&STYLE::CENTER == STYLE::CENTER
           center
         end
+        
+        if object._style&STYLE::BOTTOM == STYLE::BOTTOM
+          bottom
+        end        
       end
     end
     

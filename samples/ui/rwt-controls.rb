@@ -3,33 +3,32 @@ if __FILE__ == $0
 end
 
 module Rwt
-  class Button < Drawable
+  class Button < VBox
     def initialize parent,text='',*o
       super parent,*o
-
-      style['text-align'] = 'center'
-      style['vertical-align']='center'
-      style['font-family']="arial,helvetica,sans-serif"
-      style['font-size']='11px'
-      self.innerText=text
+      add Rwt::Drawable.new(self,:size=>[1,1]),1,1
+      @_label = Rwt::Drawable.new(self,:size=>[1,20])
+      @_label.style['text-align'] = 'center'
+      @_label.style['vertical-align']='middle'
+      
+      @_label.style['font-family']="arial,helvetica,sans-serif"
+      @_label.style['font-size']='11px'
+      @_label.innerText=text
+      add @_label,0,1
+      add Rwt::Drawable.new(self,:size=>[1,1]),1,1
       style['min-width']='50px'
       set_style STYLE::FLAT
       @_border.round 10
       @_shadow.inset
       style.padding = "2px"
-      style['-webkit-box-shadow']=''
-      style['border'] = 'none'
+
       
       collection.on("mouseover") do
-        @_shadow.inset
-        @_border.init
         style['background-color']="eeefff"
       end
       
       collection.on("mouseout") do
-        style['background-color']="#{@_bgc}"
-        style['-webkit-box-shadow']=''
-        style['border'] = 'none'        
+        style['background-color']="#{@_bgc}"  
       end      
     end
     

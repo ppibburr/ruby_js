@@ -10,6 +10,9 @@ module Rwt
       @_display = '-webkit-box'
     end
     
+    # FIXME: current implementation requires explicitly constructing the child or setting the size of the child to a size of
+    #        > 0, for any axis that expansion takes place on, so the default -1 does not work
+    # TODO: set childs size at Box#->add for dimnsions determined to be expandable
     def add o,major=0
       super(o)
       o.style.minHeight='0px'

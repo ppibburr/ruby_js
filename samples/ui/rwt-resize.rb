@@ -11,46 +11,39 @@ module Rwt
       super
       if flags&STYLE::RESIZABLE == STYLE::RESIZABLE
         style['overflow']='hidden'
+        make_resizable
       end
+    end
+
+    def make_hint
+      hint=Rwt::Drawable.new(self,:style=>STYLE::BORDER_ROUND)
+      hint.style['z-index']=100
+      hint.style['position']="absolute"
+      hint.style['border-style']="dashed"
+      hint.hide 
+      hint
     end
     
-    class EventThrottler
-      attr_accessor :handler
-      def initialize object,type,handler=nil,que=nil
-        @object = object
-        @handler = handler
-        @lastExecThrottle = 0.048; # limit to one call every "n" msec
-        @lastExec = Time.now.to_f
-        @timer = nil;
-
-        @_handler = proc { |t,g,*o|
-           d=Time.now.to_f;
-           if (d-@lastExec < @lastExecThrottle) #or (@handler.respond_to?(:arity) and o.length < @handler.arity)
-             # This function has been called "too soon," before the allowed "rate" of twice per second
-             # Set (or reset) timer so the throttled handler execution happens "n" msec from now instead
-             if (@timer)
-               object.context.get_global_object.window.clearTimeout(@timer);
-             end
-             @timer = object.context.get_global_object.window.setTimeout(proc do
-               @_handler.call(t,g,*o.clone) 
-             end, @lastExecThrottle);
-             return false; # exit
-          end
-          
-          @lastExec = d; # update "last exec" time
-          # At this point, actual handler code can be called (update positions, resize elements etc.)
-          # self.callResizeHandlerFunctions();
-          #p o
-         @handler.call(t,g,*o) if @handler
-         false
-        }
-        Rwt::UI::Collection.new(nil,[@object])[0][type]=@handler
-      rescue => e
-        puts e
-        raise e
-      end
+    def make_resizable
+      @_grip_box = Rwt::HBox.new(self,:style=>STYLE::BOTTOM)
+      @_grip_box.add Rwt::Drawable(@_grip_box,:size=>[1,0]),1
+      @_grip_box.add @_size_grip=o=Rwt::Drawable.new(@_grip_box,:size=>[0,0]),0
+      o.style.cssText=o.style.cssText+"""
+        border-bottom: 20px solid silver; 
+        border-left: 20px solid transparent;  
+      """
     end
-  end
+    
+    def show
+      r=super
+      grip_box.show
+      r
+    end
+    
+    def on_resize
+      grip_box.show
+    end
+  end    
 end
 
 STYLE = Rwt::STYLE
