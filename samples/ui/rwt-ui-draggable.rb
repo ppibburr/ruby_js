@@ -10,7 +10,7 @@ module Rwt
       
       def attach grip,dragged=nil
         dragged = grip if !dragged
-        grip.style.cursor = 'move'
+
         if !grip.is_a?(JS::Object)
           if grip.respond_to?(:element)
             grip = grip.element
@@ -50,7 +50,7 @@ module Rwt
             def grip= q
               if @native.grip.is_a?(JS::Object)
                 @native.grip.onmousedown=:undefined
-                @native.grip.style.cursor='auto'
+             #   @native.grip.style.cursor='auto'
               end
               @native.grip = q
               q.onmousedown = @native['dragBegin']
@@ -61,7 +61,7 @@ module Rwt
               }.each_pair do |k,v|
                 q[k.to_s]=v unless q[k.to_s].is_a?(JS::Object)
               end
-              q.style.cursor = 'move'              
+             # q.style.cursor = 'move'              
             end          
           end
           

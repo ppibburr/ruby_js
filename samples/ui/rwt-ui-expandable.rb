@@ -8,7 +8,7 @@ module Rwt
       def initialize t,e
         @expandee = e
         @toggler = t
-        
+        @toggler.style.cursor = 'pointer'
         Rwt::UI::Collection.new(nil,[@toggler]).on('click') do
           toggle()
         end
@@ -30,6 +30,7 @@ module Rwt
     end
   end
 end
+
 if __FILE__ == $0
  def example1 document
   root = Rwt::UI::Collection.new(document)

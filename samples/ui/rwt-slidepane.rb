@@ -5,16 +5,21 @@ if __FILE__ == $0
 end
 
 module Rwt
-  class SlidePane < HBox
-    alias :'add!' :add
-    undef :add
-    
+  module SlidePane
+    def self.included q
+      q.class_eval do
+        alias :'add!' :add
+        undef :add      
+      end
+    end
+
     def initialize *o
       super
       add! Rwt::Object.new(self,:size=>[0,0]),0,0
       children[0].style.minWidth=''
+      children[0].style.minHeight=''
     end
-    
+  
     def add1 o
       raise if @_add1
       add! o,1,true
@@ -22,17 +27,20 @@ module Rwt
       @_add1 = true
       
       removeChild(children[0].element)   
-      add! @handle = Rwt::Drawable.new(self,:size=>[8,1],:style=>STYLE::FLAT),0,true
-
+      
+      create_handle
+      
       if @_add2
         replaceChild(o.element,children[1].element)
         appendChild(children[1].element)
         @children = [o,@handle,children[1]]
       else
-        @children=[o]
+        @children=[o,@handle]
       end
       
       @handle.style.minWidth="3px"
+      @handle.style.minHeight="3px"
+      
       init_handle
       show if @shown
       @handle.hide unless (@_add1 && @_add2) || !@handle
@@ -49,21 +57,48 @@ module Rwt
     def show
       super
       @handle.hide unless (@_add1 && @_add2) || !@handle
+    end  
+  end
+
+  class VSlidePane < VBox
+    include SlidePane
+    
+    private
+    def create_handle
+      add! @handle=Rwt::Drawable.new(self,:size=>[1,8],:style=>STYLE::FLAT),0,true    
     end
     
     private
     def init_handle
       @handle.extend Rwt::Draggable
       
-      @handle.dragBegin=proc do
-        @handle.ownerDocument.documentElement.style.cursor='move'
-        true
-      end
-      
-      @handle.dragEnd=proc do
-        @handle.ownerDocument.documentElement.style.cursor='auto'
-        true
-      end
+      @handle.drag = JS.execute_script(context,"""
+        this.dragNative=function(g,nx,ny,cx,cy) {
+          y = document.defaultView.getComputedStyle(this.previousSibling, '').getPropertyValue('height') ;
+
+          y = parseInt(y);
+          this.previousSibling.style.height = (y+cy)+'px';
+          y = document.defaultView.getComputedStyle(this.nextSibling, '').getPropertyValue('height') ;
+
+          y = parseInt(y);
+          this.nextSibling.style.height = (y-cy)+'px';
+          return false;
+        };this.dragNative;
+      """,@handle.element)
+    end
+  end
+ 
+  class HSlidePane < HBox
+    include SlidePane
+    
+    private
+    def create_handle
+      add! @handle=Rwt::Drawable.new(self,:size=>[8,1],:style=>STYLE::FLAT),0,true    
+    end
+    
+    private
+    def init_handle
+      @handle.extend Rwt::Draggable
       
       @handle.drag = JS.execute_script(context,"""
         this.dragNative=function(g,nx,ny,cx,cy) {
@@ -82,45 +117,52 @@ module Rwt
   end
 end
 
-STYLE = Rwt::STYLE
-
 if __FILE__ == $0
- def example1 document
-  root = Rwt::UI::Collection.new(document)
-  document.body.innerHTML="<div id=test style='width:800px;height:800px;background-color:#ebebeb;'></div>"
+  require 'demo_common'
   
-  r=Rwt::SlidePane.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::FIXED|STYLE::BORDER_ROUND_TOP|STYLE::FLAT)
-
-  r.add2 b=Rwt::Button.new(r,'ggfffg',:size=>[1,1])
-  b.click do
-    r.add1 Rwt::Button.new(r,'ggg',:size=>[1,1]) unless r.children.length == 3 
-  end
-  r.show
+  Examples = [
+    "Horizontal Slide Pane",
+    "Vertical Slide Pane",
+    "Adding out of order and event driven adding"
+  ]
   
-  r1=Rwt::SlidePane.new(root.find(:test)[0],:size=>[200,300],:position=>[230,0],:style=>STYLE::FIXED|STYLE::BORDER_ROUND_TOP|STYLE::FLAT)
+  STYLE = Rwt::STYLE
+  
+  def example1 document
+    root ,window = base(document,1)
+    
+    r=Rwt::HSlidePane.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::FIXED|STYLE::BORDER_ROUND_TOP|STYLE::FLAT|STYLE::CENTER)
 
-  r1.add2 b1=Rwt::Button.new(r1,'ggfffg',:size=>[1,1])
-  b1.click do
-    r1.add1 Rwt::Button.new(r1,'ggg',:size=>[1,1]) unless r1.children.length == 3 
+    r.add1 Rwt::Button.new(r,"slide the handle i'll adjust",:size=>[1,1])
+    r.add2 b=Rwt::Button.new(r,'me too !',:size=>[1,1]) 
+    p(r.children.map do |c| c.class end)
+    r.show 
+  end  
+ 
+  def example2 document
+    root ,window = base(document,2)
+    
+    r=Rwt::VSlidePane.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::FIXED|STYLE::BORDER_ROUND_TOP|STYLE::FLAT|STYLE::CENTER)
+
+    r.add1 Rwt::Button.new(r,"slide the handle i'll adjust",:size=>[1,1])
+    r.add2 b=Rwt::Button.new(r,'me too !',:size=>[1,1]) 
+    
+    r.show 
+  end   
+  
+  def example3 document
+    root ,window = base(document,3)
+    r=Rwt::HSlidePane.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::FIXED|STYLE::BORDER_ROUND_TOP|STYLE::FLAT|STYLE::CENTER)
+
+    r.add2 b=Rwt::Button.new(r,'ggfffg',:size=>[1,1])
+    
+    b.click do
+      r.add1 Rwt::Button.new(r,'ggg',:size=>[1,1]) unless r.children.length == 3 
+    end
+    
+    r.show 
   end
-  r1.show  
- end
  
- w = Gtk::Window.new 0
- v = WebKit::WebView.new
- w.add v
- v.load_html_string "<html><body style='width:800px;'></body></html>",nil
- 
- v.signal_connect('load-finished') do |orw,f|
-   example1 f.get_global_context.get_global_object.document
- end
- 
- w.signal_connect("delete-event") do
-   Gtk.main_quit
- end
- 
- w.show_all
- 
- Gtk.main
+  launch
 end
 

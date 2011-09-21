@@ -6,13 +6,18 @@ Rwt.UI = {
     _temp: [],
     // public method. Attach drag handler to an element.
     attach: function(grip,drag) {
-      this.grip = grip;
-      this.dragged = drag;
-
-      grip.onmousedown = this.dragBegin;
-
+      grip.style.cursor = 'move';
+      
+      grip.onmousedown = function(q,e) {
+         document.onselectstart = function(){ return false; };
+         document.body.style.cursor = 'move';
+         Rwt.UI.DragHandler.grip = grip;
+         Rwt.UI.DragHandler.dragged = grip.dragged;
+         Rwt.UI.DragHandler.dragBegin(q,e);
+      };
+      grip.dragged = drag;
       //# callbacks
-      grip.dragBegin = function() { return true;};
+      grip.dragBegin = function() {return true;};
       grip.drag = function() { return true;};
       grip.dragEnd = function() { return true;};
       
@@ -20,7 +25,7 @@ Rwt.UI = {
    
    
     //# private method. Begin drag process.
-    dragBegin: function(q,e) {
+    dragBegin: function(q,e) {;
       self=Rwt.UI.DragHandler;;
       x  = parseInt(self.dragged.style.left);
       y  = parseInt(self.dragged.style.top);
@@ -28,10 +33,10 @@ Rwt.UI = {
       y = (y.toString()=="NaN") ? 0 : y;
       self._temp = [x,y];
 
-      if (self.grip.dragBegin(self.grip, x, y) === false) {
+      if (self.grip.dragBegin(this, x, y) === false) {
         return false;
       }
-   
+
       e = e ? e : window.event;
       self.dragged.mouseX = e.clientX;
       self.dragged.mouseY = e.clientY;
@@ -77,7 +82,9 @@ Rwt.UI = {
       self = Rwt.UI.DragHandler;
       if (self.grip.dragEnd(self.grip)  === false) {
         return false;
-      }    
+      } 
+      document.onselectstart = function(){ return true; }
+      document.body.style.cursor='auto';   
       document.onmousemove = null;
       document.onmouseup = null;
     }

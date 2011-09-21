@@ -15,7 +15,7 @@ module Rwt
     # TODO: set childs size at Box#->add for dimnsions determined to be expandable
     def add o,major=0
       super(o)
-      o.style.minHeight='0px'
+      #o.style.minHeight='0px'
       o.style['-webkit-box-flex']=major
       o.style['-webkit-box-sizing']= 'border-box'     
     end

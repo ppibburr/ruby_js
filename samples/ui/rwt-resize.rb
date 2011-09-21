@@ -80,16 +80,15 @@ if __FILE__ == $0
   hint.style.cursor = o.style.cursor = 'se-resize'
 
   Rwt::UI::DragHandler.attach o
-  
+
   o.dragBegin = proc do
     Rwt::UI::DragHandler.of(o).grip = hint.element
-    Rwt::UI::DragHandler.of(o).dragged=hint.element
     hint.show
     hint.set_size r.get_size 
     hint.set_position [r.offsetLeft,r.offsetTop]   
     true
   end
-  
+
   hint.dragBegin = proc do |*d| true end
   
   hint.dragEnd = proc do
@@ -110,13 +109,13 @@ if __FILE__ == $0
   
   ### faster, looks decent
    hint.drag = JS.execute_script(document.context,"""
-    var f=function(g,nx,ny,cx,cy) {
+    f=function(g,nx,ny,cx,cy) {
       this.style.width = (parseInt(this.style.width)+cx)+'px';
       this.style.height = (parseInt(this.style.height)+cy)+'px';
       return false;
     };
     f;
-  """)
+  """,hint.element)
   ###
   
   r.show
