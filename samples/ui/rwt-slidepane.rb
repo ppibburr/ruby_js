@@ -15,9 +15,10 @@ module Rwt
 
     def initialize *o
       super
-      add! Rwt::Object.new(self,:size=>[0,0]),0,0
+      add! Rwt::Drawable.new(self,:size=>[0,0]),0,0
       children[0].style.minWidth=''
       children[0].style.minHeight=''
+      style.overflow='hidden'
     end
   
     def add1 o
@@ -133,8 +134,8 @@ if __FILE__ == $0
     
     r=Rwt::HSlidePane.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::FIXED|STYLE::BORDER_ROUND_TOP|STYLE::FLAT|STYLE::CENTER)
 
-    r.add1 Rwt::Button.new(r,"slide the handle i'll adjust",:size=>[1,1])
-    r.add2 b=Rwt::Button.new(r,'me too !',:size=>[1,1]) 
+    r.add1 Rwt::Button.new(r,"slide the handle i'll adjust")
+    r.add2 b=Rwt::Button.new(r,'me too !') 
     p(r.children.map do |c| c.class end)
     r.show 
   end  
@@ -144,8 +145,8 @@ if __FILE__ == $0
     
     r=Rwt::VSlidePane.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::FIXED|STYLE::BORDER_ROUND_TOP|STYLE::FLAT|STYLE::CENTER)
 
-    r.add1 Rwt::Button.new(r,"slide the handle i'll adjust",:size=>[1,1])
-    r.add2 b=Rwt::Button.new(r,'me too !',:size=>[1,1]) 
+    r.add1 Rwt::Button.new(r,"slide the handle i'll adjust")
+    r.add2 b=Rwt::Button.new(r,'me too !') 
     
     r.show 
   end   
@@ -154,10 +155,10 @@ if __FILE__ == $0
     root ,window = base(document,3)
     r=Rwt::HSlidePane.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::FIXED|STYLE::BORDER_ROUND_TOP|STYLE::FLAT|STYLE::CENTER)
 
-    r.add2 b=Rwt::Button.new(r,'ggfffg',:size=>[1,1])
+    r.add2 b=Rwt::Button.new(r,"i'm add2 click to add1")
     
     b.click do
-      r.add1 Rwt::Button.new(r,'ggg',:size=>[1,1]) unless r.children.length == 3 
+      r.add1 Rwt::Button.new(r,"i'm add1") unless r.children.length == 3 
     end
     
     r.show 

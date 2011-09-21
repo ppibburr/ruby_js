@@ -3,7 +3,7 @@ if __FILE__ == $0
 end
 
 module Rwt
-  class Button < VBox
+  class Button < Container
     def initialize parent,text='',*o
       if o.last.is_a?(Hash)
         if o.last[:style]
@@ -17,19 +17,17 @@ module Rwt
       
       super parent,*o
     
-      add Rwt::Drawable.new(self,:size=>[1,1]),1,1
-    
-      @_label = Rwt::Drawable.new(self,:size=>[1,20])
-      @_label.style['text-align'] = 'center'
-      @_label.style['vertical-align']='middle'
-      
-      @_label.style['font-family']="arial,helvetica,sans-serif"
-      @_label.style['font-size']='11px'
+      style.overflow='hidden'
+      @_display = style.display='-webkit-box'
+      style['-webkit-box-orient']='horizontal';
+      style['-webkit-box-pack']='center'
+      style['-webkit-box-align']='center'      
+      style['font-family']="arial,helvetica,sans-serif"
+      style['font-size']='11px'
+      add @_label=Rwt::Drawable.new(self,:tag=>"p")
+      @_label.set_style 0
       @_label.innerText=text
-      
-      add @_label,0,1
-      add Rwt::Drawable.new(self,:size=>[1,1]),1,1
-      
+
       style['min-width']='50px'
       
       @_border.round 10
@@ -62,7 +60,7 @@ if __FILE__ == $0
   
   STYLE = Rwt::STYLE
   
-  Examples = ["Button demo"]
+  Examples = ["Button demo","Packing understanding ..."]
   
   def example1 document;
     root,window = base document,1
@@ -75,6 +73,59 @@ if __FILE__ == $0
     
     b.show
   end
+ 
+  def example2 document;
+    root,window = base document,2
+    
+    r=Rwt::VBox.new(root.find(:test)[0],:size=>[200,250],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::FLAT)
+    r.add c=Rwt::Container.new(r),1,true
+   
+    c.style.border="2px solid red"
+    c.add h=Rwt::HBox.new(c)
+   
+    h.style.border = "2px solid blue"
+    h.add c2=Rwt::Container.new(h),1,1
+
+    c2.style.border="2px dashed black"
+    c2.add b=Rwt::Button.new(c2,"Click Me!",:size=>[50,20],:style=>STYLE::CENTER)
+
+    b.click do
+      window.alert("Click Event")
+    end  
+
+    h.add c3=Rwt::Container.new(h),1,1
+    c3.add b=Rwt::Button.new(c3,"Click Me!",:size=>[50,20],:style=>STYLE::CENTER)     
+    c3.style.border="2px dashed green"    
+    
+    b.click do
+      window.alert("Click Event")
+    end    
+  
+    r.add c=Rwt::Container.new(r),1,true
+   
+    c.style.border="2px solid red"
+    c.add h=Rwt::HBox.new(c)
+   
+    h.style.border = "2px solid blue"
+    h.add c2=Rwt::Container.new(h),1,1
+
+    c2.style.border="2px dashed black"
+    c2.add b=Rwt::Button.new(c2,"Click Me!",:size=>[50,20],:style=>STYLE::CENTER)
+
+    b.click do
+      window.alert("Click Event")
+    end  
+
+    h.add c3=Rwt::Container.new(h),1,1
+    c3.add b=Rwt::Button.new(c3,"Click Me!",:size=>[50,20],:style=>STYLE::CENTER)     
+    c3.style.border="2px dashed green"    
+    
+    b.click do
+      window.alert("Click Event")
+    end     
+    
+    r.show
+  end 
   
   launch
 end

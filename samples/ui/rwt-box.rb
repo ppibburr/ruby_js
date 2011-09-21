@@ -8,6 +8,9 @@ module Rwt
       super
       style['display']='-webkit-box'
       @_display = '-webkit-box'
+  #    set_style get_style&~STYLE::TAKE_WIDTH
+   #   set_style get_style&~STYLE::TAKE_HEIGHT    
+     # style['height']='100%'  
     end
     
     # FIXME: current implementation requires explicitly constructing the child or setting the size of the child to a size of
@@ -29,7 +32,13 @@ module Rwt
     
     def add o,major=0,minor=nil
       super o,major
+      if major > 0
+        o.set_style o.get_style&~STYLE::TAKE_HEIGHT 
+        o.style['height']='1'
+      end
+      
       if minor
+        o.set_style o.get_style&~STYLE::TAKE_WIDTH
         o.style['width']='100%'
       end
     end
@@ -43,100 +52,76 @@ module Rwt
     
     def add o,major=0,minor=nil
       super o,major
+      if major > 0
+        o.set_style o.get_style&~STYLE::TAKE_WIDTH
+        o.style['width']='1'
+      end
+      
       if minor
-        o.style['height']='100%'
+        o.set_style o.get_style&~STYLE::TAKE_HEIGHT
+        o.style['height']='auto'
       end
     end     
   end
 end
 
-STYLE = Rwt::STYLE
+
 
 if __FILE__ == $0
- def example1 document
-  root = Rwt::UI::Collection.new(document)
-  document.body.innerHTML="<div id=test style='width:800px;height:800px;background-color:#ebebeb;'></div>"
-  
-  r=Rwt::VBox.new(root.find(:test)[0],:size=>[500,500],:style=>STYLE::CENTER|STYLE::FIXED|STYLE::BORDER_ROUND_LEFT|STYLE::FLAT) 
+  require 'demo_common'
 
-  r.add c=Rwt::Drawable.new(r,:style=>STYLE::BORDER_ROUND),1,true  
-  r.add c1=Rwt::Drawable.new(r,:style=>STYLE::BORDER_ROUND),1.25,true
-  r.add c2=Rwt::Drawable.new(r,:style=>STYLE::BORDER_ROUND),1.5,true
-  
-  r.show
-  
-  o=Rwt::Drawable.new(root.find(:test)[0],:size=>[250,23],:position=>[15,15],:style=>STYLE::FLAT)
-  o.innerText = "GoTo: Horizontal Example"
-  o.collection.on('click') do
-    example2 document
-    false
+  STYLE = Rwt::STYLE
+
+  Examples=[
+    "Vertical box layout",
+    "Horizontal",
+    "Both"
+  ]
+
+  def example1 document
+    root,window = base(document,1)  
+
+    r=Rwt::VBox.new(root.find(:test)[0],:size=>[500,500],:style=>STYLE::CENTER|STYLE::FIXED|STYLE::BORDER_ROUND_LEFT|STYLE::FLAT) 
+
+    r.add c=Rwt::Drawable.new(r,:style=>STYLE::BORDER_ROUND),1,true  
+    r.add c1=Rwt::Drawable.new(r,:style=>STYLE::BORDER_ROUND),2,true
+    r.add c2=Rwt::Drawable.new(r,:style=>STYLE::BORDER_ROUND),3,true
+
+    r.show
   end
- end
- 
- def example2 document
-  root = Rwt::UI::Collection.new(document)
-  document.body.innerHTML="<div id=test1 style='width:800px;height:800px;background-color:#ebebeb;'></div>"
-  
-  r=Rwt::HBox.new(root.find(:test1)[0],:size=>[500,500],:style=>STYLE::CENTER|STYLE::FIXED|STYLE::BORDER_ROUND_LEFT|STYLE::FLAT) 
 
-  r.add c=Rwt::Drawable.new(r,:style=>STYLE::BORDER_ROUND),1,true  
-  r.add c1=Rwt::Drawable.new(r,:style=>STYLE::BORDER_ROUND),1.25,true
-  r.add c2=Rwt::Drawable.new(r,:style=>STYLE::BORDER_ROUND),1.5,true
-  
-  r.show
-  
-  o=Rwt::Drawable.new(root.find(:test1)[0],:size=>[250,23],:position=>[15,15],:style=>STYLE::FLAT)
-  o.innerText = "GoTo: Example of Both"
-  o.collection.on('click') do
-    example3 document
-    false
-  end
- end 
- 
- def example3 document
-  root = Rwt::UI::Collection.new(document)
-  document.body.innerHTML="<div id=test2 style='width:800px;height:800px;background-color:#ebebeb;'></div>"
-  
-  r=Rwt::VBox.new(root.find(:test2)[0],:size=>[500,500],:style=>STYLE::CENTER|STYLE::FIXED|STYLE::BORDER_ROUND_LEFT|STYLE::FLAT) 
+  def example2 document
+    root,window = base(document,2)  
+    r=Rwt::HBox.new(root.find(:test)[0],:size=>[500,500],:style=>STYLE::CENTER|STYLE::FIXED|STYLE::BORDER_ROUND_LEFT|STYLE::FLAT) 
 
-  hba=[]
-  maj=[1,1.25,1.5]
+    r.add c=Rwt::Drawable.new(r,:style=>STYLE::BORDER_ROUND),1,true  
+    r.add c1=Rwt::Drawable.new(r,:style=>STYLE::BORDER_ROUND),2,true
+    r.add c2=Rwt::Drawable.new(r,:style=>STYLE::BORDER_ROUND),3,true
 
-  for i in 0..2
-    r.add hb=Rwt::HBox.new(r),maj[i],true
-    hba << hb
-  end
-  
-  hba.each do |c|
+    r.show
+  end 
+
+  def example3 document
+    root,window = base(document,3)  
+
+    r=Rwt::VBox.new(root.find(:test)[0],:size=>[500,500],:style=>STYLE::CENTER|STYLE::FIXED|STYLE::BORDER_ROUND_LEFT|STYLE::FLAT) 
+
+    hba=[]
+    maj=[1,2,3]
+
     for i in 0..2
-      c.add Rwt::Drawable.new(c,:style=>STYLE::BORDER_ROUND|STYLE::RAISED),maj[i],true
+      r.add hb=Rwt::HBox.new(r),maj[i],true
+      hba << hb
     end
-  end
-  
-  r.show
-  
-  o=Rwt::Drawable.new(root.find(:test2)[0],:size=>[250,23],:position=>[15,15],:style=>STYLE::FLAT)
-  o.innerText = "GoTo: 1st Example"
-  o.collection.on('click') do
-    example1 document
-    false
-  end
- end  
- 
- w = Gtk::Window.new
- v = WebKit::WebView.new
- w.add v
- v.load_html_string "<html><body style='width:800px;'></body></html>",nil
- 
- v.signal_connect('load-finished') do |o,f|
-   example1 f.get_global_context.get_global_object.document
- end
- 
- w.signal_connect("delete-event") do
-   Gtk.main_quit
- end
- 
- w.show_all
- 
- Gtk.main
+
+    hba.each do |c|
+      for i in 0..2
+        c.add Rwt::Drawable.new(c,:style=>STYLE::BORDER_ROUND|STYLE::RAISED),maj[i],true
+      end
+    end
+
+    r.show
+  end  
+
+  launch
 end

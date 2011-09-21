@@ -61,8 +61,8 @@ module Rwt
       
       parent.appendChild(@element)
       
-        style['min-width']='20px'
-        style['min-height']='20px'      
+        style['min-width']='0px'
+        style['min-height']='0px'      
     end
     
     def collection
@@ -174,16 +174,13 @@ module Rwt
         end
       end
       
-      def bottom
+      def bottom_left
         if (object._style&STYLE::RELATIVE) == STYLE::RELATIVE
           x=0
           y = object.parent.clientHeight
           oy = object.offsetTop
-          p [y,oy,object.get_css_style('height').to_f]
           y=(y-oy)+(oy-object.get_css_style('height').to_f)
-         p object.style.top = (y).to_s+"px"
           object.style.left = (x).to_s+"px"
-          
         elsif object._style&STYLE::FIXED == STYLE::FIXED
           bc=UI::Collection.new(nil,[object.context.get_global_object.document.body])
           x = bc.get_style('width')[0].to_f
@@ -208,6 +205,38 @@ module Rwt
           raise "Unsupported Style"
         end
       end
+      
+      def bottom_center
+        if (object._style&STYLE::RELATIVE) == STYLE::RELATIVE
+          x=0
+          y = object.parent.clientHeight
+          oy = object.offsetTop
+          y=(y-oy)+(oy-object.get_css_style('height').to_f)
+          object.style.left = (x).to_s+"px"
+        elsif object._style&STYLE::FIXED == STYLE::FIXED
+          bc=UI::Collection.new(nil,[object.context.get_global_object.document.body])
+          x = bc.get_style('width')[0].to_f
+          y = bc.get_style('height')[0].to_f
+          
+          sub_y = object.collection.get_style('height')[0].to_f/2
+          sub_x = object.collection.get_style('width')[0].to_f/2
+          
+          object.style.top = ((y/2.0)-sub_y).to_s+"px"
+          object.style.left = ((x/2.0)-sub_x).to_s+"px"
+          
+        elsif object._style&STYLE::ABSOLUTE == STYLE::ABSOLUTE
+          x = object.parent.clientWidth/2
+          y = object.parent.clientHeight/2
+
+          sub_y = object.collection.get_style('height')[0].to_f/2
+          sub_x = object.collection.get_style('width')[0].to_f/2
+
+          object.style.top = ((y-sub_y)).to_s+"px"
+          object.style.left = ((x-sub_x)).to_s+"px"        
+        else
+          raise "Unsupported Style"
+        end
+      end      
       
       def update
         if object._style&STYLE::TAKE_ALL ==STYLE::TAKE_ALL
@@ -499,7 +528,7 @@ module Rwt
     
     def set_style flags=0
       @_style ||= 0
-      @_style = @_style|flags
+      @_style = flags
       
       if flags&STYLE::RELATIVE == STYLE::RELATIVE
         style.position = 'relative'
@@ -574,6 +603,10 @@ module Rwt
         _shadow.spread 0
         _shadow.blur 5  
       end                                      
+    end
+    
+    def get_style
+      @_style
     end
     
     def get_css_style prop

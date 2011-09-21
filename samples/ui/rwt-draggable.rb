@@ -64,7 +64,7 @@ if __FILE__ == $0
   def example1 document
     root,window = base(document,1)
 
-    r = Rwt::Drawable.new(root.find(:test)[0],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::FLAT)
+    r = Rwt::Drawable.new(root.find(:test)[0],:size=>[250,200],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::FLAT)
     r.extend Rwt::Draggable    
     r.innerText = "Drag me..."
     r.show
@@ -74,7 +74,7 @@ if __FILE__ == $0
   def example2 document
     root,window = base(document,2)
 
-    r = Rwt::VBox.new(root.find(:test)[0],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::FLAT)
+    r = Rwt::VBox.new(root.find(:test)[0],:size=>[250,200],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::FLAT)
     r.add h = Rwt::Drawable.new(r,:size=>[1,20],:style=>STYLE::BORDER_ROUND_TOP),0,true
     r.add c = Rwt::Drawable.new(r,:size=>[1,1]),1,true  
 
@@ -94,7 +94,7 @@ if __FILE__ == $0
   def example3 document
     root,window = base(document,3)
 
-    r = ImplementsDrag.new(root.find(:test)[0],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::FLAT|STYLE::DRAGGABLE)
+    r = ImplementsDrag.new(root.find(:test)[0],:size=>[250,200],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::FLAT|STYLE::DRAGGABLE)
     r.innerText = "Drag me..."
     r.show
   end
@@ -133,7 +133,7 @@ if __FILE__ == $0
   def example4 document
     root,window = base(document,4)
 
-    r = DragPanel.new(root.find(:test)[0],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::DRAGGABLE) 
+    r = DragPanel.new(root.find(:test)[0],:size=>[250,200],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::DRAGGABLE) 
     r.show     
   end
 

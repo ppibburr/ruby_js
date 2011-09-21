@@ -8,16 +8,16 @@ module Rwt
   STYLE::RESIZABLE = STYLE::BOTTOM*2
   
   class SizeGripBox < HBox
-    def initialize sizee
+    def initialize sizee,sty=STYLE::ABSOLUTE
       @sizee = sizee
-      super sizee.ownerDocument.body,:size=>[0,0],:style=>STYLE::FIXED
+      super sizee.ownerDocument.body,:size=>[0,0],:style=>sty
     end
     
     def show
       super
       x = @sizee.offsetLeft
       y = @sizee.offsetTop
-      y = y + @sizee.get_css_style("height").to_f - clientHeight
+      y = y + @sizee.get_css_style("height").to_f-20
       set_position [x,y]
       
       w = @sizee.get_css_style("width").to_f
@@ -46,8 +46,12 @@ module Rwt
     
     def make_resizable
       return @_grip_box if is_resizable?
-      @_grip_box = Rwt::SizeGripBox.new(self)
-      @_grip_box.add Rwt::Drawable.new(@_grip_box,:size=>[1,0]),1
+      sty = @_style&STYLE::FIXED == STYLE::FIXED ? STYLE::FIXED : nil
+      if !sty
+        sty = @_style&STYLE::ABSOLUTE == STYLE::ABSOLUTE ? STYLE::ABSOLUTE : STYLE::RELATIVE    
+      end
+      @_grip_box = Rwt::SizeGripBox.new(self,sty)
+      @_grip_box.add Rwt::Drawable.new(@_grip_box),1
       @_grip_box.add @_size_grip=o=Rwt::Drawable.new(@_grip_box,:size=>[0,0]),0
       
       @_is_resizable = true
@@ -134,7 +138,7 @@ if __FILE__ == $0
   def example1 document
     root ,window = base(document,1)
     
-    r=Rwt::Drawable.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::BORDER_ROUND|STYLE::FLAT)
+    r=Rwt::Drawable.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::ABSOLUTE|STYLE::CENTER|STYLE::BORDER_ROUND|STYLE::FLAT)
     r.innerText="Drag the lower right corner to resize ..."
     
     r.extend Rwt::Resizable
@@ -167,7 +171,7 @@ if __FILE__ == $0
   def example3 document
     root,window = base(document,3)
     
-    r=ImplementsResize.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::BORDER_ROUND|STYLE::FLAT|STYLE::RESIZABLE)
+    r=ImplementsResize.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::ABSOLUTE|STYLE::CENTER|STYLE::BORDER_ROUND|STYLE::FLAT|STYLE::RESIZABLE)
     
     r.add Rwt::Button.new(r,'This button will expand with the container')
     r.show
@@ -176,10 +180,10 @@ if __FILE__ == $0
   def example4 document
     root,window = base(document,4)
     
-    r=Rwt::VBox.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::BORDER_ROUND|STYLE::FLAT)
+    r=Rwt::VBox.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::ABSOLUTE|STYLE::CENTER|STYLE::BORDER_ROUND|STYLE::FLAT)
    
     r.extend Rwt::Resizable
-    r.add Rwt::Button.new(r,'This button will expand with the container',:size=>[1,1]),1,true    
+    r.add Rwt::Button.new(r,'This button will expand with the container'),1,true    
     r.show
   end  
   
@@ -190,9 +194,10 @@ if __FILE__ == $0
   def example5 document
     root,window = base(document,5)
     
-    r=VBoxResize.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::BORDER_ROUND|STYLE::FLAT|STYLE::RESIZABLE)
+    r=VBoxResize.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::ABSOLUTE|STYLE::CENTER|STYLE::BORDER_ROUND|STYLE::FLAT|STYLE::RESIZABLE)
    
-    r.add Rwt::Button.new(r,'This button will expand with the container',:size=>[1,1]),1,true    
+    r.add vb=Rwt::VBox.new(r),1,true
+    vb.add Rwt::Button.new(vb,'This button will expand with the container',:size=>[100,20]),1,1
     r.show
   end   
   
