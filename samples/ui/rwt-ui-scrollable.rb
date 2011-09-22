@@ -1,9 +1,9 @@
 
 
 module Rwt
-  moudule UI
-    module Scollable
-      def self.extend(q)
+  module UI
+    module Scrollable
+      def self.extended(q)
         q.style.overflow='auto'
       end
     end

@@ -17,6 +17,7 @@ module Rwt
   module UI
     require 'rwt-ui-draggable'
     require 'rwt-ui-expandable'
+    require 'rwt-ui-scrollable'
     
     module AsArray
       def each

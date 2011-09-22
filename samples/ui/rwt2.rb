@@ -15,5 +15,6 @@ module Rwt
   require 'rwt-resizable'
   require 'rwt-draggable'
   require 'rwt-expandable'
+  require 'rwt-controls2'
   require 'rwt-button'
 end
