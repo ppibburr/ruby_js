@@ -77,7 +77,7 @@ if __FILE__ == $0
   def example2 document;
     root,window = base document,2
     
-    r=Rwt::VBox.new(root.find(:test)[0],:size=>[200,250],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::FLAT)
+    r=Rwt::VBox.new(root.find(:test)[0],:size=>[200,250],:style=>STYLE::RELATIVE|STYLE::CENTER|STYLE::FLAT)
     r.add c=Rwt::Container.new(r),1,true
    
     c.style.border="2px solid red"
@@ -110,7 +110,7 @@ if __FILE__ == $0
     h.add c2=Rwt::Container.new(h),1,1
 
     c2.style.border="2px dashed black"
-    c2.add b=Rwt::Button.new(c2,"Click Me!",:size=>[50,20],:style=>STYLE::CENTER)
+    c2.add b=Rwt::Button.new(c2,"Click Me!",:size=>[50,20],:style=>STYLE::CENTER|STYLE::ABSOLUTE)
 
     b.click do
       window.alert("Click Event")

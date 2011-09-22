@@ -17,10 +17,59 @@ module Rwt
     attr_reader :x,:y
     def initialize a
       raise if !a.is_a?(Array)
-      @x,@y = a
+      @x,@y=a
     end
     alias :left :x
     alias :top :y
+    
+    def self.from(obj)
+      curleft ,curtop = 0,0;
+      if obj.style.position=='fixed'
+        curtop=obj.style.top.to_f
+        curleft=obj.style.left.to_f; p :is_self_is_fixed
+      end
+      if (obj.offsetParent) 
+        while (obj = obj.offsetParent)
+          curleft += obj.offsetLeft;
+          curtop += obj.offsetTop;	
+          if obj.style.position == 'fixed'
+            curleft += obj.style.left.to_f
+            curtop += obj.style.top.to_f; p :_isoffpar_fixed
+          end
+        end;
+      end
+      self.new [curleft,curtop];   
+    end
+    
+    # returns a point where 0,0 
+    # should be assumed to be 
+    # pt.x,pt.y
+    def translate pt
+      rel_pt = pt
+      rx,ry = rel_pt.x,rel_pt.y
+      tx=rx-x
+      ty=ry-y
+      Point.new([tx,ty])
+    end
+    
+    def self.center_of o
+      ox,oy = from(o).x,from(o).y
+      oc = UI::Collection.new(nil,[o])
+      w,h = oc.get_style('width')[0].to_f,oc.get_style('height')[0].to_f
+      p [:f,w,h]
+      cx=ox+(w/2.0)
+      cy=oy+(h/2.0)
+      p [:d,cx,cy]
+      self.new([cx,cy])
+    end
+    
+    def center_object o
+      ox,oy,w,h = o.get_rect
+      tx=x-(w*0.5)
+      ty=y-(h*0.5)
+      p [:ctx,tx,ty]
+      Point.new([tx,ty])
+    end
   end
 
   class Object
@@ -107,6 +156,7 @@ module Rwt
   STYLE::SUNKEN = STYLE::SHADOW_INSET|STYLE::BORDER
   STYLE::FLAT = STYLE::SHADOW_INSET*2|STYLE::BORDER|STYLE::SHADOW
   STYLE::BOTTOM = STYLE::SHADOW_INSET*2*2
+  
   class Drawable < Object
     class Layout
       attr_reader :object
@@ -130,48 +180,53 @@ module Rwt
       end
       
       def center
-        if (object._style&STYLE::RELATIVE) == STYLE::RELATIVE
-          ox = object.offsetLeft
-          oy = object.offsetTop
-          
-          x = object.parent.clientWidth/2
-          y = object.parent.clientHeight/2
-          
-          ox = ox=(x-ox)
-          oy = oy=(y-oy)
-          
-          sub_x=object.clientWidth/2
-          sub_y=object.clientHeight/2
-          
-          y = oy-sub_y
-          x = ox-sub_x
-          
-          object.style.top = (y).to_s+"px"
-          object.style.left = (x).to_s+"px"
-          
-        elsif object._style&STYLE::FIXED == STYLE::FIXED
-          bc=UI::Collection.new(nil,[object.context.get_global_object.document.body])
-          x = bc.get_style('width')[0].to_f
-          y = bc.get_style('height')[0].to_f
-          
-          sub_y = object.collection.get_style('height')[0].to_f/2
-          sub_x = object.collection.get_style('width')[0].to_f/2
-          
-          object.style.top = ((y/2.0)-sub_y).to_s+"px"
-          object.style.left = ((x/2.0)-sub_x).to_s+"px"
-          
-        elsif object._style&STYLE::ABSOLUTE == STYLE::ABSOLUTE
-          x = object.parent.clientWidth/2
-          y = object.parent.clientHeight/2
+          q = object.parent
+          q = object.ownerDocument.body if object.has_style STYLE::FIXED # fixed position is based from window (FIXME: using body ...)
 
-          sub_y = object.collection.get_style('height')[0].to_f/2
-          sub_x = object.collection.get_style('width')[0].to_f/2
+          # the absolute (from <html>) position of the parent
+          ppt = Point.from(q)
+          
+          # get the center of parent
+          cpt = Point.center_of(q)
+          
+          # get the position of the object centered on parents center
+          pt = cpt.center_object(object)
+          
+          # thats it for fixed
+          x,y = pt.x,pt.y
+          
+          # adjust for relative elements
+          if object.has_style(STYLE::RELATIVE)
+            # the absolute position of object originally
+            opt = Point.from(object) 
 
-          object.style.top = ((y-sub_y)).to_s+"px"
-          object.style.left = ((x-sub_x)).to_s+"px"        
-        else
-          raise "Unsupported Style"
-        end
+            # translate the difference ot the
+            # objects absolute position
+            # and the partent point   
+            tp = ppt.translate(opt)
+            
+            # unless the object is toplevel
+            tp = pt if q.is_a?(JS::Object)
+            
+            # subtract offsets
+            y=object.offsetTop*-1
+            x=object.offsetLeft*-1
+            
+            # add the calculated change
+            x=x+tp.x
+            y=y+tp.y
+            
+          # for absolute elements  
+          elsif object.has_style(STYLE::ABSOLUTE)
+            # translate difference of parent point and point 
+            tp = ppt.translate(pt)
+            
+            # set to the differnce
+            x=tp.x
+            y=tp.y
+          end
+          
+          object.set_position [x,y]
       end
       
       def bottom_left
@@ -609,6 +664,18 @@ module Rwt
       @_style
     end
     
+    def has_style flag
+      @_style&flag == flag
+    end
+    
+    def append_style flag
+      set_style @_style|flag
+    end
+    
+    def remove_style flag
+      set_style @_style&~flag
+    end
+    
     def get_css_style prop
       collection.get_style(prop)[0]
     end
@@ -658,16 +725,16 @@ STYLE = Rwt::STYLE
 if __FILE__ == $0
  def example1 document
   root = Rwt::UI::Collection.new(document)
-  document.body.innerHTML="<div id=test style='width:800px;height:800px;background-color:#ebebeb;'></div>"
+  document.body.innerHTML="<div id=test style='left:200px;position:absolute;width:400px;height:400px;background-color:#ebebeb;'></div>"
   
-  r=Rwt::Container.new(root.find(:test)[0],:size=>[500,500],:style=>STYLE::CENTER|STYLE::FIXED|STYLE::BORDER_ROUND_LEFT|STYLE::FLAT) 
-  r.innerHTML="<p>I am FIXED position and CENTER of window</p>" 
+  r=Rwt::Container.new(root.find(:test)[0],:size=>[300,300],:style=>STYLE::CENTER|STYLE::RELATIVE|STYLE::BORDER_ROUND_LEFT|STYLE::FLAT) 
+  r.innerHTML="<p></p>" 
   
-  r.add o=Rwt::Container.new(r,:size=>[300,300],:style=>STYLE::CENTER|STYLE::ABSOLUTE|STYLE::RAISED)
-  o.innerHTML="<p>I am ABSOLUTE position and CENTER of parent</p>"   
+  r.add o=Rwt::Container.new(r,:size=>[200,200],:style=>STYLE::CENTER|STYLE::RELATIVE|STYLE::RAISED)
+  o.innerHTML="<p></p>"   
   
-  o.add c1=Rwt::Drawable.new(o,:size=>[150,150],:style=>STYLE::CENTER|STYLE::SUNKEN)
-  c1.innerHTML="<p>I am RELATIVE position and CENTER of parent</p>" 
+  o.add c1=Rwt::Drawable.new(o,:size=>[100,100],:style=>STYLE::RELATIVE|STYLE::CENTER|STYLE::SUNKEN)
+  c1.innerHTML="<p></p>" 
     
   Rwt::UI::Collection.new(nil,[r,o,c1]).set_style('color','#666') 
   r.show
@@ -675,8 +742,9 @@ if __FILE__ == $0
  
  w = Gtk::Window.new
  v = WebKit::WebView.new
+ w.set_size_request(400,400)
  w.add v
- v.load_html_string "<html><body style='width:800px;'></body></html>",nil
+ v.load_html_string "<html><body style='width:400px;height:400px;'></body></html>",nil
  
  v.signal_connect('load-finished') do |o,f|
    example1 f.get_global_context.get_global_object.document
