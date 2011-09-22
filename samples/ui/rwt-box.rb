@@ -8,9 +8,6 @@ module Rwt
       super
       style['display']='-webkit-box'
       @_display = '-webkit-box'
-  #    set_style get_style&~STYLE::TAKE_WIDTH
-   #   set_style get_style&~STYLE::TAKE_HEIGHT    
-     # style['height']='100%'  
     end
     
     # FIXME: current implementation requires explicitly constructing the child or setting the size of the child to a size of

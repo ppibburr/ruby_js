@@ -1,6 +1,6 @@
 def base document,idx
   root = Rwt::UI::Collection.new(document)
-  document.body.innerHTML="<ul id=menu></ul><div id=test style=\"width:100%;height:100%;\"></div>" 
+  document.body.innerHTML="<ul id=menu></ul><div id=test></div>"
   menu = root.find(:menu).set_style('font-size','11px')[0]
   Examples.each_with_index do |e,i|
     o=Rwt::Drawable.new(menu,:size=>[1,20],:tag=>'li')
@@ -29,7 +29,7 @@ def launch
   sw.add v
   sw.set_policy( Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC)
 
-  v.load_html_string "<html><body style='width:1024px;height=600px;'></body></html>",nil
+  v.load_html_string "<html><body style='width:1024px;height=800px;'></body></html>",nil
 
   v.signal_connect('load-finished') do |o,f|
    example1 f.get_global_context.get_global_object.document

@@ -10,18 +10,18 @@ module Rwt
   class SizeGripBox < HBox
     def initialize sizee,sty=STYLE::ABSOLUTE
       @sizee = sizee
-      super sizee.ownerDocument.body,:size=>[0,0],:style=>sty
+      super sizee,:size=>[0,0],:style=>sty
     end
     
     def show
       super
-      x = @sizee.offsetLeft
-      y = @sizee.offsetTop
-      y = y + @sizee.get_css_style("height").to_f-20
-      set_position [x,y]
+      x,y,w,h = @sizee.get_rect
+      y = @sizee.get_css_style("height").to_f-20
+     
+      set_position [0,y]
       
-      w = @sizee.get_css_style("width").to_f
       set_size [w,0]
+
     end
   end
   
@@ -35,22 +35,22 @@ module Rwt
     end
 
     def make_hint
-      hint=Rwt::Drawable.new(self.parent,:style=>STYLE::BORDER_ROUND)
+      hint=Rwt::Drawable.new(ownerDocument.body,:style=>STYLE::BORDER_ROUND|STYLE::CENTER)
       hint.style['z-index']=100
       hint.style['position']="absolute"
       hint.style['border-style']="dashed"
       hint.style.cursor = 'se-resize'
       hint.hide 
+      if has_style(STYLE::FIXED)
+        hint.set_style(STYLE::FIXED)
+      end
       hint
     end
     
     def make_resizable
       return @_grip_box if is_resizable?
-      sty = @_style&STYLE::FIXED == STYLE::FIXED ? STYLE::FIXED : nil
-      if !sty
-        sty = @_style&STYLE::ABSOLUTE == STYLE::ABSOLUTE ? STYLE::ABSOLUTE : STYLE::RELATIVE    
-      end
-      @_grip_box = Rwt::SizeGripBox.new(self,sty)
+
+      @_grip_box = Rwt::SizeGripBox.new(self,STYLE::ABSOLUTE)
       @_grip_box.add Rwt::Drawable.new(@_grip_box),1
       @_grip_box.add @_size_grip=o=Rwt::Drawable.new(@_grip_box,:size=>[0,0]),0
       
@@ -70,9 +70,15 @@ module Rwt
       o.dragBegin = proc do
         @_size_hint.show
         @_size_hint.set_size self.get_size
-        @_size_hint.set_position [self.offsetLeft,self.offsetTop]
+
+        pt=get_position
+        pt = get_css_position if has_style(STYLE::FIXED)
+        
+        @_size_hint.set_position pt
+
         Rwt::UI::DragHandler.of(o).native.grip = Rwt::UI::DragHandler.of(o).dragged = @_size_hint.element
         o.ownerDocument.body.style.cursor = 'se-resize'
+        
         true
       end
       
@@ -135,10 +141,18 @@ if __FILE__ == $0
     "Implement a Resizable Box Class"
   ]
   
+  alias :base_ :base
+  
+  def base d,i
+    r,w=base_ d,i
+    r.find(:test)[0].style.cssText="position:absolute;left:100px;top:100px;;width:600px;height:600px;background-color:#cecece" 
+    return r,w
+  end  
+  
   def example1 document
     root ,window = base(document,1)
     
-    r=Rwt::Drawable.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::ABSOLUTE|STYLE::CENTER|STYLE::BORDER_ROUND|STYLE::FLAT)
+    r=Rwt::Drawable.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::BORDER_ROUND|STYLE::FLAT)
     r.innerText="Drag the lower right corner to resize ..."
     
     r.extend Rwt::Resizable
@@ -148,7 +162,7 @@ if __FILE__ == $0
   def example2 document
     root,window = base(document,2)
     
-    r=Rwt::Container.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::BORDER_ROUND|STYLE::FLAT)
+    r=Rwt::Container.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::RELATIVE|STYLE::CENTER|STYLE::BORDER_ROUND|STYLE::FLAT)
     r.extend Rwt::Resizable
     r.add Rwt::Button.new(r,'This button will expand with the container')
     
@@ -180,7 +194,7 @@ if __FILE__ == $0
   def example4 document
     root,window = base(document,4)
     
-    r=Rwt::VBox.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::ABSOLUTE|STYLE::CENTER|STYLE::BORDER_ROUND|STYLE::FLAT)
+    r=Rwt::VBox.new(root.find(:test)[0],:size=>[200,300],:style=>STYLE::RELATIVE|STYLE::CENTER|STYLE::BORDER_ROUND|STYLE::FLAT)
    
     r.extend Rwt::Resizable
     r.add Rwt::Button.new(r,'This button will expand with the container'),1,true    

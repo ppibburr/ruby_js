@@ -77,7 +77,7 @@ if __FILE__ == $0
   def example2 document;
     root,window = base document,2
     
-    r=Rwt::VBox.new(root.find(:test)[0],:size=>[200,250],:style=>STYLE::RELATIVE|STYLE::CENTER|STYLE::FLAT)
+    r=Rwt::VBox.new(root.find(:test)[0],:size=>[200,250],:style=>STYLE::FIXED|STYLE::CENTER|STYLE::FLAT)
     r.add c=Rwt::Container.new(r),1,true
    
     c.style.border="2px solid red"
