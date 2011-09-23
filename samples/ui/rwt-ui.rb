@@ -243,6 +243,13 @@ module Rwt
       def to_collection
         UI::Collection.new(nil,[self])
       end
+      
+      def extend_object o
+        o.each_pair do |k,v|
+          self[k.to_s] = v
+          p self[k.to_s]
+        end
+      end
     end
   end
 end

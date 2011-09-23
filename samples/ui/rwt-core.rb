@@ -64,7 +64,23 @@ module Rwt
   end
 
   class Object
+  
     attr_reader :shown,:element,:parent
+    
+    def default_opts o,hash
+      if o.last.is_a?(Hash)
+        hash.each_pair do |k,v|
+          if !o.last.has_key?(k)
+            o.last[k] = v
+          end
+        end
+      else
+        o << hash
+      end
+      
+      return o   
+    end
+    
     def initialize *o
       opts = {}
       parent = nil
@@ -128,6 +144,7 @@ module Rwt
   end
 
   class STYLE;end
+  STYLE::DEFAULT = 100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   STYLE::TAKE_WIDTH = 1
   STYLE::TAKE_HEIGHT = 2
   STYLE::TAKE_ALL = 3
@@ -371,6 +388,10 @@ module Rwt
       end   
     end
     
+    def self.default_style
+      0
+    end
+    
     # parent,size,position,style,opts={}
     attr_accessor :_style,:_border,:_shadow
     def initialize *o
@@ -587,7 +608,12 @@ module Rwt
         _shadow.y_offset 0
         _shadow.spread 0
         _shadow.blur 5  
-      end                                      
+      end     
+      
+      if has_style(STYLE::DEFAULT)
+      remove_style STYLE::DEFAULT
+        append_style self.class.default_style()
+      end                                 
     end
     
     def get_style
