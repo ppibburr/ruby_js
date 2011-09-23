@@ -1,6 +1,14 @@
 if __FILE__ == $0
   require 'rwt2'
 end
+require 'iconv'
+
+class String
+  def to_ascii_iconv
+    converter = Iconv.new('ASCII//TRANSLIT', 'UTF-8')
+    converter.iconv(self)
+  end
+end
 
 module Rwt
   class ScrollView < Container
@@ -69,7 +77,7 @@ module Rwt
     end
     
     def split_at idx
-      [innerText[0..idx],innerText[idx+1..innerText.length-1]]
+      [innerText.to_ascii_iconv[0..idx],innerText.to_ascii_iconv[idx+1..innerText.to_ascii_iconv.length-1]]
     end
     
     def self.included q
@@ -131,8 +139,8 @@ if __FILE__ == $0
     r.add e=Rwt::Entry.new(r,'dummy _value',:style=>STYLE::DEFAULT),0,1
     
     r.show
-  #  window.alert(tv.word_at(500))
-  puts tv.textContent
+    window.alert(tv.word_at(50)+" : #{tv.char_at(50)}")
+    puts tv.innerText.to_ascii_iconv
   end  
   
   launch
