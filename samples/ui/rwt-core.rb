@@ -98,7 +98,12 @@ module Rwt
         raise "unsupported construct"
       end
       
-      @parent = parent
+      if parent.respond_to?(:'parent?')
+        @parent = parent.parent?
+      else
+        @parent = parent
+      end
+      
       if parent.is_a? JS::Object
         def parent.element
           self
@@ -123,6 +128,10 @@ module Rwt
     
     def collection
       @collection
+    end
+    
+    def parent?
+      @_child_parent || self
     end
     
     def method_missing *o,&b
