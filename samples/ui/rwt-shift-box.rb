@@ -1,6 +1,6 @@
 if __FILE__ == $0
   require 'rwt2'
-end
+else
 
 module Rwt
   class ShiftBox < HBox
@@ -122,7 +122,7 @@ module Rwt
     end
   end
 end
-
+end
 
 
 if __FILE__ == $0

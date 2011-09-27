@@ -1,6 +1,6 @@
 if __FILE__ == $0
   require 'rwt2'
-end
+else
 
 module Rwt 
   module Book
@@ -30,17 +30,6 @@ module Rwt
     def set_active page
       pages.each_with_index do |pg,i|
         pg.hide unless page == pg
-        l=pg.label
-        unless (i == index(page)+1)
-          l.style['border-bottom-left-radius']='' 
-        else
-          l.style['border-bottom-left-radius']='3px' 
-        end
-        unless (i == index(page)-1)
-          l.style['border-bottom-right-radius']='' 
-        else
-          l.style['border-bottom-right-radius']='3px' 
-        end
       end
       @active = page
       @active.show unless @active && @active.shown
@@ -81,20 +70,32 @@ module Rwt
       
       style.minWidth='50px'
       style.cursor = 'pointer'
-            
+                  
       on('click', method(:on_activate))
+    end
+    
+    def show
+      super
+      style['border-bottom-left-radius']='' 
+      style['border-bottom-right-radius']=''    
     end
     
     def on_activate *o
       page.book.set_active page
       style['border-bottom'] = ''
-      style['border-bottom-left-radius']=''
-      style['border-bottom-right-radius']=''
-      style.top = (get_css_position.y - 3).to_s+"px"
+      page.book.pages.map do |pg| pg.label end.each do |l|
+        l.style['border-bottom']='1px solid black' unless l == self             
+      end
     end
   end
   
   class TabBox < ShiftBox
+    def initialize *o
+      super
+      @left_expander.style['border-bottom'] = '1px solid black'      
+      @right_expander.style['border-bottom'] = '1px solid black'  
+    end
+  
     def add l,pg
       o=Tab.new(inner,pg,l,:size=>[50,20],:style=>STYLE::DEFAULT|STYLE::BORDER_ROUND)
       super o
@@ -117,6 +118,7 @@ module Rwt
       return o
     end
   end
+end
 end
 
 if __FILE__ == $0
