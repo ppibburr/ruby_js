@@ -12,6 +12,8 @@ module Rwt
   require 'rwt-ui'
   require 'rwt-core'
   require 'rwt-box'
+#  require 'rwt-shift-box'
+#  require 'rwt-book'
   require 'rwt-resizable'
   require 'rwt-draggable'
   require 'rwt-expandable'
