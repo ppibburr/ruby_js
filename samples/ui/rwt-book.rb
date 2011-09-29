@@ -64,7 +64,7 @@ module Rwt
     def initialize par,pg,l,*o
       super par,*o
 
-      self.innerText = l;p l
+      self.innerText = l
       
       @page = pg
       
@@ -135,7 +135,7 @@ if __FILE__ == $0
     
     r=Rwt::TabBook.new(par,:size=>[300,300],:style=>0)
     
-    for i in 0..15; pg=r.add "foo #{i}"; pg.innerText="page #{i}" end
+    for i in 0..7; pg=r.add "foo #{i}"; pg.innerText="page #{i}" end
     
     r.show
   end  

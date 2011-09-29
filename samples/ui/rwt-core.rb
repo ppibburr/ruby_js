@@ -448,6 +448,16 @@ module Rwt
           send("set_#{k}",opts[k])
         end
       end
+      
+      style['background-color']="#EEEEEE"      
+    end
+    
+    def border
+      @_border ||= Border.new(self)
+    end
+    
+    def shadow
+      @_shadow ||= Shadow.new(self)
     end
     
     def set_size *o
@@ -612,7 +622,6 @@ module Rwt
         style['background-color']="#ececec"
       end
       if @_style&STYLE::FLAT == STYLE::FLAT
-        style['background-color']="#EEEEEE"
         _shadow.x_offset 0
         _shadow.y_offset 0
         _shadow.spread 0
