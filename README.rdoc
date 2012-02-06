@@ -13,7 +13,8 @@ JavaScript bindings to Ruby
 
 Wrote in ruby with FFI bindings to webkit-1.0 (JavaScriptCore/WebKit)
 
-The sky falls ...
+See the Home page on the wiki at the projects github page
+For a demonstration of a web desktop application
 
 == Features/Problems
 * Full access to JavaScript Objects (call functions, get|set properties)
