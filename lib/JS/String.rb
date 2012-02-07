@@ -42,8 +42,8 @@ module JS
 
     #         Creates a JavaScript string from a buffer of Unicode characters.
     #
-    # @param [Integer] numChars   The number of characters to copy from the buffer pointed to by chars.
     # @param [FFI::Pointer] chars      The buffer of Unicode characters to copy into the new JS::String.
+    # @param [Integer] numChars   The number of characters to copy from the buffer pointed to by chars.
     # @return [JS::String]           A JS::String containing chars. Ownership follows the Create Rule.
     def self.create_with_characters(chars,numChars)
       res = super(chars,numChars)

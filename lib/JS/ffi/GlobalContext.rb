@@ -38,8 +38,8 @@ module JS
 
       # Creates a global JavaScript execution context in the context group provided.
       #
-      # @param [:JSContextGroupRef] group The context group to use. The created global context retains the group.
       # @param [:JSClassRef] globalObjectClass The class to use when creating the global object. Pass
+      # @param [:JSContextGroupRef] group The context group to use. The created global context retains the group.
       # @return A JSGlobalContext with a global object of class globalObjectClass and a context
       def self.create_in_group(group,globalObjectClass)
         JS::Lib.JSGlobalContextCreateInGroup(group,globalObjectClass)

@@ -73,8 +73,8 @@ module JS
 
     #       Creates a JavaScript value of the boolean type.
     #
-    # @param [boolean] boolean  The bool to assign to the newly created JS::Value.
     # @param [JS::Context] ctx  The execution context to use.
+    # @param [boolean] boolean  The bool to assign to the newly created JS::Value.
     # @return [JS::Value]         A JS::Value of the boolean type, representing the value of boolean.
     def self.make_boolean(ctx,boolean)
       res = super(ctx,boolean)
@@ -85,8 +85,8 @@ module JS
 
     #       Creates a JavaScript value of the number type.
     #
-    # @param [Float] number   The double to assign to the newly created JS::Value.
     # @param [JS::Context] ctx  The execution context to use.
+    # @param [Float] number   The double to assign to the newly created JS::Value.
     # @return [JS::Value]         A JS::Value of the number type, representing the value of number.
     def self.make_number(ctx,number)
       res = super(ctx,number)
@@ -196,8 +196,8 @@ module JS
 
     # Tests whether a JavaScript value is an object constructed by a given constructor, as compared by the JS instanceof operator.
     #
-    # @param [FFI::Pointer] exception A pointer to a JS::ValueRef in which to store an exception, if any. Pass nil if you do not care to store an exception.
     # @param [JS::Object] constructor The constructor to test against.
+    # @param [FFI::Pointer] exception A pointer to a JS::ValueRef in which to store an exception, if any. Pass nil if you do not care to store an exception.
     # @return [boolean] true if value is an object constructed by constructor, as compared by the JS instanceof operator, otherwise false.
     def is_instance_of_constructor(constructor,exception = nil)
       constructor = JS::Object.from_ruby(context,constructor)

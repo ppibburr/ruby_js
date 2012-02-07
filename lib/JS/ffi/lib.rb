@@ -39,15 +39,15 @@ module JS
     extend FFI::Library
     ffi_lib 'libwebkitgtk-1.0'
 
-    typedef :uint,:unsigned
+    typedef :pointer,:JSClassRef
+    typedef :pointer,:JSObjectRef
+    typedef :pointer,:JSStringRef
     typedef :pointer,:JSValueRef
     typedef :pointer,:JSPropertyNameArrayRef
     typedef :pointer,:JSGlobalContextRef
-    typedef :pointer,:JSClassRef
     typedef :pointer,:JSContextGroupRef
-    typedef :pointer,:JSObjectRef
     typedef :pointer,:JSContextRef
-    typedef :pointer,:JSStringRef
+    typedef :uint,:unsigned
 
     callback :JSObjectCallAsFunctionCallback,[:JSContextRef,:JSObjectRef,:JSObjectRef,:size_t,:pointer,:JSValueRef],:JSValueRef
 

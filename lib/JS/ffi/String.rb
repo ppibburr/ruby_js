@@ -30,8 +30,8 @@ module JS
 
       #         Creates a JavaScript string from a buffer of Unicode characters.
       #
-      # @param [:size_t] numChars   The number of characters to copy from the buffer pointed to by chars.
       # @param [:pointer] chars      The buffer of Unicode characters to copy into the new JSString.
+      # @param [:size_t] numChars   The number of characters to copy from the buffer pointed to by chars.
       # @return           A JSString containing chars. Ownership follows the Create Rule.
       def self.create_with_characters(chars,numChars)
         JS::Lib.JSStringCreateWithCharacters(chars,numChars)
@@ -83,9 +83,9 @@ module JS
 
       # Converts a JavaScript string into a null-terminated UTF8 string,
       #
+      # @param [:JSStringRef] string The source JSString.
       # @param [:pointer] buffer The destination byte buffer into which to copy a null-terminated
       # @param [:size_t] bufferSize The size of the external buffer in bytes.
-      # @param [:JSStringRef] string The source JSString.
       # @return The number of bytes written into buffer (including the null-terminator byte).
       def get_utf8cstring(string,buffer,bufferSize)
         JS::Lib.JSStringGetUTF8CString(string,buffer,bufferSize)
