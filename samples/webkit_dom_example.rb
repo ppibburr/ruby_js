@@ -1,24 +1,19 @@
-
 require 'rubygems'
-require 'ffi'
-
-require File.join(File.dirname(__FILE__),'..','lib','JS')
-require File.join(File.dirname(__FILE__),'..','lib','JS','props2methods')
-require File.join(File.dirname(__FILE__),'..','lib','JS','webkit')
+require 'JS/desktop'
 
 w = Gtk::Window.new(:toplevel)
 v = WebKit::WebView.new
 
-v.load_html_string("""<!doctype html><html><body><div id=foo height=500 width=300></div><div id=bar></div></body></html>""",nil)
+v.load_html_string("""<!doctype html><html><body><div id=foo>Click here ...</div></body></html>""",nil)
+
 w.add v
-w.resize(800,600)
+w.resize(400,400)
 w.show_all
-
-
 
 def ruby_do_dom ctx
   globj = ctx.get_global_object
-  doc = globj['document']
+  document = globj.document
+  document.getElementById('foo').onclick = proc do |*o| globj.alert("Click!") end
 end
 
 w.signal_connect('delete-event') do 
