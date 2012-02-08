@@ -70,6 +70,8 @@ module WebKit
       v= GLib::Value.new
       v.init GLib::Type['GObject']
       v.set_object ptr
+      p to_ptr!
+      p v
       GLib::IKE.g_object_set_property to_ptr!,'real',v 
     end
     
@@ -93,7 +95,7 @@ module WebKit
     
     # will set propeties on the providee
     def set_property *o,&b
-      set_property!('real').set_property *o,&b
+      get_property!('real').set_property *o,&b
     end 
   end
 end
@@ -114,3 +116,4 @@ module RGI
     q
   end
 end
+GC.start

@@ -168,6 +168,7 @@ class JS < Library
 	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','webkit.rb')
 	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','desktop.rb')   
 	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','base.rb') 
+	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','application.rb') 
       add_optional_require File.join(File.dirname(__FILE__),'hard_code','resource.rb')
    
     	  	  
