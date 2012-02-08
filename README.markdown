@@ -5,14 +5,14 @@ RubyJS is a library that uses FFI to provide bindings to JavaScriptCore from lib
 ![ExtJS from ruby](http://i1263.photobucket.com/albums/ii631/ppibburr/rubyjs_extjs.png)
 
 Example
----
-    shell {
-      text "Example"
-      label {
-        text "Hello World!"
-      }
-    }.open
-
+``` ruby
+require 'rubygems'
+require 'JS/base'
+ctx = JS::GlobalContext.new(nil)
+obj = JS::Object.new(ctx,{:name=>'World',:sayHello=> proc do |t,n| "hello #{n}" end})
+p a = JS.execute_script(ctx,'this.sayHello("World");',obj) #=> "hello World"
+p a == obj.sayHello("World") #=> true
+```
 Getting Started
 ---
 1. Install Gtk2 (gem or distro package) **note: Gtk2 can be provided via FFI with the gir_ffi gem, TODO: make it easy to use the FFI provided Gtk2
@@ -20,7 +20,7 @@ Getting Started
 3. install rake (gem or distro package)
 4. rake build
 5. rake gem (may require super user privilages, as it will install the gem)
-6. write a script with 'require "rubyjs/desktop"', this will pull in all functionality for writing applications
+6. write a script with 'require "JS/desktop"', this will pull in all functionality for writing applications
 Samples
 ---
 Check the "samples" folder for examples on how to utilise this library
