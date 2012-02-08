@@ -2,7 +2,7 @@ RubyJS
 ===
 RubyJS is a library that uses FFI to provide bindings to JavaScriptCore from libwebkitgtk-1.0 (WebKit) allowing Full access to JavaScript and any JS library as well as some additional WebKit api access. This library enables ruby scripts to create JS objects, call functions, get/set properties, create callbacks. As well, JavaScript scripts can call ruby methods, access objects. Using Gtk2 you can write a whole ruby application utilizing Web Technologies, JavaScript Toolkits etc.
 
-![ExtJS from ruby](https://github.com/AndyObtiva/glimmer/raw/master/images/Bitter-sweet.jpg)
+![ExtJS from ruby](http://i1263.photobucket.com/albums/ii631/ppibburr/rubyjs_extjs.png)
 
 Example
 ---
