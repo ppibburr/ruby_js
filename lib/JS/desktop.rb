@@ -24,6 +24,6 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-require File.join(File.dirname(__FILE__),'..',"JS")
+require File.join(File.dirname(__FILE__),'base')
 require File.join(File.dirname(__FILE__),"webkit")
 require File.join(File.dirname(__FILE__),"resource")
