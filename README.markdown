@@ -5,6 +5,7 @@ RubyJS is a library that uses FFI to provide bindings to JavaScriptCore from lib
 ![ExtJS from ruby](http://i1263.photobucket.com/albums/ii631/ppibburr/rubyjs_extjs.png)
 
 Example
+---
 ``` ruby
 require 'rubygems'
 require 'JS/base'
