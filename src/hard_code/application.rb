@@ -1,5 +1,71 @@
 require 'JS/desktop'
-class JS::Application
+class JsApp
+  module Builder
+	  def build_lib lib
+			class_eval do
+					n = lib.split(".")
+					lo = lib.empty? ? @ctx.get_global_object : @ctx.get_global_object[n[0]]
+					n.delete_at(0)
+					n.each do |q|
+						lo = lo[q]
+					end
+					ln = lib.empty? ? 'root' : n.last||lib
+				  const_set(ln.capitalize,Module.new do
+				    def self.set_lib o
+				      @lib_object = o
+				    end
+						def self.const_missing c
+							@lib_object[c.to_s] || super
+						rescue
+							super
+						end
+						
+						def self.method_missing m,*o,&b;p :yui
+							@lib_object.send m,*o,&b
+						rescue;p :yui
+							super
+						end
+						def self.lib_object
+						  @lib_object
+						end
+				end)
+				m=const_get(ln.capitalize)
+				m.set_lib lo
+				m
+			end
+	  end
+  end
+  
+  module Core
+    attr_accessor :window,:document,:global,:context,:this
+  end
+  
+  def self.provide(ctx,&b)
+    klass = Class.new(Object) do
+      @ctx = ctx
+      extend Builder
+      include Core
+      build_lib('')
+      include self::Root
+      extend self::Root
+			def lib_object
+				self.class::Root.lib_object
+			end
+			
+			def self.const_missing c
+			  self::Root.const_get(c)
+			end
+			
+			def method_missing m,*o,&b
+				lib_object.send m,*o,&b
+			rescue
+				super
+			end
+    end
+    klass.class_eval &b
+    klass
+  end
+  
   HTML_TEMPLATE = "<!doctype html><html><body></body></html>"
   attr_reader :gtk_window,:web_view,:window,:document,:global_object,:context,:gtk_scroll_window,:gtk_root_sizer
   def initialize title="RubyJS Application",width=400,height=400
@@ -23,37 +89,27 @@ class JS::Application
     gtk_window.signal_connect "delete-event" do
       on_exit()
     end
-    
-    def on_exit
-      Gtk.main_quit
-    end
-    
-    def on_render
-      
-    end
-    
-    def run
-      gtk_window.show_all
-      web_view.load_html_string @html_template||HTML_TEMPLATE,@base_url||""
-      Gtk.main
-    end
-  end
-end
-
-if __FILE__ == $0
-	class MyApp < JS::Application
-	  def initialize *o
-	    super
-	    @base_url = "file:///home/ppibburr/"
-	  end
-	  
-	  def on_render
-		img = document.createElement('img')
-		img.src = "Pictures/rubyjs_extjs.png"
-		document.body.appendChild img
-		window.alert "Hello"  
-	  end
+  end  
+	def on_exit
+	  Gtk.main_quit
 	end
 
-	MyApp.new.run
+	def on_render
+	  
+	end
+
+	def run
+	  gtk_window.show_all
+	  web_view.load_html_string (@html_template||self.class::HTML_TEMPLATE),@base_url||""
+	  Gtk.main
+	end
+	
+	module ConstLookup
+		def const_missing c
+			@foo.const_get c
+		end
+		def included c
+			@foo = c
+		end
+	end	
 end

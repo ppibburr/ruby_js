@@ -39,3 +39,4 @@ ctx.get_global_object['Object'] = obj
 # aFile.read() returns a string native to JS
 fail("#{File.basename(__FILE__)} test 1 failed") unless JS.execute_script(ctx,"Object.const_get('File').open('#{__FILE__}','r').read();") == File.read(__FILE__)
 puts "#{File.basename(__FILE__)} all test passed."
+p ctx.get_global_object['Object']
