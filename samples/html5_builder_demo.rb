@@ -8,7 +8,7 @@ class MyApp < JS::Application
 			build(document.body) do
 				div do
 				  style.backgroundColor = "#cecece"
-					
+					h
 					a :href=>"http://google.com" do
 					  style.color = "black"
 						text "Google"
