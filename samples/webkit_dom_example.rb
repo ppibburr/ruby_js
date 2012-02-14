@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'JS/desktop'
+require 'JS/html5'
 
 w = Gtk::Window.new(:toplevel)
 v = WebKit::WebView.new

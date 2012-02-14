@@ -1,7 +1,7 @@
 require 'JS/html5'
 require 'JS/html5_dom_builder'
 
-class JsApp
+class JS::Application
   module Builder
 	  def build_lib lib
 			class_eval do
@@ -38,47 +38,60 @@ class JsApp
 	  end
   end
   
-  module Core
-    attr_accessor :context
+  class Provider
+		class << self
+		  attr_accessor :context
+	  end
+	  
+	  extend Builder		
+		
+		attr_accessor :context
+		
+		def self.use_runner runner
+			runner.module_eval do
+				extend JS::Application::ConstLookup
+			end
+			include runner
+		end
+		
+		def self.run
+			new.on_render
+		end
+		
+		def self.const_missing c
+			self::Root.const_get(c)
+		end
+		
+		def method_missing m,*o,&b
+			global_object.send m,*o,&b
+		rescue
+			p m
+			super
+		end
+		
 		def this
-		  global_object
+			global_object
 		end
 		
 		def build parent = nil,&b
-		  JS::DOM::Builder.build this,parent,&b
-		end
+			JS::DOM::Builder.build this,parent,&b
+		end			
+		
+		def global_object
+			self.class::Root.lib_object
+		end	
+		
+		def initialize
+			@context=global_object.context
+		end  					
   end
   
   def self.provide(ctx,&b)
-    klass = Class.new(Object) do
+    klass = Class.new(Provider) do
 			@ctx = ctx
-			extend Builder
-			include Core
 			build_lib('')
 			include self::Root
 			extend self::Root
-			def global_object
-				self.class::Root.lib_object
-			end
-			
-			def self.const_missing c
-				self::Root.const_get(c)
-			end
-			
-			def method_missing m,*o,&b
-				global_object.send m,*o,&b
-			rescue
-			  p m
-				super
-			end
-			
-			class << self
-			  attr_accessor :context
-			end
-			
-			def initialize
-			  @context=global_object.context
-			end
     end
     
     klass.class_eval &b

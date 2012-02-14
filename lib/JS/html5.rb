@@ -1,5 +1,5 @@
 
-#       desktop.rb
+#       html5.rb
              
 #		(The MIT License)
 #

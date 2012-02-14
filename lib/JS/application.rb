@@ -24,8 +24,10 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-require 'JS/desktop'
-class JsApp
+require 'JS/html5'
+require 'JS/html5_dom_builder'
+
+class JS::Application
   module Builder
 	  def build_lib lib
 			class_eval do
@@ -62,21 +64,27 @@ class JsApp
 	  end
   end
   
-  module Core
+  class Provider
+			extend Builder
     attr_accessor :context
 		def this
 		  global_object
 		end
-  end
-  
-  def self.provide(ctx,&b)
-    klass = Class.new(Object) do
-			@ctx = ctx
-			extend Builder
-			include Core
-			build_lib('')
-			include self::Root
-			extend self::Root
+		
+		def build parent = nil,&b
+		  JS::DOM::Builder.build this,parent,&b
+		end
+			def self.use_runner runner
+			  runner.module_eval do
+			  	extend JS::Application::ConstLookup
+			  end
+			  include runner
+			end
+			
+			def self.run
+			  new.on_render
+			end
+			
 			def global_object
 				self.class::Root.lib_object
 			end
@@ -98,7 +106,14 @@ class JsApp
 			
 			def initialize
 			  @context=global_object.context
-			end
+			end  
+  end
+  def self.provide(ctx,&b)
+    klass = Class.new(Provider) do
+			@ctx = ctx
+			build_lib('')
+			include self::Root
+			extend self::Root
     end
     
     klass.class_eval &b

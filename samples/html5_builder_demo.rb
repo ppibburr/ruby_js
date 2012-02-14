@@ -1,19 +1,11 @@
-require 'rubygems'
 require 'JS/application'
 
-class MyApp < JsApp
+class MyApp < JS::Application
 	module MyRunner
-		extend JsApp::ConstLookup
 		def on_render
-			alert "Ruby!"
+			alert "Ruby!"	
 			
-			a_div = document.createElement('div')
-			a_div.innerHTML = "I'm a 'DIV', Click me!!"
-			a_div.onclick = method(:on_click)
-			
-			document.body.appendChild a_div			
-			
-			build(a_div) do
+			build(document.body) do
 				div do
 				  style.backgroundColor = "#cecece"
 					
@@ -36,9 +28,9 @@ class MyApp < JsApp
 	end
 	
 	def on_render
-		JsApp.provide(context) do	
-			include MyRunner
-		end.new.on_render
+		JS::Application.provide(context) do	
+			use_runner MyRunner
+		end.run
 	end
 end
 
