@@ -2,7 +2,7 @@ require 'JS/application'
 
 class MyApp < JS::Application
 	module MyRunner
-		def on_render
+		def on_render 
 			alert "Ruby!"	
 			
 			build(document.body) do
