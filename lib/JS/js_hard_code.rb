@@ -75,8 +75,8 @@ class JS::Value
         make_boolean(ctx,rv)
       elsif rv == nil and !b
         make_null ctx
-      elsif rv.is_a? FFI::Pointer
-        JS::Object.from_pointer_with_context ctx,rv
+      #elsif rv.is_a? FFI::Pointer
+       # JS::Object.from_pointer_with_context ctx,rv
       else
         #raise ConversionError.new("cant make value from #{rv.class}.")
         from_ruby(ctx,JS::RubyObject.new(ctx,rv))
@@ -140,7 +140,7 @@ class JS::Object
     else
       return nil
     end
-    res.context = ctx || context
+    res.context = ctx
     return res
   end
   
@@ -156,7 +156,7 @@ class JS::Object
     else
       prop = get_property(k)
     end
-    
+
     if prop.is_a?(JS::Object) && prop.is_function
       class << prop
         attr_accessor :this
@@ -234,7 +234,7 @@ class JS::CallBack < Proc
       o[4].read_array_of_pointer(o[3]).each do |ptr|
         varargs <<  JS::Value.from_pointer_with_context(ctx,ptr)
       end
-      
+
       this = JS::Object.from_pointer_with_context(ctx,this) if this.is_a?(FFI::Pointer)
       
       JS::Value.from_ruby(ctx,block.call(this,*varargs.map do |v| v.to_ruby end)).pointer

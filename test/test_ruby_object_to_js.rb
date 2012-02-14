@@ -37,6 +37,6 @@ ctx.get_global_object['Object'] = obj
 # File in JS is a RubyObject
 # File.open(file) returns a RubyObject of a File in JS
 # aFile.read() returns a string native to JS
-fail("#{File.basename(__FILE__)} test 1 failed") unless JS.execute_script(ctx,"Object.const_get('File').open('#{__FILE__}','r').read();") == File.read(__FILE__)
+fail("#{File.basename(__FILE__)} test 1 failed") unless JS.execute_script(ctx,"Object.const_get('File').read('#{__FILE__}');") == File.read(__FILE__)
 puts "#{File.basename(__FILE__)} all test passed."
-p ctx.get_global_object['Object']
+
