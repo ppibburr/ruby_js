@@ -1,4 +1,6 @@
-require 'JS/desktop'
+require 'JS/html5'
+require 'JS/html5_dom_builder'
+
 class JsApp
   module Builder
 	  def build_lib lib
@@ -37,31 +39,48 @@ class JsApp
   end
   
   module Core
-    attr_accessor :window,:document,:global,:context,:this
+    attr_accessor :context
+		def this
+		  global_object
+		end
+		
+		def build parent = nil,&b
+		  JS::DOM::Builder.build this,parent,&b
+		end
   end
   
   def self.provide(ctx,&b)
     klass = Class.new(Object) do
-      @ctx = ctx
-      extend Builder
-      include Core
-      build_lib('')
-      include self::Root
-      extend self::Root
-			def lib_object
+			@ctx = ctx
+			extend Builder
+			include Core
+			build_lib('')
+			include self::Root
+			extend self::Root
+			def global_object
 				self.class::Root.lib_object
 			end
 			
 			def self.const_missing c
-			  self::Root.const_get(c)
+				self::Root.const_get(c)
 			end
 			
 			def method_missing m,*o,&b
-				lib_object.send m,*o,&b
+				global_object.send m,*o,&b
 			rescue
+			  p m
 				super
 			end
+			
+			class << self
+			  attr_accessor :context
+			end
+			
+			def initialize
+			  @context=global_object.context
+			end
     end
+    
     klass.class_eval &b
     klass
   end
@@ -74,16 +93,18 @@ class JsApp
     @gtk_window.add @gtk_root_sizer = Gtk::VBox.new
     @gtk_root_sizer.pack_start @gtk_scroll_window = Gtk::ScrolledWindow.new,true,true,0
     @gtk_scroll_window.add @web_view
-    
+
     gtk_window.set_title title
     gtk_window.set_size_request width,height
     
     web_view.signal_connect "load-finished" do |view,frame|
-      @context = frame.get_global_context
-      @global_object = context.get_global_object
-      @window = global_object.window
-      @document = global_object.document
-      on_render()
+      if frame.get_uri == @base_url
+				@context = frame.get_global_context
+				@global_object = context.get_global_object
+				@window = global_object.window
+				@document = global_object.document
+				on_render()
+			end
     end
     
     gtk_window.signal_connect "delete-event" do
@@ -100,7 +121,7 @@ class JsApp
 
 	def run
 	  gtk_window.show_all
-	  web_view.load_html_string (@html_template||self.class::HTML_TEMPLATE),@base_url||""
+	  web_view.load_html_string (@html_template||self.class::HTML_TEMPLATE),@base_url||="file://#{File.expand_path(File.dirname($0))}/"
 	  Gtk.main
 	end
 	
