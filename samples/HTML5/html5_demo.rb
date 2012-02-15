@@ -14,6 +14,14 @@ class MyApp < JS::Application
 	  alert("Click")
 	end
   end
+
+  def place_inspector insp
+    w=Gtk::Window.new
+    w.add v=WebKit::WebView.new
+    w.show_all
+    insp.show
+    v.real
+  end
 	
   def on_render
 	JS::Application.provide(context) do	

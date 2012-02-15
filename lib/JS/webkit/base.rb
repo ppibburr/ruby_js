@@ -25,6 +25,10 @@ module WebKit
     attr_accessor :real
     # @param ptr [FFI::Pointer,Object#to_ptr] the FFI::Pointer to provide for
     def initialize ptr
+      if ptr.is_a?(Hash)
+        ptr=ptr[:ptr]
+        p [:the_ptr_is,ptr]
+      end
       super()
       PTRS[ptr.address] = self
       set_real ptr
@@ -110,7 +114,7 @@ module RGI
     q=ph.get_property! 'real'
     return pt if !q
     if q.gtype.to_s =~ /WebKit(.*)/
-      wk = WebKit.wrap_return_from_standard q,$1
+      wk = WebKit.wrap_return_from_standard q,$1,true
       return wk
     end
     q

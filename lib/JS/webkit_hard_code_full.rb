@@ -242,8 +242,8 @@ module WebKit::Lib::WebKitGFFI
   attach_func :webkit_web_view_can_show_mime_type,[:pointer,:string],:bool
   attach_func :webkit_web_view_get_transparent,[:pointer],:bool
   attach_func :webkit_web_view_set_transparent,[:pointer,:bool],:void
-  attach_func :webkit_web_view_get_zoom_level,[:pointer],:pointer
-  attach_func :webkit_web_view_set_zoom_level,[:pointer,:pointer],:void
+  attach_func :webkit_web_view_get_zoom_level,[:pointer],:float
+  attach_func :webkit_web_view_set_zoom_level,[:pointer,:float],:void
   attach_func :webkit_web_view_zoom_in,[:pointer],:void
   attach_func :webkit_web_view_zoom_out,[:pointer],:void
   attach_func :webkit_web_view_get_full_content_zoom,[:pointer],:bool

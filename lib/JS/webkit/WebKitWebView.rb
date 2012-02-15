@@ -313,6 +313,7 @@ module WebKit
     # returns:  -> pointer
     def get_inspector()
       r = Lib.webkit_web_view_get_inspector(self)
+      p [:insp_ptr,r]
       begin
         RGI.gobj2rval(r)
       rescue
@@ -366,7 +367,7 @@ module WebKit
     # zoom_level_ -> 
     # returns:  -> void
     def set_zoom_level(zoom_level_)
-      begin; zoom_level_ = RGI.rval2gobj(zoom_level_); rescue; end
+      zoom_level_ = zoom_level_.to_f
       r = Lib.webkit_web_view_set_zoom_level(self,zoom_level_)
     end
 
