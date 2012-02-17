@@ -59,6 +59,10 @@ class Inspector < Gtk::Window
         return @scrolled_window.children[0]
     end
     
+    def on_page_show
+      @dock_widget.hide unless @docked
+    end
+    
     def _show_window_cb( inspector)
         """Called when the inspector window should be displayed"""
         if @docked

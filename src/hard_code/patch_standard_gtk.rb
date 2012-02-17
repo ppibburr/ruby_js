@@ -7,7 +7,7 @@ module GLib
     # that include GLib::Object functionalty
     def signal_connect *o,&b
       sig_con *o do |*o|
-        b.call( o.map do |q|
+        v = b.call( o.map do |q|
           if q.class.inspect =~ /#<Class/;
             if q.gtype.to_s =~ /WebKit(.*)/
               begin 
@@ -24,6 +24,11 @@ module GLib
             q
           end
         end) 
+        if v.is_a?(WebKit::GLibProvider)
+          v.real
+        else
+          v
+        end
       end
     end
   end

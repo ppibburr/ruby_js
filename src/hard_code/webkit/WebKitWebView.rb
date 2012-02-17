@@ -313,7 +313,6 @@ module WebKit
     # returns:  -> pointer
     def get_inspector()
       r = Lib.webkit_web_view_get_inspector(self)
-      p [:insp_ptr,r]
       begin
         RGI.gobj2rval(r)
       rescue

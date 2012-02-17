@@ -112,10 +112,19 @@ module JS
         @global = obj
         @document = obj.document
         @parent = parent||@document.getElementsByTagName('html')[0]
+        @data = {}
+      end
+      
+      def build &b
+        instance_eval &b
+      end
+      
+      def add_data sym,o
+        @data[sym] = o
       end
       
       def self.build obj,parent=nil,&b
-        self.new(obj,parent).instance_eval &b
+        self.new(obj,parent).build &b
       end
       
       def inner_html str
@@ -138,6 +147,10 @@ module JS
       alias :html :inner_html
       
       def method_missing m,*o,&b;
+        if @data[m]
+          exit
+          return @data[m]
+        end
         if m.to_s =~ /^on/
           return @parent[m.to_s] = b
         end

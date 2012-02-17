@@ -27,7 +27,6 @@ module WebKit
     def initialize ptr
       if ptr.is_a?(Hash)
         ptr=ptr[:ptr]
-        p [:the_ptr_is,ptr]
       end
       super()
       PTRS[ptr.address] = self
@@ -74,8 +73,6 @@ module WebKit
       v= GLib::Value.new
       v.init GLib::Type['GObject']
       v.set_object ptr
-      p to_ptr!
-      p v
       GLib::IKE.g_object_set_property to_ptr!,'real',v 
     end
     
