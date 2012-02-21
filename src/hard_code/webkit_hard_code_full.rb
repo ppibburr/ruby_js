@@ -23,7 +23,7 @@ module WebKit
   module Lib
     module WebKitGFFI
       extend FFI::Library
-      ffi_lib(JS::Config[:WebKit][:lib] || 'webkit-1.0')
+      ffi_lib('webkitgtk-1.0')
     end
     extend WebKitGFFI
   end

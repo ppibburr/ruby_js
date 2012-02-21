@@ -68,7 +68,7 @@ module WebKit
         raise
       end
     end  
-    
+    GC.start
     def set_real ptr
       v= GLib::Value.new
       v.init GLib::Type['GObject']

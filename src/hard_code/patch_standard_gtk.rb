@@ -1,5 +1,4 @@
 require 'gtk2'
-
 module GLib
   class Object
     alias :sig_con :signal_connect 
@@ -71,7 +70,7 @@ module Gtk
   # patch in adding a FFI::Pointer to a Gtk::Container
   module IKE
     extend FFI::Library
-    ffi_lib(JS::Config[:WebKit][:Gtk][:lib] || 'gtk-x11-2.0')
+    ffi_lib('gtk-x11-2.0')
     attach_function :gtk_container_add,[:pointer,:pointer],:void
     attach_function :gtk_main,[],:void
   end
@@ -95,6 +94,12 @@ class Gtk::Container
   
   def add q
     if q.is_a? WebKit::WebView
+      o = self
+      class << q;self;end.class_eval do
+        define_method :get_toplevel do
+          o
+        end
+      end
       add_webview q
     else
       real_add q

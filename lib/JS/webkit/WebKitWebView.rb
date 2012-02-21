@@ -11,6 +11,11 @@ module WebKit
       r = Lib.webkit_web_view_get_title(self)
     end
 
+    # this will be overidden once Gtk::Container#.add is called to add us
+    # thus returning the proper toplevel
+    def get_toplevel
+      Gtk::Window.toplevels[0]
+    end
 
     # returns:  -> string
     def get_uri()
@@ -546,7 +551,19 @@ module WebKit
         r
       end
     end
-
+    private
+    def set_window_object ctx,obj
+      obj.inspect =~ /ptr\=0x([a-zA-Z0-9]+)/
+      return unless (adr=$1)
+      ctx.inspect =~ /ptr\=0x([a-zA-Z0-9]+)/
+      cpt = FFI::Pointer.new($1.to_i(16))
+      obj = JS::Object.from_pointer_with_context JS::GlobalContext.new(:pointer=>cpt),FFI::Pointer.new(adr.to_i(16))
+      @__js_window_object__ = obj
+    end
+    public
+    def get_window_object
+      @__js_window_object__
+    end
 
     # returns:  -> pointer
     def initialize(*o)
@@ -560,6 +577,13 @@ module WebKit
 	    @ptr = self.class.real_new(*o)
       end
       super @ptr
+      signal_connect "load-started" do |view,frame|
+        # reference the window object to ensure window-object-cleared fires
+        frame.get_global_context.get_global_object.window
+      end
+      signal_connect "window-object-cleared" do |view,frame,context,obj|
+        set_window_object context,obj
+      end
     end
     
     def to_ptr
