@@ -38,10 +38,12 @@ p a == obj.sayHello(obj.name) #=> true
 Getting Started
 ---
   Required:
+  ---
     1. Gtk2, either the gem, distro package or some typelib information for GirFFI (gem i gir_ffi)
     2. rake
   
   Install:
+  ---
     1. rake build (optional, unless modifying source files)
     2. rake gem (may require super user privilages, as it will install the gem)
 
