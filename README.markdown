@@ -1,6 +1,27 @@
 RubyJS
 ===
-RubyJS is a library that uses FFI to provide bindings to JavaScript and WebKit from libwebkitgtk-1.0 (WebKit) allowing Full access to JavaScript and any JS library as well as full WebKit api access. This library enables ruby scripts to create JS objects, call functions, get/set properties, create callbacks. As well, JavaScript scripts can call ruby methods, access objects. Using Gtk2 you can write a whole ruby application utilizing Web Technologies, JavaScript Toolkits etc.
+RubyJS is a library that uses FFI to provide bindings to JavaScript and WebKit from libwebkitgtk-1.0 (WebKit)
+allowing Full access to JavaScript and any JavaScript library
+as well as full WebKit api access. 
+
+This library enables ruby scripts to create JS objects, call functions, get/set properties, create callbacks. 
+As well, JavaScript scripts can call ruby methods, access objects.
+
+Using Gtk2 you can embed a WebKit::WebView and develop HTML5 desktop applications 
+
+JS/base         core JavaScript bindings
+JS/html5        webkit webview support (pulls in Gtk2 and WebKit if WebKit is not defined,
+                                          looks for standard Gtk2 and pulls in JS/webkit_ffi
+                                          falls back to GirFFI for Gtk2 and pulls in JS/webkit_gir_ffi
+                                        to manually select a a webkit binding, "require JS/webkit_[ffi|gir_ffi]"
+                                          before requiring)
+                                        
+JS/application  library to ease the interaction with the (JavaScript)DOM from a WebKit::WebView (pulls in JS/html5)
+
+RubyJS works with full features with standard* Gtk2 as well as Gtk2 provided by GirFFI**
+
+*  JavaScript binding access to the DOM and WebKit api
+** when using GirFFI both the JavaScript bindings and GObject bindings to the DOM are accessible (WebKitDOM api)
 
 ![ExtJS from ruby](http://i1263.photobucket.com/albums/ii631/ppibburr/rubyjs_extjs.png)
 
@@ -16,12 +37,15 @@ p a == obj.sayHello(obj.name) #=> true
 ```
 Getting Started
 ---
-1. Install Gtk2 (gem or distro package) **note: Gtk2 can be provided via FFI with the gir_ffi gem, TODO: make it easy to use the FFI provided Gtk2
-2. checkout the rubyjs source
-3. install rake (gem or distro package)
-4. rake build (optional, will create fresh bindings)
-5. rake gem (may require super user privilages, as it will install the gem)
-6. write a script with 'require "JS/html5"', this will pull in all functionality for writing applications
+  Required:
+    1. Gtk2, either the gem, distro package or some typelib information for GirFFI (gem i gir_ffi)
+    2. rake
+  
+  Install:
+    1. rake build (optional, unless modifying source files)
+    2. rake gem (may require super user privilages, as it will install the gem)
+
+
 Samples
 ---
 JavaScript usage
