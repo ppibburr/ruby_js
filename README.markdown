@@ -35,8 +35,8 @@ obj = JS::Object.new(ctx,{:name=>'World',:sayHello=> proc do |t,n| "hello #{n}" 
 p a = JS.execute_script(ctx,'this.sayHello(this.name);',obj) #=> "hello World"
 p a == obj.sayHello(obj.name) #=> true
 ```
-```
-require File.join(File.dirname(__FILE__),'..','lib','JS','base')
+``` ruby
+require 'JS/base'
 require 'gtk2'
 
 ctx = JS::GlobalContext.new(nil)
