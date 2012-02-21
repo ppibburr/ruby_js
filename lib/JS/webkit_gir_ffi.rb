@@ -1,5 +1,5 @@
 
-#       webkit.rb
+#       webkit_gir_ffi.rb
              
 #		(The MIT License)
 #
@@ -24,9 +24,8 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-
-begin
-  require File.join(File.dirname(__FILE__),'webkit_ffi')
-rescue LoadError
-  require File.join(File.dirname(__FILE__),'webkit_gir_ffi')
-end
+require 'gir_ffi'
+GirFFI.setup(:Gtk,'2.0')
+require File.join(File.dirname(__FILE__),'patch_gtk_gir_ffi')
+GirFFI.setup :WebKit,'1.0'
+require File.join(File.dirname(__FILE__),'patch_gir_ffi_webkit')

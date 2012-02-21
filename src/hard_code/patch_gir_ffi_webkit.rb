@@ -5,7 +5,7 @@ module WebKit
     
     attach_function :webkit_web_frame_get_global_context,[:pointer],:pointer
   end
-  
+  WebKit::WebView
   WebKit::WebFrame
   class WebFrame
     def get_global_context

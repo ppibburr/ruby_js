@@ -1,5 +1,5 @@
 
-#       webkit.rb
+#       patch_gir_ffi_webkit.rb
              
 #		(The MIT License)
 #
@@ -24,9 +24,18 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-
-begin
-  require File.join(File.dirname(__FILE__),'webkit_ffi')
-rescue LoadError
-  require File.join(File.dirname(__FILE__),'webkit_gir_ffi')
+module WebKit
+  module MissingFunctions
+    extend FFI::Library
+    ffi_lib('webkitgtk-1.0')
+    
+    attach_function :webkit_web_frame_get_global_context,[:pointer],:pointer
+  end
+  WebKit::WebView
+  WebKit::WebFrame
+  class WebFrame
+    def get_global_context
+      JS::GlobalContext.new(:pointer=>WebKit::MissingFunctions.webkit_web_frame_get_global_context(self))
+    end
+  end
 end

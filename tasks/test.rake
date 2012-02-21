@@ -4,7 +4,7 @@ namespace :test do
 
   Rake::TestTask.new(:run) do |t|
     t.libs = ['lib']
-    t.test_files = FileList['test/**/test_*.rb']
+    t.test_files = FileList['test/test_*.rb']
     t.ruby_opts += ["-w"]
   end
 

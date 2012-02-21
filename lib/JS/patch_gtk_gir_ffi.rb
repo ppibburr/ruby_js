@@ -1,5 +1,5 @@
 
-#       webkit.rb
+#       patch_gtk_gir_ffi.rb
              
 #		(The MIT License)
 #
@@ -24,9 +24,23 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-
-begin
-  require File.join(File.dirname(__FILE__),'webkit_ffi')
-rescue LoadError
-  require File.join(File.dirname(__FILE__),'webkit_gir_ffi')
+Gtk
+Gtk::Object
+class Gtk::Object
+	def signal_connect n,&b
+	  GObject.signal_connect(self,n,&b)
+	end
+end
+Gtk::Window
+class Gtk::Window
+  class << self
+    alias :real_new :new
+  end
+  
+  def self.new *o
+    if o.empty?
+      o << :toplevel
+    end
+    real_new *o
+  end
 end

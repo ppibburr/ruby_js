@@ -1,3 +1,5 @@
 require File.join(File.dirname(__FILE__),'base')
-require File.join(File.dirname(__FILE__),"webkit")
+if !const_defined?(:WebKit)
+  require File.join(File.dirname(__FILE__),"webkit")
+end
 require File.join(File.dirname(__FILE__),"resource")
