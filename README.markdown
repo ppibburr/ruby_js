@@ -48,8 +48,8 @@ globj.GObject = GLib::Object
 JS.execute_script ctx,<<EOJS
 	w=Gtk.const_get('Window').new();
 
-	w.signal_connect('expose-event',function(){
-	  Gtk.main_quit();
+	w.signal_connect('show',function(){
+	  Ruby.send('puts','shown');
 	});
 
 	w.signal_connect('delete-event',function() {
