@@ -50,9 +50,9 @@ Getting Started
 
 Samples
 ---
-JavaScript usage
-HTML5 DOM access
-A WebBrowser
+    JavaScript usage
+    HTML5 DOM access
+    A WebBrowser
 
 Check the "samples" folder for examples on how to utilise this library
 
