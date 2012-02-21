@@ -30,7 +30,6 @@ class JS::RubyObject < JS::Object
   end
   
   def self.new(ctx,object=Object)
-    p [:eeek,ctx]
     res = ro_new(:pointer=>JS::Lib::JSObjectMake(ctx,CLASS,nil))
     res.context = ctx
     PTRS[res.pointer.address]=res
@@ -41,13 +40,12 @@ end
 
 
 
-class JS::RubyObject
+class JS::RubyObject < JS::Object
   PTRS = {}
   PROCS = {}
   CLASS_DEF = JS::ClassDefinition.new
   
   CLASS_DEF[:getProperty] = pr = proc do |ctx,obj,name,err|
-    p [:ctx,ctx]
     if (n=JS.read_string(name,false)) == "object_get_property"
       nil
     else
@@ -73,9 +71,12 @@ class JS::RubyObject
   def object_get_property n
     return nil if !object_has_property?(n)
     m=object.method(n)
-    p n
-    o=JS::Object.new(context) do |this,*o1|
-      m.call(*o1)
+    o=JS::Object.new(context) do |*o1|
+      this = o1[0]
+      o1.delete_at(0)
+      p o1
+      q = m.call *o1
+      JS::Value.from_ruby(context,q)
     end
 
     v = JS::Value.from_ruby(context,o)#.to_ptr
