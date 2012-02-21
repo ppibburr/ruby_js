@@ -2,18 +2,24 @@ require 'JS/application'
 
 class MyApp < JS::Application
     HTML_TEMPLATE = "<html><head><script type='text/javascript'>
-    var Gtk = null;
-    var gtk_from_js = function() {
       w=Gtk.const_get('Window').new();
       w.set_size_request(400,400);
+      w.signal_connect('show',function() {
+        alert('hi');
+        return true;
+      });
       w.show();
-      return w;
-    };
+      var gtkWindow=w;
     </script></head></html>"
+    def initialize
+      super
+      @web_view.signal_connect "load-started" do |v,f|
+        f.get_global_context.get_global_object.Gtk = Gtk
+      end
+    end
 	module MyRunner
 		def on_render 
-		  this.Gtk = JS::RubyObject.new(this.context,Gtk)
-		  this.gtk_from_js.set_title("Gtk From JavaScript")
+		  this.gtkWindow.set_title "Gtk from JS"
 		end
 	end
 	

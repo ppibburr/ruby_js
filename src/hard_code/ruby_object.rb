@@ -48,8 +48,18 @@ class JS::RubyObject < JS::Object
     o=JS::Object.new(context) do |*o1|
       this = o1[0]
       o1.delete_at(0)
-      p o1
-      q = m.call *o1
+      closure = nil
+      if o1.last.is_a?(JS::Object) and o1.last.is_function()
+        function = o1.last
+        closure = proc do |*a|
+          function.context = context # FIXME: nasty find out why
+          function.call(*a)
+        end
+        o1.delete_at(o1.length-1)
+      end
+      q = m.call(*o1) do |*ab|
+        closure.call *ab if function
+      end
       JS::Value.from_ruby(context,q)
     end
 
