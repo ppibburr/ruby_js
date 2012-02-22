@@ -77,7 +77,8 @@ Getting Started
 
 Samples
 ---
-    JavaScript usage
+    JavaScript usage from ruby
+    Ruby usage from JavaScript
     HTML5 DOM access
     A WebBrowser
 

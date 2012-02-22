@@ -14,7 +14,8 @@ class MyApp < JS::Application
     def initialize
       super
       @web_view.signal_connect "load-started" do |v,f|
-        f.get_global_context.get_global_object.Gtk = Gtk
+        globj = f.get_global_context.get_global_object
+        globj.Gtk = Gtk
       end
     end
 	module MyRunner
