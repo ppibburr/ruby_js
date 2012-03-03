@@ -31,16 +31,36 @@ class Gtk::Object
 	  GObject.signal_connect(self,n,&b)
 	end
 end
+GLib
+module GLib
+  Object = GObject::Object
+end
 Gtk::Window
 class Gtk::Window
   class << self
     alias :real_new :new
   end
   
-  def self.new *o
+  @c="""def self.new *o
     if o.empty?
       o << :toplevel
     end
-    real_new *o
+    r=real_new *o
+    Gtk::Window.define_new
+    r
+  end"""
+  def self.define_new
+    class_eval @c
+  end
+  define_new
+end
+module Gtk
+  def self.main *o
+    super *o
+    nil
+  end
+  def self.main_quit *o
+    super *o
+    nil
   end
 end

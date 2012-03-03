@@ -24,8 +24,6 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-require 'rubygems'
-require 'gir_ffi'
 require File.join(File.dirname(__FILE__),'..','lib','JS')
 
 ctx = JS::GlobalContext.new(nil)

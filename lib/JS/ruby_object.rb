@@ -67,7 +67,7 @@ class JS::RubyObject < JS::Object
       nil
     end   
   end
-  $closures = []
+  
   def object_get_property n
     return nil if !object_has_property?(n)
     m=object.method(n)

@@ -25,13 +25,11 @@
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 
-require File.join(File.dirname(__FILE__),'..','lib','JS')
-require File.join(File.dirname(__FILE__),'..','lib','JS','props2methods')
-require File.join(File.dirname(__FILE__),'..','lib','JS','webkit')
+require File.join(File.dirname(__FILE__),'..','lib','JS','html5')
 
 
 
-w = Gtk::Window.new(:toplevel)
+w = Gtk::Window.new()
 v = WebKit::WebView.new
 
 v.load_html_string("<html><body></body></html>",nil)

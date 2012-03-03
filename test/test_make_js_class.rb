@@ -1,7 +1,4 @@
-require 'rubygems'
-require 'gir_ffi'
-require File.join(File.dirname(__FILE__),'..','lib','JS')
-require File.join(File.dirname(__FILE__),'..','lib','JS','props2methods')
+require File.join(File.dirname(__FILE__),'..','lib','JS/base')
 
 ctx = JS::GlobalContext.new(nil)
 # see JS/js_class_definition.rb for info about the struct

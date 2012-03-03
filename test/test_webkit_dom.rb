@@ -25,12 +25,8 @@
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 
-require File.join(File.dirname(__FILE__),'..','lib','JS')
-require File.join(File.dirname(__FILE__),'..','lib','JS','webkit')
-
-
-Gtk::Window
-w = Gtk::Window.new :toplevel
+require File.join(File.dirname(__FILE__),'..','lib','JS','html5')
+w = Gtk::Window.new
 v = WebKit::WebView.new
 
 v.load_html_string("<html><body></body></html>",'')

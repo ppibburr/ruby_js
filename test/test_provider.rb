@@ -1,8 +1,5 @@
-require 'rubygems'
-require 'ffi'
-require File.join(File.dirname(__FILE__),'..','lib','JS')
-require File.join(File.dirname(__FILE__),'..','lib','JS','webkit')
-
+require File.join(File.dirname(__FILE__),'..','lib','JS','html5')
+p Gtk::Window.method(:new).arity
 w = Gtk::Window.new
 v = WebKit::WebView.new
 v.load_html_string("<html><body></body></html>",'')

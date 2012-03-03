@@ -25,8 +25,7 @@
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 
-require 'rubygems'
-require 'gir_ffi'
+
 require File.join(File.dirname(__FILE__),'..','lib','JS')
 
 def all_true ary

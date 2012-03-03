@@ -24,9 +24,9 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-
 begin
   require File.join(File.dirname(__FILE__),'webkit_ffi')
 rescue LoadError
-  require File.join(File.dirname(__FILE__),'webkit_gir_ffi')
+  require File.join(File.dirname(__FILE__),'webkit_gir_ffi')  
 end
+

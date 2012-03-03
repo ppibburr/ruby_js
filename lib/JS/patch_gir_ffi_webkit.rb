@@ -32,6 +32,16 @@ module WebKit
     attach_function :webkit_web_frame_get_global_context,[:pointer],:pointer
   end
   WebKit::WebView
+  class WebKit::WebView
+    class << self
+      alias :new_ :new
+    end
+    def self.new(*o)
+     
+     # o << nil if o.empty?
+      new_ *o
+    end
+  end
   WebKit::WebFrame
   class WebFrame
     def get_global_context

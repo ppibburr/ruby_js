@@ -1,12 +1,11 @@
-require File.join(File.dirname(__FILE__),'..','lib','JS','base')
-require 'gtk2'
-
+require File.join(File.dirname(__FILE__),'..','lib','JS','html5')
 ctx = JS::GlobalContext.new(nil)
 globj = ctx.get_global_object
 globj.Ruby = Object.new
 globj.Gtk = Gtk
 globj.GLib = GLib
 globj.GObject = GLib::Object
+
 JS.execute_script ctx,<<EOJS
 	w=Gtk.const_get('Window').new();
 
