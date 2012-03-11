@@ -175,8 +175,8 @@ class JS < Library
 	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','base.rb') 
 	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','application.rb') 
       add_optional_require File.join(File.dirname(__FILE__),'hard_code','resource.rb')
-   
-    	  	  
+      add_optional_require File.join(File.dirname(__FILE__),'hard_code','nice_gtk_ffi.rb')   
+      add_optional_require File.join(File.dirname(__FILE__),'hard_code','nice_gtk_ffi_overloads.rb')       	  	  
 	  @ifaces << Object.new()
 	  @ifaces << Value.new()
 	  @ifaces << Context.new()

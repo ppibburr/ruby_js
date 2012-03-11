@@ -103,8 +103,8 @@ class JS::Application
   def initialize title="RubyJS Application",width=400,height=400
     @gtk_window = Gtk::Window.new :toplevel
     @web_view = WebKit::WebView.new
-    @gtk_window.add @gtk_root_sizer = Gtk::VBox.new
-    @gtk_root_sizer.pack_start @gtk_scroll_window = Gtk::ScrolledWindow.new,true,true,0
+    @gtk_window.add @gtk_root_sizer = Gtk::VBox.new(false,0)
+    @gtk_root_sizer.pack_start @gtk_scroll_window = Gtk::ScrolledWindow.new(nil,nil),true,true,0
     @gtk_scroll_window.add @web_view
 
     gtk_window.set_title title
