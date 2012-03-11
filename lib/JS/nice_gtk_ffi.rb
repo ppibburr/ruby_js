@@ -24,71 +24,72 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-module NiceGtk;module Overloads;class Klass
-  class Function
-    attr_reader :parameters,:name
-    class Param
-      attr_reader :value,:name,:index
-      def initialize name,value,index
-        @name,@value,@index = name.to_sym,value,index
-      end
-    end
-    def initialize name
-      @parameters = []
-      @name = name
-    end
-    def add_parameter name,value,i=nil
-      i = @parameters.length if !i
-      @parameters << prm = Param.new(name,value,i)
-      prm
-    end
-    def get_parameter n
-      @parameters.find do |prm| prm.name == n end
-    end
-    def arity
-      if q=parameters.find do |prm| prm.value == :vargs end
-        return (parameters.index(q)+1)*-1
-      end
-      @parameters.find_all do |prm| prm.value==:undefined end.length
-    end
-    def defaults ary
-      s = ary.length
-      err = ArgumentError.new("Expected #{min}..#{max} arguments.")
-      max = @parameters.length
-      min = arity
-      raise err if (ary.length > max and arity > 0) or ary.length < arity
-      ary.push *(@parameters[s..@parameters.length-1].map do |prm| 
-        next if prm.value == :vargs
-        raise err if prm.value == :undefined
-        prm.value
-      end)
-    end
+require 'ffi-gtk2'
+require File.join(File.dirname(__FILE__),"nice_gtk_ffi_overloads.rb")
+
+G_OBJECT = GObject
+G_OBJECT_LIB = GObject::Lib
+G_T_K = Gtk
+GTK_LIB = Gtk::Lib
+
+self.class.class_eval do
+  const_set :Gtk,Module.new
+end
+
+class GObj < BasicObject
+  include ::Kernel
+  def self.init go
+    @@_g_object_ = go
   end
-  class Construct < Function
-    def initialize
-      name = :new
-      super(name)
+  def self.method_missing m,*o,&b
+	@@_g_object_.send(m,*o,&b)
+  end
+  def method_missing m,*o,&b
+	@_g_object_.send(m,*o,&b)
+  end
+  def initialize *o,&b
+    @_g_object_ = @@_g_object_.new *o,&b
+  end
+end
+
+module Gtk
+  Lib = GTK_LIB
+  def self.const_missing c
+    q = G_T_K.const_get(c)
+    if q.is_a?(Class)
+      return setup(c,q)
     end
+    q
   end
-  
-  class Meth < Function
-    def initialize n
-      super
-    end 
+  def self.method_missing m,*o,&b
+    G_T_K.send m,*o,&b
   end
-  attr_reader :name,:construct,:methods
-  def initialize n
-    @name = n.to_sym
-    @methods = []
-    @construct = nil
+  def self.setup c,q
+    const_set c,t=Class.new(GObj)
+    t.init q
+    t  
   end
-  def create_construct
-    @construct = Construct.new()
+  def self.main
+    G_T_K.main
+    nil
   end
-  def create_method n
-    @methods << Meth.new(n)
+  def self.main_quit
+    G_T_K.main_quit
   end
-  def method n
-    @methods.find do |m| m.name == n end
+end
+
+class GObject::Object
+  def signal_connect s,&b
+    GObject.signal_connect self,s,&b
   end
-end;end;end
+end
+
+class Window < Gtk::Window
+  def initialize foo
+    @foo = foo
+    super :toplevel
+    puts "@foo is #{foo}"
+  end
+end
+
+

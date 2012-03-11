@@ -1,5 +1,5 @@
 require 'ffi-gtk2'
-require File.join(File.dirname(__FILE__),"nice_gtk_ffi_overloads")
+require File.join(File.dirname(__FILE__),"nice_gtk_ffi_overloads.rb")
 
 G_OBJECT = GObject
 G_OBJECT_LIB = GObject::Lib
