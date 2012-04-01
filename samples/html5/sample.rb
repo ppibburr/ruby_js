@@ -1,4 +1,5 @@
-require File.join(File.dirname(__FILE__),'lib','app')
+require File.join(File.expand_path(File.dirname(__FILE__)),'lib','app')
+
 class App < RubyJS::App
   def initialize *o
     super
