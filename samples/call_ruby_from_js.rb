@@ -3,7 +3,7 @@ require 'gtk2'
 
 ctx = JS::GlobalContext.new(nil)
 globj = ctx.get_global_object
-globj.Ruby = Object.new
+globj.Ruby = Object
 globj.Gtk = Gtk
 globj.GLib = GLib
 globj.GObject = GLib::Object

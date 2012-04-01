@@ -2,26 +2,14 @@ RubyJS
 ===
     RubyJS is a library that uses FFI to provide bindings to JavaScript and WebKit from libwebkitgtk-1.0 (WebKit)
     allowing Full access to JavaScript and any JavaScript library
-    as well as full WebKit api access. 
 
     This library enables ruby scripts to create JS objects, call functions, get/set properties, create callbacks. 
     As well, JavaScript scripts can call ruby methods, access objects.
 
-    Using Gtk2 you can embed a WebKit::WebView and develop HTML5 desktop applications 
-
-    JS/base         core JavaScript bindings
-    JS/html5        webkit webview support (pulls in Gtk2 and WebKit if WebKit is not defined,
-                          looks for standard Gtk2 and pulls in JS/webkit_ffi
-                          falls back to GirFFI for Gtk2 and pulls in JS/webkit_gir_ffi
-                        to manually select a a webkit binding, "require JS/webkit_[ffi|gir_ffi]"
-                          before requiring)
-                        
-    JS/application  library to ease the interaction with the (JavaScript)DOM from a WebKit::WebView (pulls in JS/html5)
-
-    RubyJS works with full features with standard* Gtk2 as well as Gtk2 provided by GirFFI**
-
-    *  JavaScript binding access to the DOM and WebKit api
-    ** when using GirFFI both the JavaScript bindings and GObject bindings to the DOM are accessible (WebKitDOM api)
+    This is the core package in a suite of planned ruby_js packages
+      core        (non-HtmlDOM)
+      html5       (HtmlDOM in a WebKit::WebView)
+      enviroment  (Desktop HTML5 Application develoment library (Gtk2))
 
 ![ExtJS from ruby](http://i1263.photobucket.com/albums/ii631/ppibburr/rubyjs_extjs.png)
 
@@ -71,16 +59,16 @@ Getting Started
   
   Install:
   ---
-    1. rake build (optional, unless modifying source files)
-    2. rake gem (may require super user privilages, as it will install the gem)
+  default:  rake gem # may need to be root
 
+  optional: rake unbuild
+            rake build
+            rake test # make sure everything works
+            rake gem
+    
 
 Samples
 ---
-    JavaScript usage from ruby
-    Ruby usage from JavaScript
-    HTML5 DOM access
-    A WebBrowser
 
 Check the "samples" folder for examples on how to utilise this library
 

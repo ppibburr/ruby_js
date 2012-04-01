@@ -1,6 +1,5 @@
 require File.join(File.dirname(__FILE__),'base')
 if !defined?(WebKit)
-  require File.join(File.dirname(__FILE__),"webkit")
-  Gtk.init
+  raise "No WebKit Error"
 end
 require File.join(File.dirname(__FILE__),"resource")
