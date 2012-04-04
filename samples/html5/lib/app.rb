@@ -112,6 +112,12 @@ module RubyJS
     def onload &b
       @_onload_cb = b
     end
+    
+    def preload &b
+      view.signal_connect "load-committed" do
+        b.call view.get_main_frame.get_global_object
+      end
+    end
   end
 end
 
