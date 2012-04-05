@@ -117,6 +117,12 @@ class RObject
   def initialize dom
     @_dom = dom
     @_listeners = {}
+    a=self.class.ancestors
+    buff = []
+    a[0..a.index(RObject)].each do |c|
+      buff << "Rwt#{c}"
+    end
+    dom.className = buff.join(" ")
   end
   
   def show
@@ -269,6 +275,7 @@ class Box < Container
   def on_adopt child
     child.display = "block"
     child.dom.style['-webkit-box-flex'] = 1
+    child.height = "auto"
   end
 end
 
@@ -356,15 +363,29 @@ class Image < Widget
   end
 end
 
-class Iconable < Widget
+class Panel < Bin
+end
+
+class HAttr < HBox
+  def initialize *o
+    super
+    dom.style['-webkit-box-align']='center'
+  end
+end
+
+class Iconable < HAttr
   def initialize parent,icon=nil,c_base="div",*o
     super parent,c_base,*o
-    @icon = Image.new(self,icon,true)
-    @inner = Widget.new(self)
-    inner.display = "inline-block" if icon
-    p c_base
-    @content = Widget.new(inner,c_base)
+    @bump = Widget.new(self)
+    @icon = Image.new(self,icon)
+    @icon.height = 16
+    @icon.width = 16
+    @content = Widget.new(self)
+    @icon.dom.style['-webkit-box-flex']=0
+    @bump.dom.style['-webkit-box-flex']=0
+    Widget.new(self).dom.style['-webkit-box-flex']=0
   end
+  
   {:text=>:innerText,:html=>:innerHTML}.each_pair do |k,v|
     define_method k do
       @content.send(k,v)
@@ -395,11 +416,8 @@ end
 class Button < Iconable
   def initialize par,value = "",*o
     super par,*o
+    @bump.dom.style['-webkit-box-flex'] = 1
     self.text=value
-    border.color = "black"
-    border.width = "1px"
-    border.style = 'solid'
-    border.radius = "5px"
   end
 end
 
@@ -496,10 +514,12 @@ module Rwt
   end
   
   class App < RubyJS::App
+    HTML = "<html><head><style type='text/css'>#{open('./rwt.css').read}</style></head><body></body></html>"
     THEME = Theme.new
     attr_reader :images
     def initialize theme=THEME,*o
-      super(*o)
+      super(HTML,f="file://#{File.expand_path(File.dirname(__FILE__))}")
+      p f
       @images = ImageMap.new(theme.images)
       preload do |global|
         images.init global.context
@@ -530,13 +550,14 @@ Rwt::App.run do |app|
   app.images[:google] = "https://www.google.com/images/srpr/logo3w.png"
 
   app.onload do
+    p app.global_object.document.documentElement.outerHTML
     body = app.global_object.document.body
-    
-    sv=ScrollView.new body
+    pn = Panel.new(body)
+    sv=ScrollView.new pn
     sv.width = 200
     Image.new(sv,:google)
     
-    l=Label.new(body,"Foo")
+    l=Label.new(pn,"Foo")
     l.color = 'red'
     l.on :click do |*o|
       l.text = "bar"
@@ -547,12 +568,12 @@ Rwt::App.run do |app|
       p :mouseover
     end
     
-    b = Button.new(body,"click me",:test)
-    i = Input.new(body,"gg")
-    t = TextBox.new(body,open(__FILE__).read)
+    b = Button.new(pn,"click me",:test)
+    i = Input.new(pn,"gg")
+    t = TextBox.new(pn,open(__FILE__).read)
     t.height = 100
     
-    l1 = Label.new(body,"flash",:test)
+    l1 = Label.new(pn,"flash",:test)
     clrs = ["green","red"]
     state = 0    
     
@@ -562,20 +583,19 @@ Rwt::App.run do |app|
       state = 0 if state > 1
       true
     end, nil, nil)
-  
-    v = VBox.new body
+
+    v = VBox.new pn
     v.height = 100
     b = Button.new(v,"ff")
     b = Button.new(v,"ff")
-    b.background_color="blue"
     b = Button.new(v,"ff")
     
-    v = HBox.new body
+    v = HBox.new pn
     v.set_resizable true
     v.width = 100
-    
     b = Button.new(v,"ff")
-    b = Button.new(v,"ff")
+    b = Button.new(v,"ff",:test)
+    b.dom.style['-webkit-box-flex'] = 2
     b.background_color="blue"
     b = Button.new(v,"ff")
   end
