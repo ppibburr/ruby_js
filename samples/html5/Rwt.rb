@@ -120,13 +120,40 @@ class RObject
     a=self.class.ancestors
     buff = []
     a[0..a.index(RObject)].each do |c|
-      buff << "Rwt#{c}"
+      buff << "Rwt#{c}".gsub("::",'')
     end
     dom.className = buff.join(" ")
   end
   
   def show
-    self.display = @_display
+    dom.style.display = @_display
+  end
+  
+  def get_classes
+    dom.className.split(" ")
+  end
+  
+  def has_class? c
+    !!get_classes.index(c)
+  end
+  
+  def remove_class c
+    a = get_classes
+    a.delete(c)
+    dom.className = a.join(" ")
+  end
+  
+  def add_class c
+    return c if has_class?(c)
+    a = get_classes.reverse
+    a.push(c)
+    dom.className = a.reverse.join(" ")
+  end
+  
+  def replace_class c,nc
+    remove_class c
+    add_class nc
+    nil
   end
   
   def set_resizable resize=true
@@ -152,7 +179,7 @@ class RObject
   
   def hide
     @_display = get_computed_value('display')
-    self.display = "none"
+    dom.style.display = "none"
   end
   
   def dom
@@ -297,9 +324,7 @@ class Tabbed < Container
 
 end
 
-class Acordion < Container
 
-end
 
 class Pager < Container
 
@@ -380,6 +405,7 @@ class Iconable < HAttr
     @icon = Image.new(self,icon)
     @icon.height = 16
     @icon.width = 16
+    @icon.hide if !icon
     @content = Widget.new(self)
     @icon.dom.style['-webkit-box-flex']=0
     @bump.dom.style['-webkit-box-flex']=0
@@ -544,6 +570,61 @@ module Rwt
   end
 end
 
+class Acordion < VBox
+  def add child
+    child.toggle.on :click do
+      bool = nil
+      if child.content.get_computed_value('display') != 'none'
+        child.content.hide
+        bool = false
+      else
+        child.content.show
+        bool = true
+      end
+      on_toggle_child.call(child,bool)
+    end
+  end
+  def on_toggle_child &b
+    b ? (@on_toggle_child = b) : (@on_toggle_child||=proc do |c| end)
+  end
+end
+
+class AcordionPanel < VBox
+  class Toggle < Button; 
+    def initialize *o
+      super
+      dom.style.height = '36px'
+      dom.style["-webkit-box-flex"]=0
+      dom.style["-webkit-border-bottom-right-radius"]="0px"
+      dom.style["-webkit-border-bottom-left-radius"]="0px"
+    end
+  end
+  class Content < VBox
+    def initialize *o
+      super
+      #dom.style["border-top"]="0px none #fff"
+      hide
+    end
+  end
+  attr_reader :content,:toggle
+  def initialize par,*o
+    super
+    @toggle = Toggle.new self,'test'
+    @content = Content.new(self)
+    par.add self
+    par.on_toggle_child do |c,active|
+      p active
+      p c.dom.style.display
+      if active
+        content.replace_class "collapsed","expanded"
+      else
+        content.replace_class "expanded","collapsed"
+      end
+      p [content.get_classes,:fff]
+    end
+  end
+end
+
 Rwt::App.run do |app|
   # runs in an preload
   app.images[:test] = "http://google.com/favicon.ico"
@@ -553,51 +634,15 @@ Rwt::App.run do |app|
     p app.global_object.document.documentElement.outerHTML
     body = app.global_object.document.body
     pn = Panel.new(body)
-    sv=ScrollView.new pn
-    sv.width = 200
-    Image.new(sv,:google)
-    
-    l=Label.new(pn,"Foo")
-    l.color = 'red'
-    l.on :click do |*o|
-      l.text = "bar"
-      l.color = "blue"
-    end
-    
-    l.on :mouseover do
-      p :mouseover
-    end
-    
-    b = Button.new(pn,"click me",:test)
-    i = Input.new(pn,"gg")
-    t = TextBox.new(pn,open(__FILE__).read)
-    t.height = 100
-    
-    l1 = Label.new(pn,"flash",:test)
-    clrs = ["green","red"]
-    state = 0    
-    
-    GLib.timeout_add(200,333, proc do
-      l1.color = clrs[state]
-      state+=1
-      state = 0 if state > 1
-      true
-    end, nil, nil)
-
-    v = VBox.new pn
-    v.height = 100
-    b = Button.new(v,"ff")
-    b = Button.new(v,"ff")
-    b = Button.new(v,"ff")
-    
-    v = HBox.new pn
-    v.set_resizable true
-    v.width = 100
-    b = Button.new(v,"ff")
-    b = Button.new(v,"ff",:test)
-    b.dom.style['-webkit-box-flex'] = 2
-    b.background_color="blue"
-    b = Button.new(v,"ff")
+    a = Acordion.new(pn)
+    ap = AcordionPanel.new(a)
+    TextBox.new(ap.content,"fff\nhhhh\njjjjjjj\n")
+    a = Acordion.new(pn)
+    ap = AcordionPanel.new(a)
+    TextBox.new(ap.content,"fff\nhhhh\njjjjjjj\n")
+    a = Acordion.new(pn)
+    ap = AcordionPanel.new(a)
+    TextBox.new(ap.content,"fff\nhhhh\njjjjjjj\n")
   end
   
   app.display
