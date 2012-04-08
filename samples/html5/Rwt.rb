@@ -66,7 +66,69 @@ def camel_case m
     a[0]+a[1..a.length-1].map do |q| q.capitalize end.join
 end
 
+
 class RObject
+  def self.css_selector
+    ".Rwt#{name.gsub("::",'')}"
+  end
+
+  def dom_id
+    "#{self.class.css_selector.gsub(/^\./,'')}_#{object_id.to_s(16)}"
+  end
+  
+  def css_selector
+    "##{dom_id}"
+  end
+  
+  class InstanceStyles
+    def []= k,v
+      @states[k] = v
+    end
+    def [] k
+      @states[k]
+    end
+    def states
+      @states.keys   
+    end
+    def initialize obj
+      @instance = obj
+      @states = {}
+    end
+    def inherited_property prop,state=:normal
+      val = nil
+      @instance.class.ancestors.find_all do |a|
+        a.ancestors.find do |c| c == RObject end
+      end.find do |a|
+        st = a.css_selector + (state == :normal ? "" : "#{state}")
+        sheet = @instance.owner_document.get_style_sheets[0]
+        if sheet.has_rule?(st)
+          rule = sheet.get_rule(st)
+          style = rule.style
+          val = style.getPropertyValue(prop)
+        end
+      end
+      val
+    end
+  end
+  
+  def init_instance_css
+    return if @_instance_styles
+    dom.setAttribute('id',dom_id)
+    @_instance_styles = InstanceStyles.new(self)
+    sheet = owner_document.get_style_sheets[0]
+    sheet.addRule(rule="#{css_selector}","")
+    @_instance_styles[:normal] = sheet.get_rule(rule).style
+    [:focus,:hover,:active,:target].each do |s|
+      sheet.addRule(rule="#{css_selector}:#{s}","")
+      @_instance_styles[s] =  sheet.get_rule(rule).style 
+    end
+    @_instance_styles
+  end
+  
+  def instance_styles
+    @_instance_styles ||= init_instance_css
+  end
+
   [:background_color,:color,:width,:height,:border_color,:border_style,:border_radius,:display].each do |m|
     f=camel_case(m)
 
@@ -123,7 +185,7 @@ class RObject
       buff << "Rwt#{c}".gsub("::",'')
     end
     dom.className = buff.join(" ")
-  end
+  end  
   
   def show
     dom.style.display = @_display
@@ -440,10 +502,33 @@ class Input < Iconable
 end
 
 class Button < Iconable
+  require 'color'
+  def self.col_l c,pct
+    p [c,self,:hhhhh]
+    a = c.scan(/rgb\(.*?\)/).map do |rg| rg.scan(/[0-9]+/).map do |s| s.to_i end end
+    from = a[0]
+    to = a[1]
+    from = Color::RGB.new(*from).lighten_by(pct)
+    to = Color::RGB.new(*to).lighten_by(pct)
+    [from.html,to.html]
+  end
+  def self.col_d c,pct
+    p [c,:col_d,self]
+    pct = pct
+    a = c.scan(/rgb\(.*?\)/).map do |rg| rg.scan(/[0-9]+/).map do |s| s.to_i end end
+    from = a[0]
+    to = a[1]
+    from = Color::RGB.new(*from).darken_by(pct)
+    to = Color::RGB.new(*to).darken_by(pct)
+    p r = [from.html,to.html]
+    p self
+    r
+  end
   def initialize par,value = "",*o
     super par,*o
     @bump.dom.style['-webkit-box-flex'] = 1
-    self.text=value
+    dom.id = "foo"
+    self.text = value
   end
 end
 
@@ -539,6 +624,61 @@ module Rwt
     App.instance
   end
   
+  module CSS
+    class Sheet < JS::Object
+      def self.new *o
+        obj=o[0]
+        return super if o[0].is_a? Hash
+        from_pointer_with_context obj.context,obj.to_ptr
+      end
+      def add_rule selector,rule=""
+        addRule selector,rule
+      end 
+      def get_rule selector
+        rule = nil
+        for i in 0..rules.length-1
+          rule = Rule.new(rules[i])
+          next if rule.type == 8.0
+          break if rule.selector_text == selector.downcase
+          rule = nil
+        end
+        rule
+      end
+      def has_rule? sel
+        !!get_rule(sel.downcase)
+      end
+    end
+    class Rule < JS::Object
+      def self.new *o
+        obj=o[0]
+        return super if o[0].is_a? Hash
+        from_pointer_with_context obj.context,obj.to_ptr
+      end
+      def style
+        Style.new(self['style'])
+      end
+    end
+    class Style < JS::Object
+      def self.new *o
+        obj=o[0]
+        return super if o[0].is_a? Hash
+        from_pointer_with_context obj.context,obj.to_ptr
+      end
+    end
+  end
+  
+  module DOM
+    class Document < JS::Object
+      def get_style_sheets
+        a = []
+        for i in 0..styleSheets.length-1
+          a << CSS::Sheet.new(styleSheets[i])
+        end
+        a
+      end
+    end
+  end
+  
   class App < RubyJS::App
     HTML = "<html><head><style type='text/css'>#{open('./rwt.css').read}</style></head><body></body></html>"
     THEME = Theme.new
@@ -559,6 +699,10 @@ module Rwt
     
     def self.set_instance i
       @instance = i
+    end
+    
+    def document
+      d = Rwt::DOM::Document.from_pointer_with_context(global_object.context,global_object.document.to_ptr)
     end
     
     def self.new *o
@@ -593,6 +737,7 @@ class AcordionPanel < VBox
   class Toggle < Button; 
     def initialize *o
       super
+      p instance_styles.inherited_property("background-image")
       dom.style.height = '36px'
       dom.style["-webkit-box-flex"]=0
       dom.style["-webkit-border-bottom-right-radius"]="0px"
@@ -625,14 +770,14 @@ class AcordionPanel < VBox
   end
 end
 
+
 Rwt::App.run do |app|
   # runs in an preload
   app.images[:test] = "http://google.com/favicon.ico"
   app.images[:google] = "https://www.google.com/images/srpr/logo3w.png"
 
   app.onload do
-    p app.global_object.document.documentElement.outerHTML
-    body = app.global_object.document.body
+    body = app.document.body 
     pn = Panel.new(body)
     a = Acordion.new(pn)
     ap = AcordionPanel.new(a)
