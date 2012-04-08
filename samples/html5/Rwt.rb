@@ -80,7 +80,7 @@ class RObject
     "##{dom_id}"
   end
   
-  class InstanceStyles
+  class StateStyles
     def []= k,v
       @states[k] = v
     end
@@ -90,22 +90,38 @@ class RObject
     def states
       @states.keys   
     end
-    def initialize obj
-      @instance = obj
+    def initialize *o
       @states = {}
+    end
+    def get_property_value prop,state=:normal
+      self.states[state].getPropertyValue(prop) || inherited_property(prop,state)
+    end
+  end
+  
+  class InstanceStateStyles < StateStyles
+    def initialize obj
+       super
+      @instance = obj
+    end
+    def inherited_property prop,state=:normal
+      self.class.class_state_styles(@instance.dom.context).get_property_value(prop,state)
+    end
+  end
+  
+  class ClassStateStyles < StateStyles
+    def initialize klass,context
+      @class = klass
+      @context = context
     end
     def inherited_property prop,state=:normal
       val = nil
-      @instance.class.ancestors.find_all do |a|
+      document = DOM::Document.new(@context.global_object.document)
+      aa = @class.ancestors
+      aa.delete_at(0)
+      aa.find_all do |a|
         a.ancestors.find do |c| c == RObject end
       end.find do |a|
-        st = a.css_selector + (state == :normal ? "" : "#{state}")
-        sheet = @instance.owner_document.get_style_sheets[0]
-        if sheet.has_rule?(st)
-          rule = sheet.get_rule(st)
-          style = rule.style
-          val = style.getPropertyValue(prop)
-        end
+        a.class_state_styles(@context).get_property_value(prop,state)
       end
       val
     end
@@ -125,9 +141,38 @@ class RObject
     @_instance_styles
   end
   
-  def instance_styles
+  def instance_state_styles
     @_instance_styles ||= init_instance_css
   end
+  
+  def self.init_class_css context
+    @_class_styles ||= {}
+    return if @_class_styles[context]
+    document = DOM::Document.new(@context.global_object.document)
+    @_class_styles[context] = ClassStateStyles.new(self,context)
+    sheet = document.get_style_sheets[0]
+    if sheet.has_rule("#{css_selector}")
+      rule = sheet.get_rule("#{css_selector}")
+      @_class_styles[context][:normal] = rule.style
+    else
+      sheet.addRule(rule="#{css_selector}","")
+      @_class_styles[context][:normal] = sheet.get_rule(rule).style
+    end
+    [:focus,:hover,:active,:target].each do |s|
+      if sheet.has_rule("#{css_selector}:#{s}")
+        sheet.addRule(rule="#{css_selector}:#{s}","")
+        @_class_styles[context][s] = sheet.get_rule(rule).style
+      else
+        sheet.addRule(rule="#{css_selector}:#{s}","")
+        @_class_styles[context][s] =  sheet.get_rule(rule).style 
+      end
+    end
+    @_class_styles[context]
+  end
+  
+  def self.class_state_styles context
+    @_class_styles[context] ||= init_class_css context
+  end  
 
   [:background_color,:color,:width,:height,:border_color,:border_style,:border_radius,:display].each do |m|
     f=camel_case(m)
