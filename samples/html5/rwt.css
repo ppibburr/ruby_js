@@ -11,7 +11,10 @@
     background-color: #eee;
     padding: 6px 6px 7px 6px;
 }
-
+.boxed {
+  display: -webkit-block;
+  -webkit-box-flex: 1;
+}
 .RwtButton {
   background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #d7e5f5), color-stop(100%, #cbe0f5));
   background-image: -webkit-linear-gradient(top, #d7e5f5, #cbe0f5);

@@ -88,7 +88,7 @@ class RObject
       @states[k]
     end
     def states
-      @states 
+      @states.keys   
     end
     def initialize *o
       @states = {}
@@ -110,19 +110,18 @@ class RObject
   
   class ClassStateStyles < StateStyles
     def initialize klass,context
-      super
       @class = klass
       @context = context
     end
     def inherited_property prop,state=:normal
       val = nil
-      document = Rwt::DOM::Document.from_pointer_with_context(@context,@context.get_global_object.document.to_ptr)
+      document = DOM::Document.new(@context.global_object.document)
       aa = @class.ancestors
       aa.delete_at(0)
       aa.find_all do |a|
         a.ancestors.find do |c| c == RObject end
       end.find do |a|
-        val = a.class_state_styles(@context).get_property_value(prop,state)
+        a.class_state_styles(@context).get_property_value(prop,state)
       end
       val
     end
@@ -135,7 +134,7 @@ class RObject
     sheet = owner_document.get_style_sheets[0]
     sheet.addRule(rule="#{css_selector}","")
     @_instance_styles[:normal] = sheet.get_rule(rule).style
-    [:focus,:hover,:active,:target,:'first-child'].each do |s|
+    [:focus,:hover,:active,:target].each do |s|
       sheet.addRule(rule="#{css_selector}:#{s}","")
       @_instance_styles[s] =  sheet.get_rule(rule).style 
     end
@@ -149,25 +148,18 @@ class RObject
   def self.init_class_css context
     @_class_styles ||= {}
     return if @_class_styles[context]
-    aa=ancestors
-    aa.delete_at 0
-    aa.find_all do |c|
-      c.ancestors.index(RObject)
-    end.each do |c|
-      c.init_class_css context
-    end
-    document = Rwt::DOM::Document.from_pointer_with_context(context,context.get_global_object.document.to_ptr)
+    document = Rwt::DOM::Document.new(@context.global_object.document)
     @_class_styles[context] = ClassStateStyles.new(self,context)
     sheet = document.get_style_sheets[0]
-    if sheet.has_rule?("#{css_selector}")
+    if sheet.has_rule("#{css_selector}")
       rule = sheet.get_rule("#{css_selector}")
       @_class_styles[context][:normal] = rule.style
     else
       sheet.addRule(rule="#{css_selector}","")
       @_class_styles[context][:normal] = sheet.get_rule(rule).style
     end
-    [:focus,:hover,:active,:target,:'first-child'].each do |s|
-      if sheet.has_rule?("#{css_selector}:#{s}")
+    [:focus,:hover,:active,:target].each do |s|
+      if sheet.has_rule("#{css_selector}:#{s}")
         sheet.addRule(rule="#{css_selector}:#{s}","")
         @_class_styles[context][s] = sheet.get_rule(rule).style
       else
@@ -175,40 +167,10 @@ class RObject
         @_class_styles[context][s] =  sheet.get_rule(rule).style 
       end
     end
-    (@state_styles||={}).each_pair do |s,b|
-      b.call @_class_styles[context][s],@_class_styles[context]
-    end
-    set_modifier_styles(context)
     @_class_styles[context]
   end
   
-  def self.apply_style state=:normal,&b
-    (@state_styles||={})[state]=b
-  end
-  
-  def self.apply_class cls,&b
-    (@modifier_styles||={})[cls]=b
-  end
-  def self.set_modifier_styles(context)
-    document = Rwt::DOM::Document.from_pointer_with_context(context,context.get_global_object.document.to_ptr)
-    sheet = document.get_style_sheets[0]
-    (@modifier_styles||={}).each_pair do |m,b|
-      if sheet.has_rule?("#{css_selector}.#{m}")
-        rule = sheet.get_rule("#{css_selector}.#{m}")
-        b.call rule.style,nil
-      else
-        sheet.addRule(rule="#{css_selector}.#{m}","")
-        b.call sheet.get_rule(rule)['style'],nil
-      end
-    end
-  end
-  
-  def apply_style state=:normal,&b
-    b.call instance_state_styles[state],instance_state_styles
-  end
-  
   def self.class_state_styles context
-    @_class_styles ||= {}
     @_class_styles[context] ||= init_class_css context
   end  
 
@@ -244,12 +206,6 @@ class RObject
   alias :"html=" :"innerHTML="
   alias :"inner_html=" :"html="
   
-  def flex v=nil
-    s=instance_state_styles[:normal]['-webkit-box-flex']
-    return s if !v
-    dom.style['-webkit-box-flex']=v
-  end
-  
   def appendChild child
     object = child.is_a?(RObject) ? child.dom : child
     r = dom.appendChild object
@@ -275,8 +231,8 @@ class RObject
     end
     dom.className = buff.join(" ")
   end  
+  @_class_styles = {}
   def self.new *o
-    @_class_styles ||= {}
     ret = allocate
     ret.send :initialize,*o
     init_class_css ret.dom.context if !@_class_styles[ret.dom.context]
@@ -451,17 +407,16 @@ class Bin < Container
 end
 
 class Box < Container
-  apply_style(:normal) do |s,ss|
-    s['display'] = "-webkit-box"
-    s['-webkit-box-align'] = "stretch"
-  end
   def initialize *o
     super
+    self.display = "-webkit-box"
+    dom.style['-webkit-box-align'] = "strecth"
   end
   
   def on_adopt child
-   # child.add_class "boxed"
-   child.dom.style['-webkit-box-flex']=1
+    child.display = "block"
+    child.dom.style['-webkit-box-flex'] = 1
+    child.height = "auto"
   end
 end
 
@@ -547,7 +502,7 @@ class Image < Widget
   end
 end
 
-class Panel < VBox
+class Panel < Bin
 end
 
 class HAttr < HBox
@@ -600,23 +555,26 @@ end
 
 class Button < Iconable
   require 'color'
-  apply_style :hover do |s,ss|
-    next unless gradient=ss.get_property_value("background-image")
-    from,to = gradient.scan(/rgb\(.*?\)/).map do |rgb|
-      rgb.scan(/[0-9]+/).map do |a| a.to_i end
-    end
-    from = Color::RGB.new(*from).lighten_by(50)
-    to = Color::RGB.new(*to).lighten_by(50)
-    s['background-image'] = "-webkit-linear-gradient(top,#{from.html},#{to.html})"
+  def self.col_l c,pct
+    p [c,self,:hhhhh]
+    a = c.scan(/rgb\(.*?\)/).map do |rg| rg.scan(/[0-9]+/).map do |s| s.to_i end end
+    from = a[0]
+    to = a[1]
+    from = Color::RGB.new(*from).lighten_by(pct)
+    to = Color::RGB.new(*to).lighten_by(pct)
+    [from.html,to.html]
   end
-  apply_style :active do |s,ss|
-    next unless gradient=ss.get_property_value("background-image")
-    from,to = gradient.scan(/rgb\(.*?\)/).map do |rgb|
-      rgb.scan(/[0-9]+/).map do |a| a.to_i end
-    end
-    from = Color::RGB.new(*from).darken_by(90)
-    to = Color::RGB.new(*to).darken_by(90)
-    s['background-image'] = "-webkit-linear-gradient(top,#{from.html},#{to.html})"
+  def self.col_d c,pct
+    p [c,:col_d,self]
+    pct = pct
+    a = c.scan(/rgb\(.*?\)/).map do |rg| rg.scan(/[0-9]+/).map do |s| s.to_i end end
+    from = a[0]
+    to = a[1]
+    from = Color::RGB.new(*from).darken_by(pct)
+    to = Color::RGB.new(*to).darken_by(pct)
+    p r = [from.html,to.html]
+    p self
+    r
   end
   def initialize par,value = "",*o
     super par,*o
@@ -779,6 +737,7 @@ module Rwt
     attr_reader :images
     def initialize theme=THEME,*o
       super(HTML,f="file://#{File.expand_path(File.dirname(__FILE__))}")
+      p f
       @images = ImageMap.new(theme.images)
       preload do |global|
         images.init global.context
@@ -808,69 +767,58 @@ module Rwt
 end
 
 class Acordion < VBox
-  def on_adopt c
-    super
-    return unless c.is_a? AcordionPanel
-    @children << c
-    c.toggle.on :click do
-      draw(c)
+  def add child
+    child.toggle.on :click do
+      bool = nil
+      if child.content.get_computed_value('display') != 'none'
+        child.content.hide
+        bool = false
+      else
+        child.content.show
+        bool = true
+      end
+      on_toggle_child.call(child,bool)
     end
-    draw  
   end
-  def draw active=@children[0]
-    return if @children.empty?
-    @children.each do |c|
-      c.add_class "collapsed"
-      c.remove_class "first"
-      c.remove_class "last"
-      c.toggle.remove_class "first"
-      c.toggle.remove_class "last"
-    end
-    @children.first.replace_class "last","first"
-    @children.last.replace_class "first","last"
-    @children.first.toggle.replace_class "last","first"
-    @children.last.toggle.replace_class "first","last"
-    return if !active
-    active.remove_class "collapsed"
-    active.toggle.remove_class "last"
+  def on_toggle_child &b
+    b ? (@on_toggle_child = b) : (@on_toggle_child||=proc do |c| end)
   end
 end
 
-class AcordionPanel < Panel
-  apply_class "collapsed" do |s,ss|
-    s.display = 'none'
-  end
-  class Toggle < Button
-    apply_style do |s,ss|
-      s.maxHeight="16px"
-      s['-webkit-box-flex'] = 0
-      s['-webkit-border-radius'] = '0px'
-    end
-    apply_class "first" do |s,ss|
-      s['-webkit-border-top-left-radius'] = '3px'
-      s['-webkit-border-top-right-radius'] = '3px'
-    end
-    apply_class "last" do |s,ss|
-      s['-webkit-border-bottom-left-radius'] = '3px'
-      s['-webkit-border-bottom-right-radius'] = '3px'
-    end
-    def initialize par,control,*o
-      super par,*o
-      @control = control
+class AcordionPanel < VBox
+  class Toggle < Button; 
+    def initialize *o
+      super
+      p instance_state_styles.inherited_property("background-image")
+      dom.style.height = '36px'
+      dom.style["-webkit-box-flex"]=0
+      dom.style["-webkit-border-bottom-right-radius"]="0px"
+      dom.style["-webkit-border-bottom-left-radius"]="0px"
     end
   end
-  attr_reader :toggle
-  apply_style do |s,ss|
-    s['-webkit-border-radius']='0px'
+  class Content < VBox
+    def initialize *o
+      super
+      #dom.style["border-top"]="0px none #fff"
+      hide
+    end
   end
-  apply_class "last" do |s,ss|
-    s['-webkit-border-bottom-left-radius'] = '3px'
-    s['-webkit-border-bottom-right-radius'] = '3px'
-  end
+  attr_reader :content,:toggle
   def initialize par,*o
-    @toggle = Toggle.new(par,control=self)
-    super par,*o
-    add_class "collapsed"
+    super
+    @toggle = Toggle.new self,'test'
+    @content = Content.new(self)
+    par.add self
+    par.on_toggle_child do |c,active|
+      p active
+      p c.dom.style.display
+      if active
+        content.replace_class "collapsed","expanded"
+      else
+        content.replace_class "expanded","collapsed"
+      end
+      p [content.get_classes,:fff]
+    end
   end
 end
 
@@ -881,29 +829,17 @@ Rwt::App.run do |app|
   app.images[:google] = "https://www.google.com/images/srpr/logo3w.png"
 
   app.onload do
-    body = app.document.body
-    vb = VBox.new body
-    vb.height = "100%"
-    hb = HBox.new vb
-    a = Acordion.new hb
+    body = app.document.body 
+    pn = Panel.new(body)
+    a = Acordion.new(pn)
     ap = AcordionPanel.new(a)
-    ap.toggle.text = "First"
-    TextBox.new(ap)
+    TextBox.new(ap.content,"fff\nhhhh\njjjjjjj\n")
+    a = Acordion.new(pn)
     ap = AcordionPanel.new(a)
-    ap.toggle.text = "..."
-    v=VBox.new(ap)
-    w=Widget.new(v)
-    Label.new(w,"A label\nfoo bar")
-    TextBox.new(v,'').flex 0
-    TextBox.new(v,'').flex 0
-    h=HBox.new(v)
-    h.flex 0
-    Button.new(h,"ok")
-    Button.new(h,"cancel")
+    TextBox.new(ap.content,"fff\nhhhh\njjjjjjj\n")
+    a = Acordion.new(pn)
     ap = AcordionPanel.new(a)
-    ap.toggle.text = "Last"
-    TextBox.new(ap)
-    TextBox.new(hb).flex 2
+    TextBox.new(ap.content,"fff\nhhhh\njjjjjjj\n")
   end
   
   app.display
