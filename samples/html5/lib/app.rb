@@ -114,7 +114,7 @@ module RubyJS
     end
     
     def preload &b
-      view.signal_connect "load-committed" do
+      view.signal_connect "load-finished" do
         b.call view.get_main_frame.get_global_object
       end
     end
@@ -124,6 +124,9 @@ end
 if __FILE__ == $0
 	RubyJS::App.run do |app|
 	  app.onload do |*o|
+	  app.preload do |a|
+	  
+	  end
 		app.global_object.alert("Hello World")
 	  end
 	  app.display
