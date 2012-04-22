@@ -272,6 +272,7 @@ class RObject < JS::Object
     r.send :initialize,*o
     r
   end
+  attr_accessor :data
   def initialize o
     super o.to_ptr
     @context = o.context
@@ -500,6 +501,10 @@ class VBox < Box
     super
     style['-webkit-box-orient'] = "vertical"
   end
+  def on_adopt child
+    super
+    child.height = "100%"
+  end
 end
 
 class HBox < Box
@@ -541,19 +546,13 @@ module Text
   def value= v
     self.text=v
   end
-  
-  def initialize par,value,*o
-    super par,*o  
-    self.text=value
-    set_editable(true)
-    style.overflow = "hidden"
-  end
 end
 
 class TextBox < Widget
   include Text
   def initialize par,value = "",*o
-    super par,value,*o
+    super par,*o
+    self.text = value
     set_scrollable :hidden
   end
 end
@@ -606,7 +605,7 @@ class Iconable < HAttr
   
   {:text=>:innerText,:html=>:innerHTML}.each_pair do |k,v|
     define_method k do
-      @content.send(k,v)
+      @content.send(v)
     end
     
     define_method m=k.to_s+"=" do |v|
@@ -632,7 +631,13 @@ class Iconable < HAttr
 end
 
 class Input < Iconable
-  include Text
+  def initialize *o
+    super
+    @content.extend Text
+    @content.style['-webkit-box-pack']='stretch'
+    @content.set_editable true
+    style.overflow = "hidden"
+  end
 end
 
 class Button < Iconable
@@ -1014,6 +1019,7 @@ class Grid < VBox
     @header = Header.new @h
     @inner = ScrollArea.new self
     @h.style.minHeight = '32px'
+    @h.style.maxHeight = '32px'
     @inner.on :scroll do |e|
       @h.scrollLeft = @inner.scrollLeft
     end
@@ -1031,7 +1037,16 @@ class Grid < VBox
   end
   def set_data data=@data
     @data = data
+    buff = []
+    code = ""
+    cells=[]
+    @inner['innerHTML'] = ''
+    @rows = []
+
+                    rx = /(tabindex\=\"-1\"\>)(.*?)(\<\/div\>)/
+
     data.each_with_index do |row,i|
+     if i == 0
       r = @rows[i] ||= self.class::Row.new(@inner)
       row.each_with_index do |cell,ci|
         next if ci+1 > @cols.length
@@ -1039,13 +1054,25 @@ class Grid < VBox
         renderer = :IconCell if @cols[ci].has_icon?
         c = r.cells[ci] ||= self.class.const_get(renderer).new(r,self)
         c.text = cell
+        c.style['display'] = c.get_computed_value('display')
         c.style.minWidth = c.style.maxWidth = @cols[ci].width
         if c.is_a?(IconCell)
           render_icon i,ci,c
         end
       end
       r.cells.last.style.maxWidth = 'inherit' 
+      code = r['outerHTML']
+      cells = code.scan rx
+     else
+     q=code
+       row.each_with_index do |cv,ci|
+             next if ci+1 > @cols.length
+             q = q.gsub(cells[ci].join,cells[ci][0]+cv+cells[ci][2])
+        end
+         buff << q
+      end
     end
+       @inner['innerHTML'] = @inner['innerHTML'] + buff.join
   end
   def on_render_icon &b
     @render_icon = b
@@ -1090,6 +1117,9 @@ class RObject
     q = q/100
     style['-webkit-box-flex'] = q
   end
+  def box_flex i
+    style['-webkit-box-flex'] = i
+  end
 end
 class List < Grid
   def initialize *o
@@ -1124,71 +1154,4 @@ class List < Grid
   def item_selected idx
     @on_item_select.call idx
   end
-end
-Rwt::App.run do |app|
-  # runs in an preload
-  app.images[:test] = "http://google.com/favicon.ico"
-  app.images[:google] = "https://www.google.com/images/srpr/logo3w.png"
-
-  app.onload do
-    body = app.document.body
-    vb = VBox.new body
-    vb.height = "100%"
-    #vb.width = "400px"
-    hb = HBox.new vb
-    ac = a = Acordion.new(hb)
-    ap = AcordionPanel.new(a)
-    ap.toggle.text = "First"
-    TextBox.new(ap)
-    ap = AcordionPanel.new(a)
-    ap.toggle.text = "..."
-    v=VBox.new(ap)
-    w=Widget.new(v)
-    Label.new(w,"A label\nfoo bar")
-    TextBox.new(v,'').flex 0
-    TextBox.new(v,'').flex 0
-    h=HBox.new(v)
-    h.flex 0
-    Button.new(h,"ok")
-    Button.new(h,"cancel")
-    ap = AcordionPanel.new(a)
-    ap.toggle.text = "Last"
-    TextBox.new(ap)
-    #pa = Widget.new hb
-    #pa.style.overflow = 'hidden'    
-    g = List.new(hb)
-    g.on_render_icon do |ridx,cidx,cell|
-      cell.set_icon :test
-    end
-    #pa.flex 0.8
-    ca = []
-    bool = :test
-    8.times do
-      ca << Grid::Column.new("Column #{ca.length}",bool)
-      bool = false
-    end
-    g.set_cols ca
-    data = []
-    50.times do
-      row = []
-      8.times do
-        row << "#{data.length}:#{row.length}"
-      end
-      data << row
-    end
-    g.set_data data
-    data = []
-    50.times do
-      row = []
-      8.times do
-        row << "#{data.length}:eio:#{row.length}"
-      end
-      data << row
-    end
-    g.set_data data
-    a.flex 33.33
-    g.flex 66.66
-  end
-  
-  app.display
 end

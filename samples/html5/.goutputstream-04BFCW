@@ -56,8 +56,8 @@ class Border
   end
   
   attr_reader :style
-  def initialize style
-    @style = style
+  def initialize dom
+    @style = dom.style
   end
 end
 
@@ -67,17 +67,17 @@ def camel_case m
 end
 
 
-class RObject < JS::Object
+class RObject
   def self.css_selector
     ".Rwt#{name.gsub("::",'')}"
   end
 
-  def self_id
+  def dom_id
     "#{self.class.css_selector.gsub(/^\./,'')}_#{object_id.to_s(16)}"
   end
   
   def css_selector
-    "##{self_id}"
+    "##{dom_id}"
   end
   
   class StateStyles
@@ -104,7 +104,7 @@ class RObject < JS::Object
       @instance = obj
     end
     def inherited_property prop,state=:normal
-      @instance.class.class_state_styles(@instance.context).get_property_value(prop,state)
+      @instance.class.class_state_styles(@instance.dom.context).get_property_value(prop,state)
     end
   end
   
@@ -116,7 +116,7 @@ class RObject < JS::Object
     end
     def inherited_property prop,state=:normal
       val = nil
-      document = Rwt::self::Document.from_pointer_with_context(@context,@context.get_global_object.document.to_ptr)
+      document = Rwt::DOM::Document.from_pointer_with_context(@context,@context.get_global_object.document.to_ptr)
       aa = @class.ancestors
       aa.delete_at(0)
       aa.find_all do |a|
@@ -130,7 +130,7 @@ class RObject < JS::Object
   
   def init_instance_css
     return if @_instance_styles
-    setAttribute('id',self_id)
+    dom.setAttribute('id',dom_id)
     @_instance_styles = InstanceStateStyles.new(self)
     sheet = owner_document.get_style_sheets[0]
     sheet.addRule(rule="#{css_selector}","")
@@ -156,7 +156,7 @@ class RObject < JS::Object
     end.each do |c|
       c.init_class_css context
     end
-    document = Rwt::self::Document.from_pointer_with_context(context,context.get_global_object.document.to_ptr)
+    document = Rwt::DOM::Document.from_pointer_with_context(context,context.get_global_object.document.to_ptr)
     @_class_styles[context] = ClassStateStyles.new(self,context)
     sheet = document.get_style_sheets[0]
     if sheet.has_rule?("#{css_selector}")
@@ -183,14 +183,14 @@ class RObject < JS::Object
   end
   
   def self.apply_style state=:normal,&b
-    #(@state_styles||={})[state]=b
+    (@state_styles||={})[state]=b
   end
   
   def self.apply_class cls,&b
-    #(@modifier_styles||={})[cls]=b
+    (@modifier_styles||={})[cls]=b
   end
   def self.set_modifier_styles(context)
-    document = Rwt::self::Document.from_pointer_with_context(context,context.get_global_object.document.to_ptr)
+    document = Rwt::DOM::Document.from_pointer_with_context(context,context.get_global_object.document.to_ptr)
     sheet = document.get_style_sheets[0]
     (@modifier_styles||={}).each_pair do |m,b|
       if sheet.has_rule?("#{css_selector}.#{m}")
@@ -204,7 +204,7 @@ class RObject < JS::Object
   end
   
   def apply_style state=:normal,&b
-    #b.call instance_state_styles[state],instance_state_styles
+    b.call instance_state_styles[state],instance_state_styles
   end
   
   def self.class_state_styles context
@@ -216,11 +216,11 @@ class RObject < JS::Object
     f=camel_case(m)
 
     define_method m do
-      @_style.send(f)
+      @_dom.style.send(f)
     end
     
     define_method m.to_s+"=" do |val|
-      @_style.send(f+"=",val)
+      @_dom.style.send(f+"=",val)
     end
   end
   
@@ -228,11 +228,11 @@ class RObject < JS::Object
     a = m.to_s.split("_")
     f = a[0]+a[1..a.length-1].map do |q| q.capitalize end.join
     define_method m do
-      send(f)
+      @_dom.send(f)
     end
     
     define_method m.to_s+"=" do |val|
-      send(f+"=",val)
+      @_dom.send(f+"=",val)
     end unless m == :owner_document
   end
   
@@ -245,14 +245,14 @@ class RObject < JS::Object
   alias :"inner_html=" :"html="
   
   def flex v=nil
-    s=get_computed_value '-webkit-box-flex'
+    s=instance_state_styles[:normal]['-webkit-box-flex']
     return s if !v
-    style['-webkit-box-flex']=v
+    dom.style['-webkit-box-flex']=v
   end
   
   def appendChild child
-    object = child.is_a?(RObject) ? child : RObject.new(child)
-    r = appendChild object
+    object = child.is_a?(RObject) ? child.dom : child
+    r = dom.appendChild object
     on_adopt(child)
     r
   end
@@ -262,50 +262,33 @@ class RObject < JS::Object
   end
   
   def border
-    Border.new(self)
+    Border.new(dom)
   end
-  class << self
-    alias :_new :new
-  end
-  def self.new *o
-    r = allocate
-    r.send :initialize,*o
-    r
-  end
-  def initialize o
-    super o.to_ptr
-    @context = o.context
-    @_self = self
+  
+  def initialize dom
+    @_dom = dom
     @_listeners = {}
     a=self.class.ancestors
     buff = []
     a[0..a.index(RObject)].each do |c|
       buff << "Rwt#{c}".gsub("::",'')
     end
-    self.className = buff.join(" ")
-    self['method'] = method(:yield_method_to_js)
-    @_style = @style = self['style']
+    dom.className = buff.join(" ")
+  end  
+  def self.new *o
+    @_class_styles ||= {}
+    ret = allocate
+    ret.send :initialize,*o
+    init_class_css ret.dom.context if !@_class_styles[ret.dom.context]
+    ret 
   end
-  def yield_method_to_js foo,m,*o
-    send(m,*o)
-  end
-  attr_reader :style
-  #  self['style']
-  #end  
-  #~ def self.new *o
-    #~ @_class_styles ||= {}
-    #~ ret = allocate
-    #~ ret.send :initialize,*o
-    #~ #init_class_css ret.context if !@_class_styles[ret.context]
-    #~ ret 
-  #~ end
   
   def show
-    style.display = @_display
+    dom.style.display = @_display
   end
   
   def get_classes
-    className.split(" ")
+    dom.className.split(" ")
   end
   
   def has_class? c
@@ -315,14 +298,14 @@ class RObject < JS::Object
   def remove_class c
     a = get_classes
     a.delete(c)
-    self.className = a.join(" ")
+    dom.className = a.join(" ")
   end
   
   def add_class c
     return c if has_class?(c)
     a = get_classes.reverse
     a.push(c)
-    self.className = a.reverse.join(" ")
+    dom.className = a.reverse.join(" ")
   end
   
   def replace_class c,nc
@@ -333,38 +316,38 @@ class RObject < JS::Object
   
   def set_resizable resize=true
     if get_computed_value('overflow') == "visible"
-      style.overflow = 'hidden'
+      dom.style.overflow = 'hidden'
     end
     
     if ['both',true,:both,3].index(resize)
-      return style.resize = 'both'
+      return dom.style.resize = 'both'
     end
     if ['vertical',:vertical,1].index(resize)
-      return style.resize = 'vertical'
+      return dom.style.resize = 'vertical'
     end
     if ['horizontal',:horizontal,2].index(resize)
-      return style.resize = 'horizontal'
+      return dom.style.resize = 'horizontal'
     end
-    style.resize = 'none'
+    dom.style.resize = 'none'
   end
   
   def get_computed_value key
-    context.get_global_object.window.getComputedStyle(self)[key]
+    dom.context.get_global_object.window.getComputedStyle(dom)[key]
   end
   
   def hide
     @_display = get_computed_value('display')
-    style.display = "none"
+    dom.style.display = "none"
   end
   
   def dom
-    self
+    @_dom
   end
   
   def on(et,m=nil,&b)
-    if self["on#{et}"] and self["on#{et}"] != :undefined
+    if dom["on#{et}"] and dom["on#{et}"] != :undefined
     else
-      self["on#{et}"] = proc do |this,event|
+      dom["on#{et}"] = proc do |this,event|
         event = Event.new(et,this,event)
         call_listeners(et,event)
       end
@@ -410,17 +393,17 @@ class RObject < JS::Object
 	].find do |q| q.index(scroll) end
 	if s
 	  if [:both,2,true,'both'].index(axis)
-	    style.overflow = s.last
+	    dom.style.overflow = s.last
 	  elsif [:x,0,'x'].index(axis)
-	    style.overflowX = s.last	  
+	    dom.style.overflowX = s.last	  
 	  elsif [:y,1,'y'].index(axis)
-	    style.overflowY = s.last	  
+	    dom.style.overflowY = s.last	  
 	  end
 	end
   end
   
   def get_resizable
-    style['resize'] != 'none'
+    dom.style['resize'] != 'none'
   end  
   alias :'resizable?' :get_resizable
 end
@@ -445,21 +428,11 @@ class Event
 end
 
 class Widget < RObject
-  @@f = nil
   def initialize parent,base = "div"
-    #p [@@f,:at_at_f_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee]
-    @@f ||= JS.execute_script(@@c||=parent.context,"""
-      var a = function(base,par) {
-        ele = document.createElement(base);
-        par.appendChild(ele);
-        return(ele);
-      }
-      a;
-    """)
     parent = RObject.new(parent) unless parent.is_a?(RObject)
-    super @@f.call(base,parent)
-    parent.on_adopt self
-    style['-webkit-box-sizing'] = 'border-box'
+    super parent.ownerDocument.createElement(base)
+    parent.appendChild self
+    dom.style['-webkit-box-sizing'] = 'border-box'
   end 
 end
 
@@ -478,38 +451,31 @@ class Bin < Container
 end
 
 class Box < Container
-
+  apply_style(:normal) do |s,ss|
+    s['display'] = "-webkit-box"
+    s['-webkit-box-align'] = "stretch"
+  end
   def initialize *o
     super
   end
   
   def on_adopt child
-   #child.add_class "boxed"
-   @@e ||= JS.execute_script context,"""
-     var d = function(sty) {
-       sty['-webkit-box-flex'] = 1;
-     };
-     d
-   """
-   child.style['-webkit-box-flex'] = 1;
+   # child.add_class "boxed"
+   child.dom.style['-webkit-box-flex']=1
   end
 end
 
 class VBox < Box
   def initialize *o
     super
-    style['-webkit-box-orient'] = "vertical"
+    dom.style['-webkit-box-orient'] = "vertical"
   end
 end
 
 class HBox < Box
   def initialize *o
     super
-    style['-webkit-box-orient'] = "horizontal"
-  end
-  def on_adopt child
-    super
-    child.width = "100%"
+    dom.style['-webkit-box-orient'] = "horizontal"
   end
 end
 
@@ -517,19 +483,13 @@ class Tabbed < Container
 
 end
 
-
-
-class Pager < Container
-
-end
-
 module Text
   def set_editable bool
-    set_attribute("contenteditable", !!bool)
+    dom.set_attribute("contenteditable", !!bool)
   end
   
   def get_editable
-    get_attribute("contenteditable")
+    dom.get_attribute("contenteditable")
   rescue
     false
   end
@@ -546,7 +506,7 @@ module Text
     super par,*o  
     self.text=value
     set_editable(true)
-    style.overflow = "hidden"
+    dom.style.overflow = "hidden"
   end
 end
 
@@ -561,47 +521,43 @@ end
 class Image < Widget
   def initialize par,src,inline=false,base="img"
     super par,base
-    self.display="inline-block" if inline
-    self.src=src
-    style['margin-top']='3px'
-  end
-  def src= src
+    display="inline-block" if inline
     if src.is_a?(Symbol)
       src = Rwt.THE_APP.images[src]
     end
-    self['src'] = src  
+    self.src = src
+    dom.style['margin-top']='3px'
+  end
+  def src
+    dom["src"]
+  end
+  def src= val
+    dom.src=val
   end
 end
 
 class Panel < VBox
 end
 
-class HAttr < VBox
+class HAttr < HBox
   def initialize *o
     super
-    style['-webkit-box-align']='center'
+    dom.style['-webkit-box-align']='center'
   end
 end
 
 class Iconable < HAttr
-  def initialize parent,icon='',c_base="div",*o
+  def initialize parent,icon=nil,c_base="div",*o
     super parent,c_base,*o
-    @inner = HBox.new self
-    style['-webkit-box-align'] = 'stretch'
-    @inner.style['-webkit-box-align'] = 'center'
-    @icon = Image.new(@inner,icon)
-    @icon.width = 16
+    @bump = Widget.new(self)
+    @icon = Image.new(self,icon)
     @icon.height = 16
-    @content = Widget.new(@inner)
-    style.overflow = 'hidden'
-  end
-
-  def align orient = :left
-    if orient == :left
-      style['-webkit-box-align'] = 'stretch'
-      return
-    end
-    style['-webkit-box-align'] = 'center'  
+    @icon.width = 16
+    @icon.hide if !icon
+    @content = Widget.new(self)
+    @icon.dom.style['-webkit-box-flex']=0
+    @bump.dom.style['-webkit-box-flex']=0
+    Widget.new(self).dom.style['-webkit-box-flex']=0
   end
   
   {:text=>:innerText,:html=>:innerHTML}.each_pair do |k,v|
@@ -616,10 +572,6 @@ class Iconable < HAttr
   
   def icon
     @icon
-  end
-  
-  def set_icon q
-    icon.src= q
   end
   
   private
@@ -655,18 +607,18 @@ class Button < Iconable
     to = Color::RGB.new(*to).darken_by(90)
     s['background-image'] = "-webkit-linear-gradient(top,#{from.html},#{to.html})"
   end
-  def initialize par,value = "",icon=nil,*o
-    super par,icon,*o
+  def initialize par,value = "",*o
+    super par,*o
+    @bump.dom.style['-webkit-box-flex'] = 1
+    dom.id = "foo"
     self.text = value
-    @icon.hide if !icon
-    align :center
   end
 end
 
 class Label < Iconable
   def initialize par,value = "",*o
     super par,*o
-    #self.text=value
+    self.text=value
   end
 end
 
@@ -811,7 +763,7 @@ module Rwt
   end
   
   class App < RubyJS::App
-    HTML = "<html><head><style type='text/css'>#{open('./rwt-styles.css').read}</style></head><body></body></html>"
+    HTML = "<html><head><style type='text/css'>#{open('./rwt.css').read}</style></head><body></body></html>"
     THEME = Theme.new
     attr_reader :images
     def initialize theme=THEME,*o
@@ -832,7 +784,7 @@ module Rwt
     end
     
     def document
-      @d ||= Rwt::DOM::Document.from_pointer_with_context(global_object.context,global_object.document.to_ptr)
+      d = Rwt::DOM::Document.from_pointer_with_context(global_object.context,global_object.document.to_ptr)
     end
     
     def self.new *o
@@ -911,218 +863,52 @@ class AcordionPanel < Panel
   end
 end
 
-class ScrollArea < VBox
+class Pager < HBox
+  apply_style do |s,ss|
+    s['overflow'] = "none"
+  end
 end
-
-class Grid < VBox
-  class Column
-    attr_accessor :object
-    def text
-      @text ||= @object ? @object.text : ''
-    end 
-    def text= val
-      @text = val
-      @object.text = text if @object
-      val
+  class Item < Button
+    apply_style do |s,ss|
+      s['minWidth'] = "30px"
     end
-    def width= i
-      @width = i
-    end
-    def width
-      @width ||= 100
-    end
-    def initialize text='',icon=nil
-      self.text = text
-      @icon = icon
-    end
-    def has_icon?
-      !!@icon
-    end
-  end
-  module Cell
-    def initialize par,grid,value='',*o
-      super par,*o
-      @grid = grid
-      set_attribute 'tabindex',-1
-      self.text = value
-      on :focus do
-        @grid.cell_selected self
-      end
-      on :dblclick do
-        @grid.cell_activated self
-      end
-      on :blur do
-        @grid.cell_deselected self
-      end
-    end
-  end
-  class TextCell < HBox
-    include Cell
-    def initialize *o
-      super
-      style['-webkit-box-align'] =  'center';
-    end
-  end
-  class IconCell < Iconable
-    include Cell
   end
   
+class List < VBox
   class Row < HBox
+    apply_style do |s,ss|
+      s['maxHeight'] = '20px' 
+    end
     attr_reader :cells
     def initialize *o
       super
       @cells = []
     end
-  end
-  class Header < Row
-    class Item < Button
-      def initialize par,grid,*o
-        super par,*o
-        @grid = grid
-        on :click do
-          @grid.header_item_clicked self
-        end
-      end
-      def set col
-        self.text = col.text
-        style.minWidth = style.maxWidth = col.width
-        col.object = self
-      end
-    end
-    def initialize *o
+    def on_adopt child
       super
-      style.minHeight = '31'
-      #style['-webkit-box-flex'] = 0
-    end
-    def create_column col,grid
-      i = Item.new self,grid
-      i.set(col)
-      i
-    end
-    def cell i
-      @cells[i]
+      @cells << child
     end
   end
-  attr_reader :rows,:cols
-  def initialize par,*o
-    super
-    @rows = []
-    @cols = [Column.new]
-    @data = nil
-    @h = VBox.new self
-    @h.style.overflow = 'hidden'
-    @header = Header.new @h
-    @inner = ScrollArea.new self
-    @h.style.minHeight = '32px'
-    @inner.on :scroll do |e|
-      @h.scrollLeft = @inner.scrollLeft
-    end
-    @inner.style.overflow = 'auto'
-    
-    @on_cell_activate = @on_cell_select = @on_cell_deselect = @on_header_item_click = proc do |q| p q end
-  end
-  def set_cols ca
-    @cols = ca
-    ca.each_with_index do |c,i|
-      (col=@header.cell(i)) ? col.set(c) : @header.create_column(c,self)
-    end
-    ca.last.object.style.maxWidth = 'inherit'
-    set_data @data if @data
-  end
-  def set_data data=@data
-    @data = data
-    data.each_with_index do |row,i|
-      r = @rows[i] ||= self.class::Row.new(@inner)
-      row.each_with_index do |cell,ci|
-        next if ci+1 > @cols.length
-        renderer = :TextCell
-        renderer = :IconCell if @cols[ci].has_icon?
-        c = r.cells[ci] ||= self.class.const_get(renderer).new(r,self)
-        c.text = cell
-        c.style.minWidth = c.style.maxWidth = @cols[ci].width
-        if c.is_a?(IconCell)
-          render_icon i,ci,c
-        end
-      end
-      r.cells.last.style.maxWidth = 'inherit' 
+  class Cell < Iconable
+    def initialize par,val,*o
+      super par,*o
     end
   end
-  def on_render_icon &b
-    @render_icon = b
-  end
-  def render_icon r,c,cell
-    (@render_icon||=proc do |*o| end).call r,c,cell
-  end
-  def on_header_item_click &b
-    @on_header_item_click  = b
-  end
-  def header_item_clicked hi
-    @on_header_item_click.call(hi)
-  end
-  def on_cell_activate &b
-    @on_cell_activate  = b
-  end
-  def cell_activated cell
-    @on_cell_activate.call cell
-  end
-  def on_cell_select &b
-    @on_cell_select = b
-  end
-  def cell_selected cell
-    @on_cell_select.call cell
-  end
-  def on_cell_deselect &b
-    @on_cell_select = b
-  end
-  def cell_deselected cell
-    @on_cell_deselect.call cell
-  end
-end
-class RObject
-  def flex q=nil
-    return if !q
-    if q == 0
-      style['-webkit-box-flex'] = q
-      return 
-    end
-    q = q.to_f
-    q = 100 - q
-    q = q/100
-    style['-webkit-box-flex'] = q
-  end
-end
-class List < Grid
   def initialize *o
     super
-    @on_item_select = @on_item_activate = proc do |q| p q end
-    
-    on_cell_activate do |c|
-      break unless (ri = get_row(c))
-      item_activated ri
+    @rows = []
+  end
+  def set_data data
+    data.each_with_index do |row,ri|
+      r = (@rows[ri] ||= add_row)
+      row.each_with_index do |value,ci|
+        cell = @rows[ri].cells[ci] ||= Cell.new(r,value.to_s)
+      end
     end
-    on_cell_select do |c|
-      break unless (ri = get_row(c))
-      item_selected ri
-    end
   end
-  def get_row c
-    r = @rows.find do |r|
-      r.cells.index(c)
-    end
-    return nil if !r
-    ri = @rows.index(r)  
-  end
-  def on_item_activate &b
-    @on_item_activate = b
-  end
-  def on_item_select &b
-    @on_item_select = b
-  end
-  def item_activated idx
-    @on_item_activate.call idx
-  end
-  def item_selected idx
-    @on_item_select.call idx
+  def add_row
+    @rows << r=Row.new(self)
+    r
   end
 end
 Rwt::App.run do |app|
@@ -1134,9 +920,8 @@ Rwt::App.run do |app|
     body = app.document.body
     vb = VBox.new body
     vb.height = "100%"
-    #vb.width = "400px"
     hb = HBox.new vb
-    ac = a = Acordion.new(hb)
+    a = Acordion.new hb
     ap = AcordionPanel.new(a)
     ap.toggle.text = "First"
     TextBox.new(ap)
@@ -1144,7 +929,7 @@ Rwt::App.run do |app|
     ap.toggle.text = "..."
     v=VBox.new(ap)
     w=Widget.new(v)
-    Label.new(w,"A label\nfoo bar")
+    p Label.new(w,"A label\nfoo bar").inner_text
     TextBox.new(v,'').flex 0
     TextBox.new(v,'').flex 0
     h=HBox.new(v)
@@ -1154,40 +939,15 @@ Rwt::App.run do |app|
     ap = AcordionPanel.new(a)
     ap.toggle.text = "Last"
     TextBox.new(ap)
-    #pa = Widget.new hb
-    #pa.style.overflow = 'hidden'    
-    g = List.new(hb)
-    g.on_render_icon do |ridx,cidx,cell|
-      cell.set_icon :test
+    l = List.new(hb)
+    l.flex 2
+    l.set_data [[1,2,3],[1,2,3]]
+    pg = Pager.new(vb)
+    i = nil
+    30.times do
+      i = Item.new(pg,"yy",:test)
     end
-    #pa.flex 0.8
-    ca = []
-    bool = :test
-    8.times do
-      ca << Grid::Column.new("Column #{ca.length}",bool)
-      bool = false
-    end
-    g.set_cols ca
-    data = []
-    50.times do
-      row = []
-      8.times do
-        row << "#{data.length}:#{row.length}"
-      end
-      data << row
-    end
-    g.set_data data
-    data = []
-    50.times do
-      row = []
-      8.times do
-        row << "#{data.length}:eio:#{row.length}"
-      end
-      data << row
-    end
-    g.set_data data
-    a.flex 33.33
-    g.flex 66.66
+    p i.dom["offsetLeft"]
   end
   
   app.display
