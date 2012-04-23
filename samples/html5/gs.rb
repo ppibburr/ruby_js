@@ -1,3 +1,14 @@
+class Object
+  alias :init :initialize
+  def initialize(*o,&b)
+      init *o,&b
+ 
+      ObjectSpace.define_finalizer( self, self.class.finalize(self.class) )
+  end
+  def self.finalize(name)
+    proc { p name }
+  end
+end
 require '/home/ppibburr/rpcs'
 require 'open-uri'
 require './rwt'
@@ -51,7 +62,11 @@ Rwt::App.run do |app|
     sb = SearchBar.new(vb)
     $sl = SearchList.new(vb)
     dl = DownloadList.new(vb)
-    
+    d = []
+    3.times do
+      d << ["1","2","3"]
+    end
+    $sl.set_data d
     sb.button.on :click do
       query = sb.entry.text
       GS.search(query) do |r|
@@ -65,7 +80,7 @@ Rwt::App.run do |app|
     sb.flex 0
     $sl.flex 50
     dl.flex 50
-    $sl.set_data [["a","b","c"],["1","2","3"],["x","y","z"]]
+   # $sl.set_data [["a","b","c"],["1","2","3"],["x","y","z"]]
     DRb.start_service
     Thread.abort_on_exception = true
     GS = DRbObject.new_with_uri($uri)

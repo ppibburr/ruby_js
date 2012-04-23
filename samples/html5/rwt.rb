@@ -284,7 +284,7 @@ class RObject < JS::Object
       buff << "Rwt#{c}".gsub("::",'')
     end
     self.className = buff.join(" ")
-    self['method'] = method(:yield_method_to_js)
+    #self['method'] = method(:yield_method_to_js)
     @_style = @style = self['style']
   end
   def yield_method_to_js foo,m,*o
@@ -363,6 +363,7 @@ class RObject < JS::Object
   end
   
   def on(et,m=nil,&b)
+    return
     if self["on#{et}"] and self["on#{et}"] != :undefined
     else
       self["on#{et}"] = proc do |this,event|
@@ -630,13 +631,13 @@ class Iconable < HAttr
   end
 end
 
-class Input < Iconable
+class Input < Widget
   def initialize *o
-    super
-    @content.extend Text
-    @content.style['-webkit-box-pack']='stretch'
-    @content.set_editable true
-    style.overflow = "hidden"
+    super o[0],'span'
+  #  @content.extend Text
+  #  @content.style['-webkit-box-pack']='stretch'
+    set_attribute 'contenteditable',true
+    style.overflow = "none"
   end
 end
 

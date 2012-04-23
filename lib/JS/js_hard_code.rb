@@ -219,6 +219,8 @@ module JS
 end
 
 
+
+
 class JS::CallBack < Proc
   PROCS = {}
   class << self
@@ -239,7 +241,7 @@ class JS::CallBack < Proc
       
       JS::Value.from_ruby(ctx,block.call(this,*varargs.map do |v| v.to_ruby end)).pointer
     end
-    PROCS[r] = true
+    #PROCS[r] = true
     r
   end
 end
