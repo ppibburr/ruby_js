@@ -216,18 +216,19 @@ class RObject < JS::Object
     f=camel_case(m)
 
     define_method m do
-      @_style.send(f)
+      style.send(f)
     end
     
     define_method m.to_s+"=" do |val|
-      @_style.send(f+"=",val)
+      style.send(f+"=",val)
     end
   end
   
   [:owner_document,:innerHTML,:inner_text].each do |m|
+    f = camel_case m.to_s
     a = m.to_s.split("_")
-    f = a[0]+a[1..a.length-1].map do |q| q.capitalize end.join
     define_method m do
+    p f
       send(f)
     end
     
@@ -274,7 +275,7 @@ class RObject < JS::Object
   end
   attr_accessor :data
   def initialize o
-    super o.to_ptr
+    super o.to_ptr 
     @context = o.context
     @_self = self
     @_listeners = {}
@@ -285,12 +286,15 @@ class RObject < JS::Object
     end
     self.className = buff.join(" ")
     #self['method'] = method(:yield_method_to_js)
-    @_style = @style = self['style']
+    
+  end
+  def style
+    self['style']
   end
   def yield_method_to_js foo,m,*o
     send(m,*o)
   end
-  attr_reader :style
+
   #  self['style']
   #end  
   #~ def self.new *o
@@ -300,6 +304,7 @@ class RObject < JS::Object
     #~ #init_class_css ret.context if !@_class_styles[ret.context]
     #~ ret 
   #~ end
+
   
   def show
     style.display = @_display
@@ -362,8 +367,16 @@ class RObject < JS::Object
     self
   end
   
+  def load_indicator
+    ls = @ld_ind ||= LoadingSpinner.new(self['ownerDocument'].body)
+    ls.style.top = 0
+    ls.style.left = 0
+    ls.style['z-index'] = 1
+    ls
+  end
+  
   def on(et,m=nil,&b)
-    return
+    #return
     if self["on#{et}"] and self["on#{et}"] != :undefined
     else
       self["on#{et}"] = proc do |this,event|
@@ -448,20 +461,18 @@ end
 
 class Widget < RObject
   @@f = nil
-  def initialize parent,base = "div"
-    #p [@@f,:at_at_f_eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee]
-    @@f ||= JS.execute_script(@@c||=parent.context,"""
-      var a = function(base,par) {
-        ele = document.createElement(base);
-        par.appendChild(ele);
-        return(ele);
-      }
-      a;
-    """)
-    parent = RObject.new(parent) unless parent.is_a?(RObject)
-    super @@f.call(base,parent)
-    parent.on_adopt self
-    style['-webkit-box-sizing'] = 'border-box'
+  def initialize parent,base = "div",wrap=nil
+    if !wrap
+      ele = parent['ownerDocument'].createElement(base);
+      p parent#.properties.sort
+      parent['appendChild'].call(ele);
+      parent = RObject.new(parent) unless parent.is_a?(RObject)
+    else
+      ele = parent
+    end
+    super ele
+    parent.on_adopt self if !wrap
+    style['-webkit-box-sizing'] = 'border-box' if !wrap
   end 
 end
 
@@ -631,13 +642,42 @@ class Iconable < HAttr
   end
 end
 
-class Input < Widget
+class Input < Iconable
   def initialize *o
     super o[0],'span'
   #  @content.extend Text
   #  @content.style['-webkit-box-pack']='stretch'
-    set_attribute 'contenteditable',true
+    #@content.set_attribute 'contenteditable',true
     style.overflow = "none"
+    on :click do
+      show_editor
+    end
+  end
+  def show_editor
+    return if @edit
+      w=@content.get_computed_value "width"
+      h=get_computed_value 'height'
+     x = @content.offsetLeft
+     x = x + @content.scrollLeft
+     y = offsetTop
+     y = y + scrollTop
+     o = Widget.new(self,'input')
+     o.set_attribute "type","text"
+     o.style.position = 'absolute'
+     o.style.top = y
+     o.style.left = x
+     o.style['minWidth'] = "#{w}"
+     o.style['maxHeight'] = "#{h}"
+     o.style.backgroundColor = 'inherit'
+     o.style.borderWidth = '0px'
+     append_child o
+     o.focus
+     @edit = true
+     o.on :blur do
+       o.hide
+       self.text = o.value
+       @edit = false
+     end
   end
 end
 
@@ -1028,6 +1068,11 @@ class Grid < VBox
     
     @on_cell_activate = @on_cell_select = @on_cell_deselect = @on_header_item_click = proc do |q| p q end
   end
+  def load_indicator
+    super
+
+    #@inner.load_indicator
+  end
   def set_cols ca
     @cols = ca
     ca.each_with_index do |c,i|
@@ -1074,6 +1119,7 @@ class Grid < VBox
       end
     end
        @inner['innerHTML'] = @inner['innerHTML'] + buff.join
+       @ld_ind.hide if @ld_ind
   end
   def on_render_icon &b
     @render_icon = b
@@ -1149,10 +1195,54 @@ class List < Grid
   def on_item_select &b
     @on_item_select = b
   end
+  
   def item_activated idx
     @on_item_activate.call idx
   end
   def item_selected idx
     @on_item_select.call idx
+  end
+end
+
+class LoadingSpinner < RObject
+  class Bar < RObject
+    def initialize par
+      super par['ownerDocument'].create_element('div')
+      par.append_child self
+      style['-webkit-box-flex']=0
+      #style.opacity = 1
+    end
+    def style
+      @style ||= self['style']
+    end
+  end
+  def initialize par
+    super par['ownerDocument'].create_element('div')
+    par.append_child self
+    style['-webkit-box-flex']=0
+    @q = []
+    12.times do
+      @q << t=Bar.new(self)
+      t.add_class 'foo'
+    end
+
+    def update step
+    GLib.timeout_add(200, 300, (proc do
+      step = 12
+      if step == 12
+        @q = @q.push(@q.shift)
+      end
+    
+      for i in 1..12
+        a = @q[i-1].get_classes.reverse
+        a.delete_at 0
+        a=a.reverse
+        a.push "bar#{i}"
+        @q[i-1]['className']=a.join(" ")
+      end
+      true
+    end),nil,nil) if !@w
+    @w = true
+    end
   end
 end

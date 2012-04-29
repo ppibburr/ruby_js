@@ -103,9 +103,14 @@ module JS
     # @param [FFI::Pointer] buffer The destination byte buffer into which to copy a null-terminated
     # @param [Integer] bufferSize The size of the external buffer in bytes.
     # @return [Integer] The number of bytes written into buffer (including the null-terminator byte).
-    def get_utf8cstring(buffer,bufferSize)
-      res = super(self,buffer,bufferSize)
-      return res
+    def get_utf8cstring()
+      super(self, a=FFI::MemoryPointer.new(:pointer,get_length+1),get_length+1)
+      str = a.read_string
+      return str
+    end
+    
+    def to_s
+      get_utf8cstring
     end
 
     #     Tests whether two JavaScript strings match.

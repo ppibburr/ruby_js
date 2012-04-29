@@ -11,13 +11,14 @@ module RubyJS
       
       @html = html
       @base_uri = base_uri
-      
+      sw = Gtk::ScrolledWindow.new nil,nil
+      sw.add view
       vbox.pack_start top_child,false,true,0
-      vbox.pack_start view,true,true,0    
+      vbox.pack_start sw,true,true,0    
       
       shell.add vbox
       
-      shell.set_size_request 400,400
+      shell.set_size_request 400,440
       shell.signal_connect "delete-event" do
         on_exit
       end   
@@ -114,7 +115,7 @@ module RubyJS
     end
     
     def preload &b
-      view.signal_connect "load-finished" do
+      view.signal_connect "load-started" do
         b.call view.get_main_frame.get_global_object
       end
     end

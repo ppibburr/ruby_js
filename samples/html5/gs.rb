@@ -1,14 +1,4 @@
-class Object
-  alias :init :initialize
-  def initialize(*o,&b)
-      init *o,&b
- 
-      ObjectSpace.define_finalizer( self, self.class.finalize(self.class) )
-  end
-  def self.finalize(name)
-    proc { p name }
-  end
-end
+
 require '/home/ppibburr/rpcs'
 require 'open-uri'
 require './rwt'
@@ -40,6 +30,8 @@ class SearchBar < HBox
   def initialize *o
     super
     @entry = Input.new(self,'')
+    @entry.style['width'] = '350px'
+    flex 90
     @button = Button.new(self,'Search')
     @button.style['max-width'] = '100px'
     self.style['min-height'] = '26px'
@@ -47,26 +39,66 @@ class SearchBar < HBox
 
   end
 end
+QUE = []
+b = proc do
+  p :yui
+  true
+end
+class Que < Array
+  def check
+    while !empty?
+      first.each_pair do |k,v|
+        send k,v
+      end
+      shift
+    end
+  end
+  def method_missing m,v
+    p m
+  end
+end
+class Timer
+  def initialize ctx,&b
+    globj = ctx.get_global_object
+    i = globj['timers'].length
+    c = nil
+    @timer_func = JS::Object.new ctx do
+        @timer = globj.setTimeout("timers[#{i}]()",1000);
+        b.call if b and c
+        c = true
+    end
+    globj['timers'].push @timer_func
+  end
+  def run
+    @timer_func.call
+  end
+end
+#GLib.timeout_add 200,100, b, nil,nil
 Rwt::App.run do |app|
   # runs in an preload
+  GirFFI.setup "JSCore"
   app.images[:test] = "http://google.com/favicon.ico"
   app.images[:google] = "https://www.google.com/images/srpr/logo3w.png"
 
   app.onload do
     body = app.document.body
-    panel = Panel.new body
-    panel.height = "100%"
-    vb = VBox.new panel
+    g= body.context.get_global_object
+    g['timers']=[]
+    body.height = '370px'
+    panel = Panel.new body,nil,true
+    #panel.height = "100%"
+    vb = VBox.new body
     vb.height = "100%"
-
+    
     sb = SearchBar.new(vb)
     $sl = SearchList.new(vb)
     dl = DownloadList.new(vb)
     d = []
-    3.times do
+    QUE = []
+    300.times do
       d << ["1","2","3"]
     end
-    $sl.set_data d
+    QUE << [:search,d]
     sb.button.on :click do
       query = sb.entry.text
       GS.search(query) do |r|
@@ -76,27 +108,38 @@ Rwt::App.run do |app|
       end if query != ""
       nil
     end
+       $sl.load_indicator
+   # $p = LoadingSpinner.new(panel)
+   
+    #$p.style.minHeight = 100
     
+    #$p.style.minWidth = 100
+    #$p.flex 0
+e=nil
+que = Que.new
+que << {:foo=>1}
+Thread.new do
+  sleep(7)
+  que << {:bar=>2}
+end
+Timer.new body.context do
+  que.check
+end.run
     sb.flex 0
+    $p = Widget.new(body)
+    $p.text = "ggg"
+    
     $sl.flex 50
+ #         $sl.load_indicator.show
     dl.flex 50
    # $sl.set_data [["a","b","c"],["1","2","3"],["x","y","z"]]
-    DRb.start_service
-    Thread.abort_on_exception = true
-    GS = DRbObject.new_with_uri($uri)
-    QUE = []
+    #DRb.start_service
+   # Thread.abort_on_exception = true
+  #  GS = DRbObject.new_with_uri($uri)
+    #QUE = []
   end
-
-  GLib.timeout_add(200, 20,proc do
-    Thread.pass
-    QUE.each do |q|
-      QUE.delete q
-      $sl.set_data q[1] if defined?($sl) 
-      
-    end
-    true
-  end, nil,nil)
   GC.start
   app.display
+ # $sl.set_data QUE[0][1]
 end
 

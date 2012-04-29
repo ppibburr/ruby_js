@@ -30,7 +30,7 @@ module JS
     OBJECTS = {}
       attr_accessor :pointer
 	  def self.release ptr
-		puts "#{ptr} released"
+		# puts "#{ptr} released"
 		if is_a?(JS::Object)
 		  OBJECTS.delete(ptr.address)
 		  nil

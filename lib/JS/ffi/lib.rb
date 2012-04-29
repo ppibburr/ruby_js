@@ -37,7 +37,7 @@ module JS
     require File.join(File.dirname(__FILE__),'PropertyNameArray')
 
     extend FFI::Library
-    ffi_lib 'libwebkitgtk-1.0'
+    ffi_lib 'libwebkitgtk-3.0'
 
     typedef :pointer,:JSClassRef
     typedef :pointer,:JSObjectRef
@@ -52,7 +52,7 @@ module JS
     callback :JSObjectCallAsFunctionCallback,[:JSContextRef,:JSObjectRef,:JSObjectRef,:size_t,:pointer,:JSValueRef],:JSValueRef
 
     attach_function :JSEvaluateScript,[:JSContextRef,:JSStringRef,:JSObjectRef,:JSStringRef,:int,:JSValueRef],:JSValueRef
-
+    attach_function :JSCheckScriptSyntax,[:JSContextRef,:JSStringRef,:JSStringRef,:int,:JSValueRef],:bool
     attach_function :JSObjectMake,[:JSContextRef,:JSClassRef,:pointer],:JSObjectRef
     attach_function :JSObjectMakeFunctionWithCallback,[:JSContextRef,:JSStringRef,:JSObjectCallAsFunctionCallback],:JSObjectRef
     attach_function :JSObjectMakeConstructor,[:JSContextRef,:JSClassRef,:pointer],:JSObjectRef
@@ -132,12 +132,13 @@ module JS
     attach_function :JSStringGetLength,[:JSStringRef],:size_t
     attach_function :JSStringGetCharactersPtr,[:JSStringRef],:pointer
     attach_function :JSStringGetMaximumUTF8CStringSize,[:JSStringRef],:size_t
-    attach_function :JSStringGetUTF8CString,[:JSStringRef,:pointer,:size_t],:size_t
+    attach_function :JSStringGetUTF8CString,[:JSStringRef,:pointer,:size_t],:void
     attach_function :JSStringIsEqual,[:JSStringRef,:JSStringRef],:bool
     attach_function :JSStringIsEqualToUTF8CString,[:JSStringRef,:pointer],:bool
     attach_function :JSPropertyNameArrayRetain,[:JSPropertyNameArrayRef],:JSPropertyNameArrayRef
     attach_function :JSPropertyNameArrayRelease,[:JSPropertyNameArrayRef],:void
     attach_function :JSPropertyNameArrayGetCount,[:JSPropertyNameArrayRef],:size_t
     attach_function :JSPropertyNameArrayGetNameAtIndex,[:JSPropertyNameArrayRef,:size_t],:JSStringRef
+    attach_function :JSGarbageCollect,[:JSContextRef],:void
   end
 end

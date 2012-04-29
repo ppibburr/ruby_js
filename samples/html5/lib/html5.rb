@@ -1,7 +1,7 @@
 require 'gir_ffi'
 require 'JS/base'
 
-GirFFI.setup :WebKit,'1.0'
+GirFFI.setup :WebKit,'3.0'
 
 module WebKit::Lib
   attach_function :webkit_web_frame_get_global_context,[:pointer],:pointer

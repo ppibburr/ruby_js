@@ -88,9 +88,9 @@ end
 def JS.read_string(str,rel=true)
   str = JS::String.new(:pointer=>str)
   size = str.get_length
-  str.get_utf8cstring a=FFI::MemoryPointer.new(:pointer,size+1),size+1
+  val = str.get_utf8cstring
   str.release if rel
-  a.read_string()
+  return val
 rescue ArgumentError => e
   puts "FIX ** WARNING ** FIX"
   puts "  change :string type to :pointer in ffi function :JSStringGetUTF8CString"
@@ -241,7 +241,7 @@ class JS::CallBack < Proc
       
       JS::Value.from_ruby(ctx,block.call(this,*varargs.map do |v| v.to_ruby end)).pointer
     end
-    #PROCS[r] = true
+    PROCS[r] = true
     r
   end
 end
@@ -274,7 +274,11 @@ module JS
   
   def self.execute_script(ctx,str,this=nil)
     str_ref = JS::String.create_with_utf8cstring(str)
-    val = JS::Lib.JSEvaluateScript(ctx,str_ref,this,nil,1,nil)
+    if JS::Lib.JSCheckScriptSyntax(ctx,str_ref,nil,0,nil)
+      val = JS::Lib.JSEvaluateScript(ctx,str_ref,this,nil,0,nil)
+    else
+      raise "Script Syntax Error\n#{str_ref.to_s}"
+    end
     str_ref.release
     JS::Value.from_pointer_with_context(ctx,val).to_ruby
   end
