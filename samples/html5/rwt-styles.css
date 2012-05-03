@@ -1,10 +1,10 @@
 .rwtwidget {  }
 .rwtpanel { color: rgb(26, 62, 102); border-top-left-radius: 5px 5px; border-top-right-radius: 5px 5px; border-bottom-right-radius: 5px 5px; border-bottom-left-radius: 5px 5px; -webkit-box-shadow: rgb(199, 199, 199) 0px 1px 1px 0px inset; background-color: rgb(238, 238, 238); padding-top: 6px; padding-right: 6px; padding-bottom: 7px; padding-left: 6px; }
 .boxed { -webkit-box-flex: 1; }
-.rwtbutton { background-image: -webkit-linear-gradient(top, rgb(215, 229, 245), rgb(203, 224, 245)); border-top-width: 1px; border-top-style: solid; border-top-color: rgb(171, 187, 204); border-left-width: 1px; border-left-style: solid; border-left-color: rgb(167, 182, 199); border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: rgb(161, 175, 191); border-right-width: 1px; border-right-style: solid; border-right-color: rgb(167, 182, 199); border-top-left-radius: 12px 12px; border-top-right-radius: 12px 12px; border-bottom-right-radius: 12px 12px; border-bottom-left-radius: 12px 12px; -webkit-box-shadow: white 0px 1px 0px 0px inset; font: normal normal normal 11px/normal 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Geneva, Verdana, sans-serif; line-height: 1; padding-top: 6px; padding-right: 0px; padding-bottom: 7px; padding-left: 0px; text-shadow: rgb(255, 255, 255) 0px 1px 1px; color: rgb(26, 62, 102); }
+.rwtbutton { max-height:26px;background-image: -webkit-linear-gradient(top, rgb(215, 229, 245), rgb(203, 224, 245)); border-top-width: 1px; border-top-style: solid; border-top-color: rgb(171, 187, 204); border-left-width: 1px; border-left-style: solid; border-left-color: rgb(167, 182, 199); border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: rgb(161, 175, 191); border-right-width: 1px; border-right-style: solid; border-right-color: rgb(167, 182, 199); border-top-left-radius: 12px 12px; border-top-right-radius: 12px 12px; border-bottom-right-radius: 12px 12px; border-bottom-left-radius: 12px 12px; -webkit-box-shadow: white 0px 1px 0px 0px inset; font: normal normal normal 11px/normal 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Geneva, Verdana, sans-serif; line-height: 2; padding-top: 0px; padding-right: 0px; padding-bottom: 7px; padding-left: 0px; text-shadow: rgb(255, 255, 255) 0px 1px 1px; color: rgb(26, 62, 102); }
 .rwtinput { background-color: rgb(255, 255, 255); border-top-width: 1px; border-top-style: solid; border-top-color: rgb(171, 187, 204); border-left-width: 1px; border-left-style: solid; border-left-color: rgb(167, 182, 199); border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: rgb(161, 175, 191); border-right-width: 1px; border-right-style: solid; border-right-color: rgb(167, 182, 199); border-top-left-radius: 12px 12px; border-top-right-radius: 12px 12px; border-bottom-right-radius: 12px 12px; border-bottom-left-radius: 12px 12px; -webkit-box-shadow: rgb(238, 238, 238) 0px 1px 0px 0px inset; color: rgb(0, 0, 0); font: normal normal normal 11px/normal 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Geneva, Verdana, sans-serif; line-height: 2; padding-top: 0px; padding-right: 0px; padding-bottom: 7px; padding-left: 0px; }
 .rwttextbox { background-color: rgb(255, 255, 255); border-top-width: 1px; border-top-style: solid; border-top-color: rgb(171, 187, 204); border-left-width: 1px; border-left-style: solid; border-left-color: rgb(167, 182, 199); border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: rgb(161, 175, 191); border-right-width: 1px; border-right-style: solid; border-right-color: rgb(167, 182, 199); border-top-left-radius: 2px 2px; border-top-right-radius: 2px 2px; border-bottom-right-radius: 2px 2px; border-bottom-left-radius: 2px 2px; -webkit-box-shadow: rgb(238, 238, 238) 0px 1px 0px 0px inset; color: rgb(0, 0, 0); font: normal normal normal 11px/normal 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Geneva, Verdana, sans-serif; line-height: 1; padding-top: 6px; padding-right: 0px; padding-bottom: 7px; padding-left: 0px; }
-.rwtlist .rwtvbox:nth-child(2) { background-color: rgb(255, 255, 255); border-left-width: 1px; border-left-style: solid; border-left-color: rgb(167, 182, 199); border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: rgb(161, 175, 191); border-right-width: 1px; border-right-style: solid; border-right-color: rgb(167, 182, 199); border-bottom-right-radius: 2px 2px; border-bottom-left-radius: 2px 2px; border-top-right-radius: 0px 0px; border-top-left-radius: 0px 0px; -webkit-box-shadow: rgb(238, 238, 238) 0px 1px 0px 0px inset;  font: normal normal normal 11px/normal 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Geneva, Verdana, sans-serif; line-height: 1; }
+#.rwtlist .rwtvbox:nth-child(2) { background-color: rgb(255, 255, 255); border-left-width: 1px; border-left-style: solid; border-left-color: rgb(167, 182, 199); border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: rgb(161, 175, 191); border-right-width: 1px; border-right-style: solid; border-right-color: rgb(167, 182, 199); border-bottom-right-radius: 2px 2px; border-bottom-left-radius: 2px 2px; border-top-right-radius: 0px 0px; border-top-left-radius: 0px 0px; -webkit-box-shadow: rgb(238, 238, 238) 0px 1px 0px 0px inset;  font: normal normal normal 11px/normal 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Geneva, Verdana, sans-serif; line-height: 1; }
 @-webkit-keyframes movingbox { 
   0% { opacity: 0; }
   100% { opacity: 1; }
@@ -34,10 +34,10 @@ div.spinner {
 }
 
 .RwtLoadingSpinner {
-      position: fixed;
+      position: relative;
       width: 36px;
       height: 36px;
-
+      z-index: 1000;
 }
 
 .RwtLoadingSpinner div {
@@ -79,6 +79,8 @@ div.spinner {
   border-left-width: 1px;
   border-left-style: solid;
   display: -webkit-box;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .rwtgridcell:last-child {
@@ -180,7 +182,7 @@ div.spinner {
 .rwtbutton:active { background-image: -webkit-linear-gradient(top, rgb(194, 206, 221), rgb(183, 202, 221)); }
 .rwtbutton:target { }
 .rwtbutton:first-child { }
-.rwtacordionpaneltoggle { max-height: 16px; -webkit-box-flex: 0; border-top-left-radius: 0px 0px; border-top-right-radius: 0px 0px; border-bottom-right-radius: 0px 0px; border-bottom-left-radius: 0px 0px; }
+.rwtacordionpaneltoggle { max-height: 26px;min-height: 26px; -webkit-box-flex: 0; border-top-left-radius: 0px 0px; border-top-right-radius: 0px 0px; border-bottom-right-radius: 0px 0px; border-bottom-left-radius: 0px 0px; }
 .rwtacordionpaneltoggle:focus { }
 .rwtacordionpaneltoggle:hover { }
 .rwtacordionpaneltoggle:active { }

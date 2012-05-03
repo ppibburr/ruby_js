@@ -206,6 +206,10 @@ class JS::Object
     return nil if !context.is_a?(JS::Lib::GlobalContext)
     JS::OBJECT(context).prototype['toString']['call'].call(obj) == "[object Array]"
   end
+  def self.is_node_list(context,obj)
+    return nil if !context.is_a?(JS::Lib::GlobalContext)
+    JS::OBJECT(context).prototype['toString']['call'].call(obj) == "[object NodeList]"
+  end
 end
 
 module JS 
@@ -292,14 +296,18 @@ module JS
   class Object
     include Enumerable
     def each
-      if !JS::Object.is_array(context,self)
-        properties.each do |n|
-          yield(n) if block_given?
-        end
-      else
+      if JS::Object.is_array(context,self)
         for i in 0..length-1
           yield self[i] if block_given?
         end      
+      elsif  JS::Object.is_node_list(context,self)
+        for i in 0..length-1
+          yield self[i] if block_given?
+        end 
+      else
+        properties.each do |n|
+          yield(n) if block_given?
+        end        
       end
     end
   

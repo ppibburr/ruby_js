@@ -67,11 +67,7 @@ def camel_case m
 end
 
 
-class RObject < JS::Object
-  def self.css_selector
-    ".Rwt#{name.gsub("::",'')}"
-  end
-
+module Observable
   def self_id
     "#{self.class.css_selector.gsub(/^\./,'')}_#{object_id.to_s(16)}"
   end
@@ -79,138 +75,6 @@ class RObject < JS::Object
   def css_selector
     "##{self_id}"
   end
-  
-  class StateStyles
-    def []= k,v
-      @states[k] = v
-    end
-    def [] k
-      @states[k]
-    end
-    def states
-      @states 
-    end
-    def initialize *o
-      @states = {}
-    end
-    def get_property_value prop,state=:normal
-      self.states[state].getPropertyValue(prop) || inherited_property(prop,state)
-    end
-  end
-  
-  class InstanceStateStyles < StateStyles
-    def initialize obj
-       super
-      @instance = obj
-    end
-    def inherited_property prop,state=:normal
-      @instance.class.class_state_styles(@instance.context).get_property_value(prop,state)
-    end
-  end
-  
-  class ClassStateStyles < StateStyles
-    def initialize klass,context
-      super
-      @class = klass
-      @context = context
-    end
-    def inherited_property prop,state=:normal
-      val = nil
-      document = Rwt::self::Document.from_pointer_with_context(@context,@context.get_global_object.document.to_ptr)
-      aa = @class.ancestors
-      aa.delete_at(0)
-      aa.find_all do |a|
-        a.ancestors.find do |c| c == RObject end
-      end.find do |a|
-        val = a.class_state_styles(@context).get_property_value(prop,state)
-      end
-      val
-    end
-  end
-  
-  def init_instance_css
-    return if @_instance_styles
-    setAttribute('id',self_id)
-    @_instance_styles = InstanceStateStyles.new(self)
-    sheet = owner_document.get_style_sheets[0]
-    sheet.addRule(rule="#{css_selector}","")
-    @_instance_styles[:normal] = sheet.get_rule(rule).style
-    [:focus,:hover,:active,:target,:'first-child'].each do |s|
-      sheet.addRule(rule="#{css_selector}:#{s}","")
-      @_instance_styles[s] =  sheet.get_rule(rule).style 
-    end
-    @_instance_styles
-  end
-  
-  def instance_state_styles
-    @_instance_styles ||= init_instance_css
-  end
-  
-  def self.init_class_css context
-    @_class_styles ||= {}
-    return if @_class_styles[context]
-    aa=ancestors
-    aa.delete_at 0
-    aa.find_all do |c|
-      c.ancestors.index(RObject)
-    end.each do |c|
-      c.init_class_css context
-    end
-    document = Rwt::self::Document.from_pointer_with_context(context,context.get_global_object.document.to_ptr)
-    @_class_styles[context] = ClassStateStyles.new(self,context)
-    sheet = document.get_style_sheets[0]
-    if sheet.has_rule?("#{css_selector}")
-      rule = sheet.get_rule("#{css_selector}")
-      @_class_styles[context][:normal] = rule.style
-    else
-      sheet.addRule(rule="#{css_selector}","")
-      @_class_styles[context][:normal] = sheet.get_rule(rule).style
-    end
-    [:focus,:hover,:active,:target,:'first-child'].each do |s|
-      if sheet.has_rule?("#{css_selector}:#{s}")
-        sheet.addRule(rule="#{css_selector}:#{s}","")
-        @_class_styles[context][s] = sheet.get_rule(rule).style
-      else
-        sheet.addRule(rule="#{css_selector}:#{s}","")
-        @_class_styles[context][s] =  sheet.get_rule(rule).style 
-      end
-    end
-    (@state_styles||={}).each_pair do |s,b|
-      b.call @_class_styles[context][s],@_class_styles[context]
-    end
-    set_modifier_styles(context)
-    @_class_styles[context]
-  end
-  
-  def self.apply_style state=:normal,&b
-    #(@state_styles||={})[state]=b
-  end
-  
-  def self.apply_class cls,&b
-    #(@modifier_styles||={})[cls]=b
-  end
-  def self.set_modifier_styles(context)
-    document = Rwt::self::Document.from_pointer_with_context(context,context.get_global_object.document.to_ptr)
-    sheet = document.get_style_sheets[0]
-    (@modifier_styles||={}).each_pair do |m,b|
-      if sheet.has_rule?("#{css_selector}.#{m}")
-        rule = sheet.get_rule("#{css_selector}.#{m}")
-        b.call rule.style,nil
-      else
-        sheet.addRule(rule="#{css_selector}.#{m}","")
-        b.call sheet.get_rule(rule)['style'],nil
-      end
-    end
-  end
-  
-  def apply_style state=:normal,&b
-    #b.call instance_state_styles[state],instance_state_styles
-  end
-  
-  def self.class_state_styles context
-    @_class_styles ||= {}
-    @_class_styles[context] ||= init_class_css context
-  end  
 
   [:background_color,:color,:width,:height,:border_color,:border_style,:border_radius,:display].each do |m|
     f=camel_case(m)
@@ -265,31 +129,14 @@ class RObject < JS::Object
   def border
     Border.new(self)
   end
-  class << self
-    alias :_new :new
-  end
-  def self.new *o
-    r = allocate
-    r.send :initialize,*o
-    r
-  end
+
   attr_accessor :data
-  def initialize o
-    super o.to_ptr 
-    @context = o.context
-    @_self = self
-    @_listeners = {}
-    a=self.class.ancestors
-    buff = []
-    a[0..a.index(RObject)].each do |c|
-      buff << "Rwt#{c}".gsub("::",'')
-    end
-    self.className = buff.join(" ")
-    #self['method'] = method(:yield_method_to_js)
-    
+
+  def self.extended q
+    q.instance_variable_set "@_listeners", {}  
   end
   def style
-    self['style']
+    @style ||= self['style']
   end
   def yield_method_to_js foo,m,*o
     send(m,*o)
@@ -368,18 +215,20 @@ class RObject < JS::Object
   end
   
   def load_indicator
-    ls = @ld_ind ||= LoadingSpinner.new(self['ownerDocument'].body)
-    ls.style.top = 0
-    ls.style.left = 0
+    ls = @ld_ind ||= LoadingSpinner.new(self)
+    ls.style.top = (clientHeight/2)-25
+    ls.style.left = (clientWidth/2)-25
     ls.style['z-index'] = 1
     ls
   end
   
   def on(et,m=nil,&b)
     #return
-    if self["on#{et}"] and self["on#{et}"] != :undefined
+    @e||={}
+    @@o ||= context.get_global_object['rwt_object_add_event']
+    if @e[et]
     else
-      self["on#{et}"] = proc do |this,event|
+      @@o.call self,et.to_s do |this,event|
         event = Event.new(et,this,event)
         call_listeners(et,event)
       end
@@ -440,6 +289,43 @@ class RObject < JS::Object
   alias :'resizable?' :get_resizable
 end
 
+
+class RObject < JS::Object
+  include Observable
+  def self.css_selector
+    ".Rwt#{name.gsub("::",'')}"
+  end
+  class << self
+    alias :_new :new
+  end
+  def self.new *o
+    r = allocate
+    r.send :initialize,*o
+    r
+  end
+  def self.cast *o
+    r = allocate
+    o.push false
+    r.send :initialize,*o
+    r
+  end
+  def initialize o,bool=true
+    super o.to_ptr 
+    @context = o.context
+    @_self = self
+    if bool
+    a=self.class.ancestors
+    buff = []
+    a[0..a.index(RObject)].each do |c|
+      buff << "Rwt#{c}".gsub("::",'')
+    end
+    self.className = buff.join(" ")
+    #self['method'] = method(:yield_method_to_js)
+    end
+    @_listeners = {}  
+  end
+end
+
 class Event
   attr_reader :type,:this,:event
   def initialize type,this,event
@@ -462,10 +348,9 @@ end
 class Widget < RObject
   @@f = nil
   def initialize parent,base = "div",wrap=nil
+    @@f ||= parent.context.get_global_object['rwt_widget_create']
     if !wrap
-      ele = parent['ownerDocument'].createElement(base);
-      p parent#.properties.sort
-      parent['appendChild'].call(ele);
+      ele = @@f.call parent,base,true
       parent = RObject.new(parent) unless parent.is_a?(RObject)
     else
       ele = parent
@@ -643,8 +528,8 @@ class Iconable < HAttr
 end
 
 class Input < Iconable
-  def initialize *o
-    super o[0],'span'
+  def initialize par,value="",icon="",*o
+    super par,icon,'span'
   #  @content.extend Text
   #  @content.style['-webkit-box-pack']='stretch'
     #@content.set_attribute 'contenteditable',true
@@ -683,26 +568,8 @@ end
 
 class Button < Iconable
   require 'color'
-  apply_style :hover do |s,ss|
-    next unless gradient=ss.get_property_value("background-image")
-    from,to = gradient.scan(/rgb\(.*?\)/).map do |rgb|
-      rgb.scan(/[0-9]+/).map do |a| a.to_i end
-    end
-    from = Color::RGB.new(*from).lighten_by(50)
-    to = Color::RGB.new(*to).lighten_by(50)
-    s['background-image'] = "-webkit-linear-gradient(top,#{from.html},#{to.html})"
-  end
-  apply_style :active do |s,ss|
-    next unless gradient=ss.get_property_value("background-image")
-    from,to = gradient.scan(/rgb\(.*?\)/).map do |rgb|
-      rgb.scan(/[0-9]+/).map do |a| a.to_i end
-    end
-    from = Color::RGB.new(*from).darken_by(90)
-    to = Color::RGB.new(*to).darken_by(90)
-    s['background-image'] = "-webkit-linear-gradient(top,#{from.html},#{to.html})"
-  end
   def initialize par,value = "",icon=nil,*o
-    super par,icon,*o
+    super par,icon,'span',*o
     self.text = value
     @icon.hide if !icon
     align :center
@@ -857,7 +724,7 @@ module Rwt
   end
   
   class App < RubyJS::App
-    HTML = "<html><head><style type='text/css'>#{open('./rwt-styles.css').read}</style></head><body></body></html>"
+    HTML = "<html><head><style type='text/css'>#{open('./rwt-styles.css').read}</style><script type=\"text/javascript\">#{open('./rwt.js').read}</script></head><body></body></html>"
     THEME = Theme.new
     attr_reader :images
     def initialize theme=THEME,*o
@@ -920,39 +787,17 @@ class Acordion < VBox
 end
 
 class AcordionPanel < Panel
-  apply_class "collapsed" do |s,ss|
-    s.display = 'none'
-  end
   class Toggle < Button
-    apply_style do |s,ss|
-      s.maxHeight="16px"
-      s['-webkit-box-flex'] = 0
-      s['-webkit-border-radius'] = '0px'
-    end
-    apply_class "first" do |s,ss|
-      s['-webkit-border-top-left-radius'] = '3px'
-      s['-webkit-border-top-right-radius'] = '3px'
-    end
-    apply_class "last" do |s,ss|
-      s['-webkit-border-bottom-left-radius'] = '3px'
-      s['-webkit-border-bottom-right-radius'] = '3px'
-    end
     def initialize par,control,*o
       super par,*o
       @control = control
     end
   end
   attr_reader :toggle
-  apply_style do |s,ss|
-    s['-webkit-border-radius']='0px'
-  end
-  apply_class "last" do |s,ss|
-    s['-webkit-border-bottom-left-radius'] = '3px'
-    s['-webkit-border-bottom-right-radius'] = '3px'
-  end
-  def initialize par,*o
+  def initialize par,header="",*o
     @toggle = Toggle.new(par,control=self)
     super par,*o
+    toggle.text = header
     add_class "collapsed"
   end
 end
@@ -988,9 +833,12 @@ class Grid < VBox
   module Cell
     def initialize par,grid,value='',*o
       super par,*o
-      @grid = grid
       set_attribute 'tabindex',-1
       self.text = value
+      @grid = grid
+      wrap
+    end
+    def wrap 
       on :focus do
         @grid.cell_selected self
       end
@@ -1000,6 +848,10 @@ class Grid < VBox
       on :blur do
         @grid.cell_deselected self
       end
+    end
+    def self.extended q
+      super
+      q.wrap
     end
   end
   class TextCell < HBox
@@ -1037,7 +889,7 @@ class Grid < VBox
     end
     def initialize *o
       super
-      style.minHeight = '31'
+      style.minHeight = 26
       #style['-webkit-box-flex'] = 0
     end
     def create_column col,grid
@@ -1059,19 +911,29 @@ class Grid < VBox
     @h.style.overflow = 'hidden'
     @header = Header.new @h
     @inner = ScrollArea.new self
-    @h.style.minHeight = '32px'
-    @h.style.maxHeight = '32px'
+    @h.style.minHeight = '26px'
+    @h.style.maxHeight = '26px'
     @inner.on :scroll do |e|
       @h.scrollLeft = @inner.scrollLeft
     end
+    @wrp_cells = {}
+    set_attribute('tabindex',-1)
+    @inner.set_attribute('tabindex',-1)
     @inner.style.overflow = 'auto'
-    
+    @inner.on :click do |event|
+      t = event.event.target 
+      if t.className.split(" ").map do |c| c.downcase end.index("rwtgridcell")
+        cell_selected(t)
+      end
+    end
+    @inner.on :dblclick do |event|
+      t = event.event.target
+      cell_activated(t) if t.className.split(" ").map do |c| c.downcase end.index("rwtgridcell")
+    end
     @on_cell_activate = @on_cell_select = @on_cell_deselect = @on_header_item_click = proc do |q| p q end
   end
   def load_indicator
-    super
-
-    #@inner.load_indicator
+    @inner.load_indicator
   end
   def set_cols ca
     @cols = ca
@@ -1081,25 +943,29 @@ class Grid < VBox
     ca.last.object.style.maxWidth = 'inherit'
     set_data @data if @data
   end
-  def set_data data=@data
-    @data = data
+  def set_data data
+    @data=data
     buff = []
     code = ""
+    r=nil
     cells=[]
-    @inner['innerHTML'] = ''
-    @rows = []
-
+    has_d = nil
+ #   @inner['innerHTML'] = ''
+    @rows ||= []
+    df = context.get_global_object.document.createDocumentFragment()
                     rx = /(tabindex\=\"-1\"\>)(.*?)(\<\/div\>)/
 
     data.each_with_index do |row,i|
-     if i == 0
-      r = @rows[i] ||= self.class::Row.new(@inner)
+     if i == 0 and !@rows[i]
+      has_d = true
+      r = @rows[i] ||= self.class::Row.new(df)
       row.each_with_index do |cell,ci|
         next if ci+1 > @cols.length
         renderer = :TextCell
         renderer = :IconCell if @cols[ci].has_icon?
         c = r.cells[ci] ||= self.class.const_get(renderer).new(r,self)
         c.text = cell
+        c['row']=i
         c.style['display'] = c.get_computed_value('display')
         c.style.minWidth = c.style.maxWidth = @cols[ci].width
         if c.is_a?(IconCell)
@@ -1107,19 +973,46 @@ class Grid < VBox
         end
       end
       r.cells.last.style.maxWidth = 'inherit' 
-      code = r['outerHTML']
-      cells = code.scan rx
-     else
-     q=code
+   #   code = r['outerHTML']
+   #   cells = code.scan rx
+     elsif 0 == 9
+       q=code
        row.each_with_index do |cv,ci|
              next if ci+1 > @cols.length
              q = q.gsub(cells[ci].join,cells[ci][0]+cv+cells[ci][2])
-        end
+       end
          buff << q
-      end
+     elsif !@rows[i]
+       has_d = true
+       df.appendChild d=r.cloneNode(true)
+       
+       a=d.getElementsByClassName("RwtGridCell")
+       for x in 0..a.length-1
+         cl = RObject.cast(a.item(x))
+         cl.set_property('row',i)
+         cl.set_property "innerText", row[x]
+       end
+       @rows[i] = d
+     else
+       d = @rows[i]
+       a=d.getElementsByClassName("RwtGridCell")
+       for x in 0..a.length-1
+         cl = RObject.cast(a.item(x))
+         cl.set_property('row',i)
+         cl.set_property "innerText", row[x]
+       end
+     end
     end
-       @inner['innerHTML'] = @inner['innerHTML'] + buff.join
-       @ld_ind.hide if @ld_ind
+      # df['innerHTML'] = df['innerHTML'].force_encoding("UTF-8") + (buff.join.force_encoding("UTF-8"))
+      # @inner.getElementsByClassName("RwtGridRow").each_with_index do |r,i|
+      #   r.getElementsByClassName("RwtGridCell").each do |c|
+      #     c['row'] = i
+      #   end
+      # end
+   # @inner.show
+   if has_d
+     @inner['appendChild'].call(df)
+   end
   end
   def on_render_icon &b
     @render_icon = b
@@ -1172,15 +1065,6 @@ class List < Grid
   def initialize *o
     super
     @on_item_select = @on_item_activate = proc do |q| p q end
-    
-    on_cell_activate do |c|
-      break unless (ri = get_row(c))
-      item_activated ri
-    end
-    on_cell_select do |c|
-      break unless (ri = get_row(c))
-      item_selected ri
-    end
   end
   def get_row c
     r = @rows.find do |r|
@@ -1244,5 +1128,19 @@ class LoadingSpinner < RObject
     end),nil,nil) if !@w
     @w = true
     end
+  end
+end
+class Audio < RObject
+  def initialize par,src=nil
+    ele = par['ownerDocument'].create_element "audio"
+    ele.set_attribute "controls","controls"
+    super ele
+    par['appendChild'].call self
+    self.open(src) if src
+  end
+  def open(src)
+    set_attribute "src",src
+    self['load'].call()
+    play()
   end
 end
