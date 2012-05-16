@@ -1,6 +1,67 @@
 if __FILE__ == $0
   require './rwt'
 end
+class Pager < HBox
+  attr_reader :next,:prev,:menu,:first,:last,:current
+  class Button < ::Button
+    def initialize par,value, *o
+      super par,*o
+      self.text = value
+      @inner.attr.hide
+    end
+  end
+  class GoTo < Input
+    def initialize *o
+      super
+      @inner.attr.hide
+      edit_on :focus
+    end
+    def end_edit *o
+      super
+      parentNode.page(value.to_i)
+    end
+  end
+  def initialize *o
+    super
+    flex 0
+    @min = 0
+    @max = 0
+    @current = 0
+    @first = Button.new(self,"<<")
+    @prev = Button.new(self,"<")
+    @goto = GoTo.new(self)
+    @next = Button.new(self,">")
+    @last = Button.new(self,">>")
+    
+    @first.on :click do
+      page(@min)
+    end
+    @last.on :click do
+      page(@max)
+    end
+    @next.on :click do
+      page @current+1 unless @current == @max
+    end
+    @prev.on :click do
+      page @current-1 unless @current == @min
+    end
+  end
+  def on_page &b
+    @on_page_cb = b
+  end
+  def set_page i
+    @current = i
+    @goto.value = i
+  end 
+  def page(i)
+    @current = i
+    @goto.value = i
+    @on_page_cb.call(i) if @on_page_cb
+  end
+  def update len
+    @max = len
+  end
+end
 class Grid < VBox
   attr_reader :columns
   def focus_cell c
@@ -75,28 +136,43 @@ class Grid < VBox
     end
   end
   
-  def initialize par,*o
-    super
+  def initialize par,page_at=nil,*o
+    super par,*o
     set_id
     @rows = []
     @data = nil
     @h = VBox.new self
-    
     @h.style.overflow = 'hidden'
     
     @header = Header.new @h
     @inner = Content.new self
-    
+    @pager = Pager.new(self)
     @h.style.minHeight = '26px'
     @h.style.maxHeight = '26px'
-    
+  
     on_cell_edited do |cell,value|
       true
     end
+    
+    @pager.on_page do |i|
+      s = i*@page_at
+      e = s+@page_at-1
+      render(@data[s..e])
+    end
+    
+    set_paging page_at
   end
   
   def update_scroll(amt)
     @h.scrollLeft = amt 
+  end
+  
+  def set_paging amt
+    if !amt
+      @pager.hide
+    else
+      @page_at = amt
+    end
   end
   
   def rows
@@ -125,7 +201,7 @@ class Grid < VBox
     data.last.set_expander() if !expander
   end
   
-  def set_data data
+  def display data
     f = FStore.new()
     f.add(self['ownerDocument'],
                     :append_child,
@@ -135,9 +211,11 @@ class Grid < VBox
 
     ca = []
     _rows = rows()
-
+    cloning_first = false
+    
     data.each_with_index do |r,ri|
       if _rows.empty?
+        cloning_first = true
         row = Row.new(@inner)
       
         r.each_with_index do |v,ci|
@@ -145,11 +223,11 @@ class Grid < VBox
           ca << cell = column.cell_type.new(row)
           cell.add_class "column#{ci}"
         end
+        
         w = 0
         columns.map do |c| w += c.width end
-        row.style.minWidth = w
+        @header.style.minWidth = (row.style.minWidth = w)+26
         _rows << row
-
       elsif ri == _rows.length
         r.each_with_index do |c,ci|
           columns[ci].renderer.render ca[ci],c
@@ -165,22 +243,41 @@ class Grid < VBox
           cell._space_pos = ca[ci]._space_pos
           cell = cell.nextSibling
         end
+        
         f.append_child @inner,row
         _rows << row
       else
         row = _rows[ri]
         cell = row.firstChild
-      
+        
         r.each_with_index do |c,ci|
           columns[ci].renderer.render cell,c
           cell = cell.nextSibling
         end
       end
-      
-      data[0].each_with_index do |c,ci|
-        columns[ci].renderer.render ca[ci],c
-      end
     end
+    
+    if data.length < rows.length
+      qi = rows.length-data.length
+      dt = []
+    
+      columns.each do |qc|
+        dt << ""
+      end
+    
+      for ni in 0..qi-1
+        row = _rows[_rows.length-1-ni]
+        cell = row.firstChild
+        columns.each_with_index do |c,ci|
+          columns[ci].renderer.render cell,""
+          cell = cell.nextSibling
+        end
+      end
+    end 
+    
+    data[0].each_with_index do |c,ci|
+      columns[ci].renderer.render ca[ci],c
+    end if cloning_first
   end
   
   def cell r,c
@@ -189,11 +286,23 @@ class Grid < VBox
     end
   end
   
+  def set_data data
+    @data = data
+    if @page_at
+      @pager.set_page 0
+      render data[0..@page_at-1]
+      @pager.update(((@data.length/@page_at.to_f)-1).ceil.to_i)
+    else
+      render data
+    end
+  end
+  
   # allows to show the widget first then render content 
   def render data
+    p [data.length,:len]
     que.add :data do |data|
       x=Time.now.to_f
-      set_data data
+      display data
       p Time.now.to_f - x
     end
     que << {:data=>data}
@@ -458,7 +567,7 @@ Rwt::App.run do |app|
     
     d = []
     i = 0
-    300.times do
+    305.times do
       r = []
       for c in 0..2
         r << "#{i}:#{c}"
@@ -473,7 +582,7 @@ Rwt::App.run do |app|
       Grid::Column.new('moof',nil,:width=>100)
     ]
     
-    g.render(d)
+    g.set_data(d)
     g.on_header_click do |item|
       p item
     end

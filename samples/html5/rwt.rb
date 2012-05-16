@@ -469,11 +469,6 @@ class Tabbed < Container
 end
 
 
-
-class Pager < Container
-
-end
-
 module Text
   def set_editable bool
     set_attribute("contenteditable", !!bool)
@@ -756,9 +751,10 @@ end
 class Input < Iconable
   include Editable
   
-  def initialize par,val,*o
+  def initialize par,val="",*o
     super par,*o
     self.value = val
+    set_attribute 'tabindex',-1
     valign :center
     edit_on :focus
   end
