@@ -40,7 +40,9 @@ class JS::Value
     elsif is_string
       to_string_copy
     elsif is_object
-      to_object
+      JS::Lib.JSValueProtect(context,self)
+      o=to_object
+     
     elsif is_boolean
       to_boolean
     elsif nil == pointer
@@ -143,7 +145,20 @@ class JS::Object
     res.context = ctx
     return res
   end
-  
+  def store_function n,a=nil
+    a ||= n
+    @stored_funcs||={}
+    @stored_funcs[n] = self[n]
+    class << self
+      self
+    end.class_eval do
+      define_method a do |*o,&b|
+        func = @stored_funcs[n]
+        func.this = self
+        func.call *o,&b
+      end
+    end
+  end
   def [] k
     if k.is_a?(Float) and k == k.to_i
       k = k.to_i
@@ -179,12 +194,13 @@ class JS::Object
   
   def properties
     ary = []
-    for i in 1..copy_property_names.get_count
-      ary << copy_property_names.get_name_at_index(i-1)
+    for i in 1..(a=copy_property_names).get_count
+      ary << a.get_name_at_index(i-1)
     end
+    JS::Lib.JSPropertyNameArrayRelease(a)
     ary
   end
-  
+
   def functions
     ary = []
     properties.each do |prop|
@@ -242,7 +258,7 @@ class JS::CallBack < Proc
       end
 
       this = JS::Object.from_pointer_with_context(ctx,this) if this.is_a?(FFI::Pointer)
-      
+
       JS::Value.from_ruby(ctx,block.call(this,*varargs.map do |v| v.to_ruby end)).pointer
     end
     PROCS[r] = true

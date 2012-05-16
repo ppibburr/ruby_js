@@ -63,30 +63,44 @@ class JS::RubyObject < JS::Object
   def object_has_property? n
     if object.respond_to?(n)
       true
+    elsif object.private_methods.index(n.to_sym)
+      true
+    elsif object.respond_to?(:constants)
+      !!object.constants.index(n.to_sym)
     else
       nil
     end   
   end
-  
+  def js_send this,*o,&b
+    send *o,&b
+  end
   def object_get_property n
     return nil if !object_has_property?(n)
-    m=object.method(n)
-    o=JS::Object.new(context) do |*o1|
-      this = o1[0]
-      o1.delete_at(0)
-      closure = nil
-      if o1.last.is_a?(JS::Object) and o1.last.is_function()
-        function = o1.last
-        closure = proc do |*a|
-          function.context = context # FIXME: nasty find out why
-          function.call(*a)
+    m = nil
+    
+    if object.respond_to?(n) or object.private_methods.index(n.to_sym)
+      m =object.method(n)
+    elsif object.respond_to?(:constants)
+      m = object.const_get n.to_sym
+    end
+    
+    o = nil
+    
+    if m.respond_to?(:call)
+      o = JS::Object.new(context) do |*a|
+        this = a.shift
+        closure = nil
+        if a.last.is_a?(JS::Object) and a.last.is_function
+          closure = a.pop
+          closure.context = context
         end
-        o1.delete_at(o1.length-1)
+        q=m.call(*a) do |*args|
+          closure.call(*args) if closure
+        end
+        JS::Value.from_ruby(context,q)
       end
-      q = m.call(*o1) do |*ab|
-        closure.call *ab if function
-      end
-      JS::Value.from_ruby(context,q)
+    else
+      o = m
     end
 
     v = JS::Value.from_ruby(context,o)#.to_ptr

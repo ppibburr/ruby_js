@@ -92,7 +92,6 @@ module Observable
     f = camel_case m.to_s
     a = m.to_s.split("_")
     define_method m do
-    p f
       send(f)
     end
     
@@ -101,7 +100,6 @@ module Observable
     end unless m == :owner_document
   end
   
-  alias :ownerDocument :owner_document
   alias :text :inner_text
   alias :html :innerHTML
   alias :inner_html :html
@@ -221,17 +219,23 @@ module Observable
     ls.style['z-index'] = 1
     ls
   end
-  
+
+  @@o = nil
   def on(et,m=nil,&b)
     #return
     @e||={}
-    @@o ||= context.get_global_object['rwt_object_add_event']
+    if !@@o
+      @@o = context.get_global_object['rwt_object_add_event']
+      @@o.context = context
+    end
     if @e[et]
-    else
-      @@o.call self,et.to_s do |this,event|
+    else;
+      self["on#{et}"] = proc do |this,event|
         event = Event.new(et,this,event)
         call_listeners(et,event)
+        nil
       end
+      nil
     end
     add_listener et, m ? m : b
   end
@@ -287,13 +291,48 @@ module Observable
     style['resize'] != 'none'
   end  
   alias :'resizable?' :get_resizable
+  
+  def self.create_css_rule document,selector
+    sheet = document.get_style_sheets[0]
+    sheet.add_rule selector
+    rule = sheet.get_rule selector
+  end
+  
+  def set_id
+    self['id'] = self_id
+  end
 end
+
+class FStore
+  def initialize
+  @funcs = {}  
+  end
+  def add q,*o
+    o.each do |m|
+      a=m.to_s.split("_")
+      f = a.shift
+      a = a.map do |q| q.capitalize end.join
+      func = f+a
+      @funcs[m] = q[func]
+      class << self;self;end.class_eval do
+        define_method m do |this,*o,&b|
+          @funcs[m].this = this
+          @funcs[m].call(*o,&b)
+        end
+      end
+    end
+  end
+end
+
 
 
 class RObject < JS::Object
   include Observable
   def self.css_selector
     ".Rwt#{name.gsub("::",'')}"
+  end
+  class << self
+    attr_accessor :foo
   end
   class << self
     alias :_new :new
@@ -303,12 +342,16 @@ class RObject < JS::Object
     r.send :initialize,*o
     r
   end
-  def self.cast *o
-    r = allocate
-    o.push false
-    r.send :initialize,*o
-    r
+  def self.cast obj
+    return obj if obj.is_a?(self)
+    o = allocate
+    m = RObject.instance_method(:initialize)
+    m = m.bind o
+    m.call(obj,false)
+    o
   end
+  
+  @@i = {}
   def initialize o,bool=true
     super o.to_ptr 
     @context = o.context
@@ -323,7 +366,10 @@ class RObject < JS::Object
     #self['method'] = method(:yield_method_to_js)
     end
     @_listeners = {}  
-  end
+    end
+    def self.finalize(id)
+     #   puts "Object #{id} #{@@i[id]} dying at #{Time.new}"
+    end  
 end
 
 class Event
@@ -348,14 +394,19 @@ end
 class Widget < RObject
   @@f = nil
   def initialize parent,base = "div",wrap=nil
-    @@f ||= parent.context.get_global_object['rwt_widget_create']
+    if !@@f
+      @@f = parent.context.get_global_object.document
+      @@f.store_function 'createElement','create_element'
+    end
     if !wrap
-      ele = @@f.call parent,base,true
+      ele = @@f.create_element(base)
       parent = RObject.new(parent) unless parent.is_a?(RObject)
+      parent.store_function 'appendChild','append_child'
+      parent.append_child(ele)
     else
       ele = parent
     end
-    super ele
+    super ele#,!wrap
     parent.on_adopt self if !wrap
     style['-webkit-box-sizing'] = 'border-box' if !wrap
   end 
@@ -396,7 +447,6 @@ end
 class VBox < Box
   def initialize *o
     super
-    style['-webkit-box-orient'] = "vertical"
   end
   def on_adopt child
     super
@@ -407,7 +457,6 @@ end
 class HBox < Box
   def initialize *o
     super
-    style['-webkit-box-orient'] = "horizontal"
   end
   def on_adopt child
     super
@@ -455,7 +504,7 @@ class TextBox < Widget
 end
 
 class Image < Widget
-  def initialize par,src,inline=false,base="img"
+  def initialize par,src='',inline=false,base="img"
     super par,base
     self.display="inline-block" if inline
     self.src=src
@@ -472,114 +521,250 @@ end
 class Panel < VBox
 end
 
-class HAttr < VBox
+class Box
+  def align pos
+    if pos == :center
+      style['-webkit-box-align'] = 'center'
+    else
+      style['-webkit-box-align'] = 'strecth'
+    end
+    pos
+  end
+end
+
+class Hattr < HBox
+  CONTENT_CLASS = Widget
+  ATTR_CLASS = Widget
+  attr_accessor :_attr_pos,:_space_pos,:_content_pos
   def initialize *o
     super
-    style['-webkit-box-align']='center'
-  end
-end
-
-class Iconable < HAttr
-  def initialize parent,icon='',c_base="div",*o
-    super parent,c_base,*o
-    @inner = HBox.new self
-    style['-webkit-box-align'] = 'stretch'
-    @inner.style['-webkit-box-align'] = 'center'
-    @icon = Image.new(@inner,icon)
-    @icon.width = 16
-    @icon.height = 16
-    @content = Widget.new(@inner)
-    style.overflow = 'hidden'
-  end
-
-  def align orient = :left
-    if orient == :left
-      style['-webkit-box-align'] = 'stretch'
-      return
-    end
-    style['-webkit-box-align'] = 'center'  
-  end
-  
-  {:text=>:innerText,:html=>:innerHTML}.each_pair do |k,v|
-    define_method k do
-      @content.send(v)
-    end
+    @_attr = self.class::ATTR_CLASS.new(self)    
+    @_space = Widget.new(self)
+    @_content = self.class::CONTENT_CLASS.new(self) 
     
-    define_method m=k.to_s+"=" do |v|
-      @content.send(m,v)
-    end
+    @_attr_pos = 0 
+    @_space_pos = 1
+    @_content_pos = 2    
+      
+    content.add_class("rwthattrcontent")
+    attr.add_class("rwthattrattr")
+    space.add_class("rwthattrspace")
+
+    store_function "getElementsByClassName"
+
+    attr_pos :left
+  end
+
+  def content;
+    return @_content if @_content 
+    @_content = self.class::CONTENT_CLASS.cast(children(@_content_pos))
+  end
+  def space; @_space ||= getElementsByClassName("rwthattrspace")[0]; end
+  def attr
+    return @_attr if @_attr
+    @_attr = self.class::ATTR_CLASS.cast(children(@_attr_pos))
   end
   
-  def icon
-    @icon
+  def attr_pos pos
+    if pos == :right
+      insertBefore space,attr
+      insertBefore content,space
+      @_attr_pos = 2
+      @_space_pos = 1
+      @_content_pos = 0
+    else
+      insertBefore space,content
+      insertBefore attr,space
+      @_attr_pos = 0 
+      @_space_pos = 1
+      @_content_pos = 2
+    end 
   end
   
-  def set_icon q
-    icon.src= q
+  def set_attr(obj)
+    q=self['replaceChild']
+    q.call obj,attr
+    obj.add_class("rwthattrattr")
+    @_attr = obj
   end
   
-  private
-  def inner
-    @inner
-  end
-  def content
-    @content
+  def set_space i
+    space.style.maxWidth = space.style.minWidth = i
   end
 end
 
-class Input < Iconable
-  def initialize par,value="",icon="",*o
-    super par,icon,'span'
-  #  @content.extend Text
-  #  @content.style['-webkit-box-pack']='stretch'
-    #@content.set_attribute 'contenteditable',true
-    style.overflow = "none"
-    on :click do
-      show_editor
+class HAttrBox < VBox
+  class Layout < Hattr
+    def initialize *o
+      super
+      style.overflow='none'
+    end
+    def text= v
+      content.innerText = v
+    end
+    def value= v
+      self.text = v
+    end
+    def html= v
+      content.innerHTML = v
+    end
+    def text
+      content.innerText
+    end
+    def value
+      self.text
+    end
+    def html
+      content.innerHTML
     end
   end
-  def show_editor
-    return if @edit
-      w=@content.get_computed_value "width"
-      h=get_computed_value 'height'
-     x = @content.offsetLeft
-     x = x + @content.scrollLeft
-     y = offsetTop
-     y = y + scrollTop
-     o = Widget.new(self,'input')
-     o.set_attribute "type","text"
-     o.style.position = 'absolute'
-     o.style.top = y
-     o.style.left = x
-     o.style['minWidth'] = "#{w}"
-     o.style['maxHeight'] = "#{h}"
-     o.style.backgroundColor = 'inherit'
-     o.style.borderWidth = '0px'
-     append_child o
-     o.focus
-     @edit = true
-     o.on :blur do
-       o.hide
-       self.text = o.value
-       @edit = false
-     end
+  attr_reader :inner
+  def initialize *o
+    super
+    @inner = self.class::Layout.new(self)
+    style.overflow='none'
+  end
+  def attr_pos pos
+    @inner.attr_pos pos
+  end
+  def valign pos
+    @inner.align pos
+  end
+  def text= v
+    @inner.text=v
+  end
+  def value= v
+    self.text=v 
+  end
+  def html= v
+    @inner.html=v
+  end 
+  def text
+    @inner.text
+  end
+  def value
+    text
+  end
+  def html
+    @inner.html
   end
 end
 
-class Button < Iconable
-  require 'color'
-  def initialize par,value = "",icon=nil,*o
-    super par,icon,'span',*o
-    self.text = value
-    @icon.hide if !icon
-    align :center
+class Iconable < HAttrBox
+  class Layout < HAttrBox::Layout
+    ATTR_CLASS = Image
+    def initialize par,icon='',*o
+      super par,*o
+      set_icon icon
+      set_space 2
+    end
+    def set_icon src
+      if !src
+        attr.hide
+        space.hide
+      else
+        attr.show
+        space.show
+      end
+      attr.src = src
+    end
+  end
+  
+  def initialize par,icon=nil,*o
+    super par,*o  
+    set_icon icon if icon  
+  end
+  
+  def set_icon src
+    @inner.set_icon src
+    src
   end
 end
 
 class Label < Iconable
-  def initialize par,value = "",*o
+  def initialize par,text='',*o
     super par,*o
-    #self.text=value
+    valign :center
+    self.text=text
+  end
+end
+
+class Button < Label
+  def initialize *o
+    super
+    align :center
+  end
+end
+
+module Editable
+  class Editor < Widget
+    def initialize control,ele = nil
+      ele = control if !ele
+      super control,"input"
+      @control = control
+      set_attribute "type","text"
+      on :blur do
+        control.end_edit value
+      end
+
+      @control = control
+      @ele = ele
+    end
+  
+    def set_value
+      self.value = @control.text
+    end
+   
+    def set_style
+      style.maxWidth = @ele.get_computed_value("width")
+      style.maxHeight = @ele.get_computed_value("height")
+      style.top = @ele.offsetTop.to_i
+      style.left = @ele.offsetLeft.to_i - 4    
+    end
+   
+    def show
+      set_value()
+      super
+      set_style()
+      focus()
+    end
+  end
+  
+  def edit_on event
+    on event do
+      @editor.show
+    end
+  end
+  
+  def end_edit v
+    self.text = v
+    @editor.hide
+  end
+  
+  def initialize *o
+    super
+    @editor = create_editor
+    @editor.hide
+  end
+  
+  def create_editor
+    @editor ||= self.class::Editor.new(self)
+  end
+end
+
+
+class Input < Iconable
+  include Editable
+  
+  def initialize par,val,*o
+    super par,*o
+    self.value = val
+    valign :center
+    edit_on :focus
+  end
+  
+  def create_editor
+    self.class::Editor.new(self,@inner.content)
   end
 end
 
@@ -805,246 +990,7 @@ end
 class ScrollArea < VBox
 end
 
-class Grid < VBox
-  class Column
-    attr_accessor :object
-    def text
-      @text ||= @object ? @object.text : ''
-    end 
-    def text= val
-      @text = val
-      @object.text = text if @object
-      val
-    end
-    def width= i
-      @width = i
-    end
-    def width
-      @width ||= 100
-    end
-    def initialize text='',icon=nil
-      self.text = text
-      @icon = icon
-    end
-    def has_icon?
-      !!@icon
-    end
-  end
-  module Cell
-    def initialize par,grid,value='',*o
-      super par,*o
-      set_attribute 'tabindex',-1
-      self.text = value
-      @grid = grid
-      wrap
-    end
-    def wrap 
-      on :focus do
-        @grid.cell_selected self
-      end
-      on :dblclick do
-        @grid.cell_activated self
-      end
-      on :blur do
-        @grid.cell_deselected self
-      end
-    end
-    def self.extended q
-      super
-      q.wrap
-    end
-  end
-  class TextCell < HBox
-    include Cell
-    def initialize *o
-      super
-      style['-webkit-box-align'] =  'center';
-    end
-  end
-  class IconCell < Iconable
-    include Cell
-  end
-  
-  class Row < HBox
-    attr_reader :cells
-    def initialize *o
-      super
-      @cells = []
-    end
-  end
-  class Header < Row
-    class Item < Button
-      def initialize par,grid,*o
-        super par,*o
-        @grid = grid
-        on :click do
-          @grid.header_item_clicked self
-        end
-      end
-      def set col
-        self.text = col.text
-        style.minWidth = style.maxWidth = col.width
-        col.object = self
-      end
-    end
-    def initialize *o
-      super
-      style.minHeight = 26
-      #style['-webkit-box-flex'] = 0
-    end
-    def create_column col,grid
-      i = Item.new self,grid
-      i.set(col)
-      i
-    end
-    def cell i
-      @cells[i]
-    end
-  end
-  attr_reader :rows,:cols
-  def initialize par,*o
-    super
-    @rows = []
-    @cols = [Column.new]
-    @data = nil
-    @h = VBox.new self
-    @h.style.overflow = 'hidden'
-    @header = Header.new @h
-    @inner = ScrollArea.new self
-    @h.style.minHeight = '26px'
-    @h.style.maxHeight = '26px'
-    @inner.on :scroll do |e|
-      @h.scrollLeft = @inner.scrollLeft
-    end
-    @wrp_cells = {}
-    set_attribute('tabindex',-1)
-    @inner.set_attribute('tabindex',-1)
-    @inner.style.overflow = 'auto'
-    @inner.on :click do |event|
-      t = event.event.target 
-      if t.className.split(" ").map do |c| c.downcase end.index("rwtgridcell")
-        cell_selected(t)
-      end
-    end
-    @inner.on :dblclick do |event|
-      t = event.event.target
-      cell_activated(t) if t.className.split(" ").map do |c| c.downcase end.index("rwtgridcell")
-    end
-    @on_cell_activate = @on_cell_select = @on_cell_deselect = @on_header_item_click = proc do |q| p q end
-  end
-  def load_indicator
-    @inner.load_indicator
-  end
-  def set_cols ca
-    @cols = ca
-    ca.each_with_index do |c,i|
-      (col=@header.cell(i)) ? col.set(c) : @header.create_column(c,self)
-    end
-    ca.last.object.style.maxWidth = 'inherit'
-    set_data @data if @data
-  end
-  def set_data data
-    @data=data
-    buff = []
-    code = ""
-    r=nil
-    cells=[]
-    has_d = nil
- #   @inner['innerHTML'] = ''
-    @rows ||= []
-    df = context.get_global_object.document.createDocumentFragment()
-                    rx = /(tabindex\=\"-1\"\>)(.*?)(\<\/div\>)/
-
-    data.each_with_index do |row,i|
-     if i == 0 and !@rows[i]
-      has_d = true
-      r = @rows[i] ||= self.class::Row.new(df)
-      row.each_with_index do |cell,ci|
-        next if ci+1 > @cols.length
-        renderer = :TextCell
-        renderer = :IconCell if @cols[ci].has_icon?
-        c = r.cells[ci] ||= self.class.const_get(renderer).new(r,self)
-        c.text = cell
-        c['row']=i
-        c.style['display'] = c.get_computed_value('display')
-        c.style.minWidth = c.style.maxWidth = @cols[ci].width
-        if c.is_a?(IconCell)
-          render_icon i,ci,c
-        end
-      end
-      r.cells.last.style.maxWidth = 'inherit' 
-   #   code = r['outerHTML']
-   #   cells = code.scan rx
-     elsif 0 == 9
-       q=code
-       row.each_with_index do |cv,ci|
-             next if ci+1 > @cols.length
-             q = q.gsub(cells[ci].join,cells[ci][0]+cv+cells[ci][2])
-       end
-         buff << q
-     elsif !@rows[i]
-       has_d = true
-       df.appendChild d=r.cloneNode(true)
-       
-       a=d.getElementsByClassName("RwtGridCell")
-       for x in 0..a.length-1
-         cl = RObject.cast(a.item(x))
-         cl.set_property('row',i)
-         cl.set_property "innerText", row[x]
-       end
-       @rows[i] = d
-     else
-       d = @rows[i]
-       a=d.getElementsByClassName("RwtGridCell")
-       for x in 0..a.length-1
-         cl = RObject.cast(a.item(x))
-         cl.set_property('row',i)
-         cl.set_property "innerText", row[x]
-       end
-     end
-    end
-      # df['innerHTML'] = df['innerHTML'].force_encoding("UTF-8") + (buff.join.force_encoding("UTF-8"))
-      # @inner.getElementsByClassName("RwtGridRow").each_with_index do |r,i|
-      #   r.getElementsByClassName("RwtGridCell").each do |c|
-      #     c['row'] = i
-      #   end
-      # end
-   # @inner.show
-   if has_d
-     @inner['appendChild'].call(df)
-   end
-  end
-  def on_render_icon &b
-    @render_icon = b
-  end
-  def render_icon r,c,cell
-    (@render_icon||=proc do |*o| end).call r,c,cell
-  end
-  def on_header_item_click &b
-    @on_header_item_click  = b
-  end
-  def header_item_clicked hi
-    @on_header_item_click.call(hi)
-  end
-  def on_cell_activate &b
-    @on_cell_activate  = b
-  end
-  def cell_activated cell
-    @on_cell_activate.call cell
-  end
-  def on_cell_select &b
-    @on_cell_select = b
-  end
-  def cell_selected cell
-    @on_cell_select.call cell
-  end
-  def on_cell_deselect &b
-    @on_cell_select = b
-  end
-  def cell_deselected cell
-    @on_cell_deselect.call cell
-  end
-end
+require './grid.rb'
 class RObject
   def flex q=nil
     return if !q
@@ -1061,32 +1007,7 @@ class RObject
     style['-webkit-box-flex'] = i
   end
 end
-class List < Grid
-  def initialize *o
-    super
-    @on_item_select = @on_item_activate = proc do |q| p q end
-  end
-  def get_row c
-    r = @rows.find do |r|
-      r.cells.index(c)
-    end
-    return nil if !r
-    ri = @rows.index(r)  
-  end
-  def on_item_activate &b
-    @on_item_activate = b
-  end
-  def on_item_select &b
-    @on_item_select = b
-  end
-  
-  def item_activated idx
-    @on_item_activate.call idx
-  end
-  def item_selected idx
-    @on_item_select.call idx
-  end
-end
+
 
 class LoadingSpinner < RObject
   class Bar < RObject
@@ -1144,3 +1065,128 @@ class Audio < RObject
     play()
   end
 end
+module Rwt
+  module Util
+    class Timer
+      attr_reader :interval,:timer_func,:timer,:t_index,:globj
+      def initialize ctx,interval=30,&b
+        @interval = interval
+        @globj = ctx.get_global_object
+      
+        @t_index = globj['timers'].length
+        c = nil
+        
+        @timer_func = JS::Object.new ctx do
+          if !stopped?
+          @timer = globj.setTimeout("timers[#{@t_index}]()",@interval);
+          b.call if b and c
+          c = true
+          end
+        end
+        
+        globj['timers'][@t_index] = @timer_func
+      end
+      def interval= i
+        raise "Argument must be Numeric" unless i.is_a?(Numeric)
+        @interval = i
+      end
+      def run
+        raise "Timer removed" if removed?
+        return if @timer
+        @timer_func.call
+        nil
+      end
+      def start
+        raise "Timer removed" if removed?
+        @stopped = false
+        @timer_func.call
+      end
+      def stop
+        raise "Timer removed" if removed?
+        @stop = true
+      end
+      def stopped?
+        !!@stop
+      end
+      def remove!
+        return if removed?
+        stop
+        @globj['timers'][@t_index]=:undefined
+        @timer_func = nil
+        @timer = nil
+        @removed = true
+      end
+      def removed?
+        !!@removed
+      end
+    end
+  
+    class Que < Array
+      attr_reader :callbacks,:timer
+      def initialize ctx,i=30
+        @callbacks = {}
+        @timer = Timer.new(ctx,i) do
+          self.check
+        end
+        super()
+      end
+      def add sym, &b
+        @callbacks[sym] = b
+      end
+      def check
+        raise "Que removed" if removed?
+        return if empty?
+a = shift
+          a.each_pair do |k,v|
+            if (cb=@callbacks[k]).respond_to?(:call)
+              cb.call v
+            elsif respond_to?(k)
+              send(k,v)
+            end
+          end
+
+      end
+      def run
+        raise "Que removed" if removed?
+        @timer.run
+      end
+      def stop
+        @timer.stop
+      end
+      def start
+        @timer.start
+      end
+      def stopped?
+        @timer.stopped?
+      end
+      def remove!
+        @timer.remove!
+      end
+      def removed?
+        @timer.removed?
+      end
+    end
+  end
+end
+class RObject
+  def set_loading
+    @ld_que ||= Rwt::Util::Que.new context
+    load_indicator
+    @ld_que.add :load do |v|
+      load_indicator.hide
+    end
+    @ld_que.run
+  end
+  def set_loaded &b
+    @ld_que << {:load=>nil}
+    b.call
+  end
+  def que
+    if !@que 
+      @que = Rwt::Util::Que.new context
+      @que.run
+    end
+    @que
+  end
+end
+

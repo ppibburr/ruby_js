@@ -8,10 +8,10 @@ globj.Gtk = Gtk
 globj.GLib = GLib
 globj.GObject = GLib::Object
 JS.execute_script ctx,<<EOJS
-	w=Gtk.const_get('Window').new();
+	w=Gtk.Window.new();
 
 	w.signal_connect('show',function(){
-	  Ruby.send('puts','shown');
+	  Ruby.puts('shown');
 	});
 
 	w.signal_connect('delete-event',function() {
@@ -19,6 +19,10 @@ JS.execute_script ctx,<<EOJS
 	});
 
 	w.show_all();
+
+    GLib.Idle.add(200,function() {
+      Ruby.p('js');
+    });
 
 	Gtk.main();
 EOJS
