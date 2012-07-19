@@ -1,5 +1,5 @@
 
-#       test_property_name_array.rb
+#       html5.rb
              
 #		(The MIT License)
 #
@@ -24,32 +24,60 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-require File.join(File.dirname(__FILE__),'..','lib','JS')
+require 'gir_ffi'
+require 'JS/base'
 
-ctx = JS::GlobalContext.new(nil)
-obj = JS::Object.new(ctx)
-names = ['foo','bar','baz','moof']
+GirFFI.setup :WebKit,'3.0'
 
-names.each_with_index do |n,i|
-  obj[n] = "property #{i}"
+module WebKit::Lib
+  attach_function :webkit_web_frame_get_global_context,[:pointer],:pointer
 end
 
-names << 'myFunc'
-
-obj['myFunc'] = JS::Object.make_function_with_callback(ctx,'myFun') do
-  true
+c = WebKit::WebFrame
+c.class_eval do
+  define_method :get_global_context do
+    ptr = WebKit::Lib.webkit_web_frame_get_global_context(self)
+    JS::GlobalContext.new(:pointer=>ptr)
+  end
+  alias :global_context :get_global_context
+  define_method :get_global_object do
+    global_context.get_global_object
+  end
+  alias :global_object :get_global_object
 end
-p obj;
 
-if idx=[
-  obj.copy_property_names.get_count == names.count,
-  obj.properties == names,
-  obj.properties[2] == 'baz',
-  'baz' == obj.copy_property_names.get_name_at_index(2),
-  obj.functions == ['myFunc']
-].index(false) then
-  puts "#{File.basename(__FILE__)} test #{idx} failed"
-  exit(1)
-else
-  puts "#{File.basename(__FILE__)} all passed"
+module GLib::Lib
+  attach_function :g_list_nth_data,[:pointer,:int],:pointer
+  attach_function :g_list_length,[:pointer],:int
+end
+
+c = GObject::Object
+c.class_eval do
+  define_method :signal_connect do |*o,&b|
+    GObject.signal_connect self,*o,&b
+  end
+end
+
+c = GLib::List
+c.class_eval do
+  def nth_data i
+    pt = GLib::Lib.g_list_nth_data self,i
+  end
+  def length
+    GLib::Lib::g_list_length self
+  end
+end
+
+
+c = Gtk::Menu
+c.class_eval do
+  def children
+    glist = get_children
+    a = []
+    for i in 1..glist.length
+      q = glist.nth_data i-1
+      a << GirFFI::ArgHelper.object_pointer_to_object(q)
+    end
+    a
+  end
 end

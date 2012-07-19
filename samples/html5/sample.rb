@@ -1,20 +1,14 @@
-require File.join(File.expand_path(File.dirname(__FILE__)),'lib','app')
-
+require 'JS/html5/app'
+      
 class App < RubyJS::App
-  def initialize *o
-    super
-    onload do
-      body = global_object.document.body
-      body.innerText = "Hello World"
-      body.onclick = method(:click)
-    end
-  end
+  body = "<body><div id=b1 class=button>click me</div></body>"
+  HTML = RubyJS::App::HTML.gsub(/\<body\>.*\<\/body\>/,body)
   
-  def click target,event
-    global_object.alert([target,event])
+  def on_ready *o
+    xui("#b1").on "click" do
+	  alert 1
+	end
   end
 end
 
-App.run do |app| 
-  app.display
-end
+app = App.run

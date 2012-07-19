@@ -1,5 +1,5 @@
 
-#       test_property_name_array.rb
+#       base_object.rb
              
 #		(The MIT License)
 #
@@ -24,32 +24,41 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-require File.join(File.dirname(__FILE__),'..','lib','JS')
 
-ctx = JS::GlobalContext.new(nil)
-obj = JS::Object.new(ctx)
-names = ['foo','bar','baz','moof']
-
-names.each_with_index do |n,i|
-  obj[n] = "property #{i}"
+module JS
+  class BaseObject < FFI::AutoPointer
+    OBJECTS = {}
+      attr_accessor :pointer
+	  def self.release ptr
+		# puts "#{ptr} released"
+		if is_a?(JS::Object)
+		  OBJECTS.delete(ptr.address)
+		  nil
+		elsif is_a?(JS::PropertyNameArray)
+		  puts "name array"
+		end
+	  end
+	  
+	  def self.is_wrapped?(ptr)
+		  OBJECTS[ptr.address]
+	  end
+	  
+	  def initialize(ptr)
+		@pointer = ptr
+		super
+		if self.is_a?(JS::Object)
+		  OBJECTS[ptr.address] = self
+		end
+	  end
+	  
+	  def to_ptr
+		@pointer
+	  end
+	end
 end
 
-names << 'myFunc'
-
-obj['myFunc'] = JS::Object.make_function_with_callback(ctx,'myFun') do
-  true
+def check_use ptr
+  nil
 end
-p obj;
-
-if idx=[
-  obj.copy_property_names.get_count == names.count,
-  obj.properties == names,
-  obj.properties[2] == 'baz',
-  'baz' == obj.copy_property_names.get_name_at_index(2),
-  obj.functions == ['myFunc']
-].index(false) then
-  puts "#{File.basename(__FILE__)} test #{idx} failed"
-  exit(1)
-else
-  puts "#{File.basename(__FILE__)} all passed"
-end
+    
+    

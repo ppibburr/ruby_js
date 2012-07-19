@@ -163,6 +163,8 @@ class JS < Library
          
 	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','props2methods.rb')
 	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','base.rb') 
+	  add_optional_require File.join(File.dirname(__FILE__),'hard_code','html5.rb')
+  
      	  	  
 	  @ifaces << Object.new()
 	  @ifaces << Value.new()

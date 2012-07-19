@@ -1,9 +1,9 @@
-require File.join(File.dirname(__FILE__),'html5')
+require File.join(File.dirname(__FILE__),'..','html5')
 module RubyJS
   class App
-    HTML = "<html><body></body></html>"
+    HTML = "<html><script type='text/javascript' src='file://#{File.expand_path(File.dirname(__FILE__))}/resource/xui.js'></script><body>hi</body></html>"
     attr_reader :shell,:vbox,:view,:top_child
-    def initialize html=HTML,base_uri=nil
+    def initialize html=HTML,base_uri="File://#{File.dirname(__FILE__)}"
       @shell = Gtk::Window.new :toplevel
       @vbox = Gtk::VBox.new false,0
       @top_child = Gtk::VBox.new false,0
@@ -23,6 +23,8 @@ module RubyJS
         on_exit
       end   
       
+      #p view.get_settings.set_property("enable-universal-access-from-file-uris",true)
+      
       view.signal_connect "populate-popup" do |*o|
         show_popup o[1]
       end
@@ -30,30 +32,39 @@ module RubyJS
       view.signal_connect "load-finished" do |*o|
         (@_onload_cb||proc do |*o| true  end).call *o
       end
+      
+
+      view.signal_connect "load-started" do
+        global_object.handler = method(:on_ready)
+      end
+    end
+    
+    def global_object
+      @global_object ||= view.get_main_frame.global_object
+    end
+    
+    def xui *o,&b
+      global_object["x$"].call(*o,&b)
     end
     
     def show_popup menu
   	  items = menu.children
-	  case q=items[0].get_label.gsub(/^\_/,'')
-	  when /^Back/
-	    # navigation
-	    navigate_menu(menu)
-	  when /^Cut/
-	    # edit menu
-	    edit_menu(menu)
-  	  when /^Open Link/
-	    # /link menu/
-	    link_menu(menu)
-	  when /^Open \_Image/
-        image_menu(menu)
-      when /^Copy/
-        copy_menu(menu)
-	  else
-	  end
-    end
-    
-    def global_object
-      view.get_main_frame.global_object
+      case q=items[0].get_label.gsub(/^\_/,'')
+      when /^Back/
+        # navigation
+        navigate_menu(menu)
+      when /^Cut/
+        # edit menu
+        edit_menu(menu)
+        when /^Open Link/
+        # /link menu/
+        link_menu(menu)
+      when /^Open \_Image/
+          image_menu(menu)
+        when /^Copy/
+          copy_menu(menu)
+      else
+      end
     end
     
     def on_exit
@@ -68,16 +79,16 @@ module RubyJS
       view.load_html_string @html,@base_uri    
     end
     
-    def run &b
-      b.call self
+    def run
+      view.load_html_string(self.class::HTML,@base_uri)
       shell.show_all
       Gtk.main
     end
     
-    def self.run &b
+    def self.run
       Gtk.init []
       app = self.new
-      app.run &b
+      app.run
       return app
     end
     
@@ -92,9 +103,11 @@ module RubyJS
         label = c.get_label.gsub(/^\_/,'')
         c.destroy unless label =~ /Copy Link/ || label =~ /Download/
       end
+      
       menu.append i=Gtk::MenuItem.new()
       i.set_label "Open With"
       i.show
+      
       i.signal_connect "activate" do
         global_object.alert("Foo")
       end    
@@ -115,21 +128,32 @@ module RubyJS
     end
     
     def preload &b
-      view.signal_connect "load-started" do
-        b.call view.get_main_frame.get_global_object
+      @on_preload_cb = b
+    end
+    
+    def on_ready()
+    end
+    
+    def method_missing m,*o,&b
+      if global_object.has_property(m.to_s)
+        if (prop=global_object[m]).is_function
+          return prop.call(*o,&b)
+        else
+          return prop
+        end
       end
+      super
+    rescue
+      super
     end
   end
 end
 
 if __FILE__ == $0
-	RubyJS::App.run do |app|
-	  app.onload do |*o|
-	  app.preload do |a|
-	  
-	  end
-		app.global_object.alert("Hello World")
-	  end
-	  app.display
+    class App < RubyJS::App
+      def on_ready(this)
+        alert "hi"
+      end
 	end
+	App.run
 end

@@ -24,7 +24,8 @@ val = JS.execute_script ctx,<<EOJS
 	  return arg1 + 1;
 	});
 EOJS
-
+globj['foo'] = method(:p)
+globj.foo 11
 if (val.map do |f| f.floor end) == [1,2,3]
   puts "test :#{__FILE__}; passed" 
 else

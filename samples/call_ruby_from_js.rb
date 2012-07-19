@@ -19,9 +19,11 @@ JS.execute_script ctx,<<EOJS
 	});
 
 	w.show_all();
-
+    cnt = 0;
     GLib.Idle.add(200,function() {
-      Ruby.p('js');
+      d = Ruby.p('js');
+      cnt++;
+      return cnt < 3 ? true : false;
     });
 
 	Gtk.main();
