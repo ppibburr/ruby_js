@@ -1,7 +1,11 @@
 require File.join(File.dirname(__FILE__),'..','html5')
 module RubyJS
   class App
-    HTML = "<html><script type='text/javascript' src='file://#{File.expand_path(File.dirname(__FILE__))}/resource/xui.js'></script><body>hi</body></html>"
+    def self.file_rel_to path,rel=File.dirname(__FILE__)
+      "file://#{File.expand_path(rel)}/#{path}"
+    end
+    
+    HTML = "<html><head><link rel='stylesheet' type='text/css' href='#{file_rel_to('resource/styles.css')}'><script type='text/javascript' src='#{file_rel_to('resource/xui.js')}'></script></head><body><div class='button'>hi</div></body></html>"
     attr_reader :shell,:vbox,:view,:top_child
     def initialize html=HTML,base_uri="File://#{File.dirname(__FILE__)}"
       @shell = Gtk::Window.new :toplevel
@@ -153,6 +157,7 @@ if __FILE__ == $0
     class App < RubyJS::App
       def on_ready(this)
         alert "hi"
+        p document.documentElement.outerHTML
       end
 	end
 	App.run
