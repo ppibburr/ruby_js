@@ -11,7 +11,7 @@ RubyJS
       html5       (HtmlDOM in a WebKit::WebView)
       enviroment  (Desktop HTML5 Application develoment library (Gtk2))
 
-![ExtJS from ruby](http://i1263.photobucket.com/albums/ii631/ppibburr/rubyjs_extjs.png)
+![ExtJS from ruby](http://i1263.photobucket.com/albums/ii631/ppibburr/ss1.png)
 
 Example
 ---
