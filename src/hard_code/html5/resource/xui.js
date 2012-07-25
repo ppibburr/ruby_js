@@ -1487,4 +1487,11 @@ xui.extend({
 
 }(this, document);
 })();
-x$.ready(handler);
+x$.ready(function(){
+	//alert(x$("#b1").getStyle("top"));
+	//x$("#b1")[0].style.position = "absolute";
+	//x$("#b1")[0].style.left = "0px";
+    //x$("#b1")[0].style['background-color']='#cecece';
+	//x$('#b1').tween({ left:'100px', 'background-color':'#339900',duration:5500 });
+	handler();
+});

@@ -84,12 +84,16 @@ class JS::Object
     else
       return super sym,*o,&b
     end
-    
     if r.is_a?(JS::Object) and r.is_function
       return r.call(*o,&b)
     end
+    if r.is_a?(Symbol) and r == :undefined
+      return super
+    end
     r
   rescue => e
-    raise e
+    p sym
+    p e.backtrace.join("\n")
+    super
   end
 end
