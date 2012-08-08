@@ -1,10 +1,16 @@
 RubyJS
 ===
-    RubyJS is a library that uses FFI to provide bindings to JavaScript and WebKit from libwebkitgtk-1.0 (WebKit)
-    allowing Full access to JavaScript and any JavaScript library
+    RubyJS is a Ruby library that uses FFI to provide bindings to JavaScript and WebKit from libwebkitgtk (WebKit)
+    allowing Full access to JavaScript and any JavaScript library and Full access from JavaScript to Ruby
 
     This library enables ruby scripts to create JS objects, call functions, get/set properties, create callbacks. 
     As well, JavaScript scripts can call ruby methods, access objects.
+
+    The essential goal of this library is to provide means of creating HTML5 applications from within Ruby.
+    Interestingly, Desktop applications can be wrote in JavaScript, by setting a RubyObject in a context
+    see the samples directory
+
+    Using this library you can write a desktop application that leverages full HTML5 features
 
     This is the core package in a suite of planned ruby_js packages
       core        (non-HtmlDOM)
@@ -37,7 +43,7 @@ JS.execute_script ctx,<<EOJS
 	w=Gtk.const_get('Window').new();
 
 	w.signal_connect('show',function(){
-	  Ruby.send('puts','shown');
+	  Ruby.puts('shown');
 	});
 
 	w.signal_connect('delete-event',function() {
@@ -49,12 +55,31 @@ JS.execute_script ctx,<<EOJS
 	Gtk.main();
 EOJS
 ```
+```
+	Thread.new(function() {
+	  p("i'm in a thread");
+	});
+
+	sleep(1);
+
+	puts("OK! heres my source ...");
+	puts(File.read(__FILE__));
+
+	File.open("test.txt",'w',function(f) {
+	 f.puts("tree");
+	});
+
+	puts("This is what i wrote to test.txt ...")
+	puts(File.read("test.txt"));
+
+	exit(0);
+```
 
 Getting Started
 ---
   Required:
   ---
-    1. Gtk2, either the gem, distro package or some typelib information for GirFFI (gem i gir_ffi)
+    1. gir_ffi ~> 0.3.1 (system must meet its requirements)
     2. rake
   
   Install:
