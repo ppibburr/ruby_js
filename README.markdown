@@ -55,7 +55,8 @@ JS.execute_script ctx,<<EOJS
 	Gtk.main();
 EOJS
 ```
-```
+``` javascript
+    // JavaScript file ran by: bin/run_js file.js
 	Thread.new(function() {
 	  p("i'm in a thread");
 	});
