@@ -1,11 +1,7 @@
 require 'rubygems'
 require 'JS/html5'
-<<<<<<< HEAD
-p __FILE__
 require 'JS/html5/helpers/gir_ffi/subclass_normalize'
 
-=======
->>>>>>> a2f3fdf4008feb3ba86c81e57fad2f27c1a59e6d
 module RubyJS
   class Config
     # path to included resources
@@ -214,35 +210,12 @@ module RubyJS
   end
     
   class View < WebKit::WebView 
-<<<<<<< HEAD
-=======
-    @@_instances = {}
-    
-    def self.instances
-      @@_instances
-    end
-    
-    class << self
-      alias :_new :new
-      alias :_wrap :wrap
-    end
-    
-    def self.wrap ptr
-      q = instances[ptr.address]
-      return q if q
-      raise "Wrapping of a subclassed View or View, that wasnt created by ruby?? "
-    end
-    
->>>>>>> a2f3fdf4008feb3ba86c81e57fad2f27c1a59e6d
     attr_accessor :html
     attr_reader :ruby_object
     alias :_init :initialize   
     
     def initialize ruby_object=self,*o
-<<<<<<< HEAD
       super()
-=======
->>>>>>> a2f3fdf4008feb3ba86c81e57fad2f27c1a59e6d
       @ruby_object = ruby_object
       @html = RubyJS.default_html
       
@@ -298,18 +271,6 @@ module RubyJS
     def load_finished
     p :finish
     end
-<<<<<<< HEAD
-=======
-    
-    def self.new *o
-      obj = alloc
-      ptr = RubyJS::View.superclass.new().to_ptr
-      @@_instances[ptr.address] = obj
-      obj.send :_init,ptr
-      obj.send :initialize,*o
-      obj
-    end
->>>>>>> a2f3fdf4008feb3ba86c81e57fad2f27c1a59e6d
   end
 end
 
@@ -333,29 +294,9 @@ module RubyJS
     end
     
     class Shell < Gtk::Window
-<<<<<<< HEAD
       attr_accessor :root,:header,:content,:footer,:views
       def initialize application,*o
         super(:toplevel)
-=======
-      @@_instances = {}
-      def self.instances
-        @@_instances
-      end
-      class << self
-        alias :_new :new
-        alias :_wrap :wrap
-      end
-      alias :_init :initialize      
-      def self.wrap ptr
-        q = instances[ptr.address]
-        return q if q
-        raise "Wrapping of a subclassed Shell or Shell, that wasnt created by ruby?? "
-      end  
-    
-      attr_accessor :root,:header,:content,:footer,:views
-      def initialize application,*o
->>>>>>> a2f3fdf4008feb3ba86c81e57fad2f27c1a59e6d
         @application = application
         @views = []
         
@@ -386,18 +327,6 @@ module RubyJS
         @views << view
         view
       end
-<<<<<<< HEAD
-=======
-      
-      def self.new *o
-        obj = alloc
-        ptr = RubyJS::App::Shell.superclass.new(:toplevel).to_ptr
-        @@_instances[ptr.address] = obj
-        obj.send :_init,ptr
-        obj.send :initialize,*o
-        obj
-      end
->>>>>>> a2f3fdf4008feb3ba86c81e57fad2f27c1a59e6d
     end
     
     attr_reader :shells
