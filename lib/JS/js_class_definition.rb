@@ -24,6 +24,8 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
+
+
 module JS
   module Lib
     typedef :pointer,:JSClassAttributes
@@ -62,11 +64,8 @@ module JS
       :callAsConstructor,:JSObjectCallAsConstructorCallback,
       :hasInstance,:JSObjectHasInstanceCallback,
       :convertToType,:JSObjectConvertToTypeCallback
+     
     end
-  end
-  
-  class ClassDefinition < Lib::JSClassDefinition
-  
   end
 end
 

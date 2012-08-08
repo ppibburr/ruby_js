@@ -2,7 +2,7 @@ require File.join(File.dirname(__FILE__),'..','lib','JS/base')
 
 ctx = JS::GlobalContext.new(nil)
 # see JS/js_class_definition.rb for info about the struct
-defi = JS::ClassDefinition.new
+defi = JS::Lib::JSClassDefinition.new
 defi[:version] = 0 # must be set
 defi[:className] = FFI::MemoryPointer.from_string("MyClass")
 

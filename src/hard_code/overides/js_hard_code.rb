@@ -310,6 +310,10 @@ end
 module JS
   class Object
     include Enumerable
+    # jruby needs this
+    def length
+      self[:length]
+    end
     def each
       if JS::Object.is_array(context,self)
         for i in 0..length-1

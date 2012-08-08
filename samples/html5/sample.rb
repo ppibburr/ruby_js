@@ -1,5 +1,5 @@
 require 'JS/html5/app'
-      
+
 class MyApp < RubyJS::App; 
 	def button_clicked this
 	  shells[0].views[0].alert this
