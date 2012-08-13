@@ -24,6 +24,14 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
+if !defined?(GObjectIntrospection)
+  begin
+    require 'gir_ffi'
+  rescue => LoadError
+    require 'rubygems'
+    require 'gir_ffi'
+  end
+end
 
 module JS
   if !defined?(self::WEBKIT_VERSION)
