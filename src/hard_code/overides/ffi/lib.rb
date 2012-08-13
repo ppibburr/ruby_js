@@ -24,7 +24,11 @@
 #		TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #		SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
+
 module JS
+  if !defined?(self::WEBKIT_VERSION)
+    WEBKIT_VERSION = 3.0
+  end
   module Lib
     require "#{File.dirname(__FILE__)}/base_object"
     require File.join(File.dirname(__FILE__),'Object')
@@ -37,7 +41,11 @@ module JS
     require File.join(File.dirname(__FILE__),'PropertyNameArray')
 
     extend FFI::Library
-    ffi_lib 'libwebkitgtk-3.0'
+    @gir = GObjectIntrospection::IRepository.default
+    @gir.require "WebKit", JS::WEBKIT_VERSION.to_s
+    a = @gir.shared_library("WebKit").split(",")
+    lib = a.find do |q| q =~ /webkit/ end
+    ffi_lib lib
 
     typedef :pointer,:JSClassRef
     typedef :pointer,:JSObjectRef
