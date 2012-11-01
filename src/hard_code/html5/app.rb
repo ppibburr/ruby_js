@@ -6,7 +6,8 @@ module RubyJS
   class Config
     # path to included resources
     def self.path
-      "file:///home/ppibburr/sync/ruby_js/src/hard_code/html5/"
+      pth = "#{File.dirname(__FILE__)}"
+      pth = "file://#{File.expand_path(pth)}"
     end
   end
   
@@ -233,10 +234,7 @@ module RubyJS
     end
     
     def dom_ready this
-      p :dom_ready
-      b1!.on "click" do
-        Gtk.main_quit
-      end
+
     end
     
     def method_missing m,*o,&b
@@ -269,7 +267,7 @@ module RubyJS
     end
     
     def load_finished
-    p :finish
+    
     end
   end
 end
