@@ -1,5 +1,17 @@
+NOTE
+===
+    This project is being separated into several projects
+    
+    gir_ffi-webkit          - rubify and provide aditional WebKitGTK api access
+    ffi-webkit-js           - pull ruby_ffi-javascriptcore in to gir_ffi-webkit
+    ffi-webkit-dom          - rubify WebKitDOM usage and provide additional api access
+    ruby_ffi-javascriptcore - bride between javascript and ruby
+    ruby-html5              - ties in all the above for an HTML5 frontend to ruby
+    rubyscript-browser      - allows ruby to be served just like javascript
+
 RubyJS
 ===
+
     RubyJS is a Ruby library that uses FFI to provide bindings to JavaScript and WebKit from libwebkitgtk (WebKit)
     allowing Full access to JavaScript and any JavaScript library and Full access from JavaScript to Ruby
 
