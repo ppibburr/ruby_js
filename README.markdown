@@ -1,13 +1,13 @@
 NOTE
 ===
-    This project is being separated into several projects
+This project is being separated into several projects
     
-    gir_ffi-webkit          - rubify and provide aditional WebKitGTK api access
-    ffi-webkit-js           - pull ruby_ffi-javascriptcore in to gir_ffi-webkit
-    ffi-webkit-dom          - rubify WebKitDOM usage and provide additional api access
-    ruby_ffi-javascriptcore - bride between javascript and ruby
-    ruby-html5              - ties in all the above for an HTML5 frontend to ruby
-    rubyscript-browser      - allows ruby to be served just like javascript
+*  gir_ffi-webkit          - rubify and provide aditional WebKitGTK api access*
+*  ffi-webkit-js           - pull ruby_ffi-javascriptcore in to gir_ffi-webkit*
+*  ffi-webkit-dom          - rubify WebKitDOM usage and provide additional api access*
+*  [ruby_ffi-javascriptcore](https://github.com/ppibburr/ruby_ffi-javascriptcore) - bride between javascript and ruby*
+*  ruby-html5              - ties in all the above for an HTML5 frontend to ruby*
+*  rubyscript-browser      - allows ruby to be served just like javascript*
 
 RubyJS
 ===
